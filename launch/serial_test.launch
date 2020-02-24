@@ -1,0 +1,9 @@
+<launch>
+  <node pkg="rosserial_python" type="serial_node.py" name="serial_node">
+    <param name="port" value="/dev/ttyUSB0"/>
+    <param name="baud" value="57600"/>
+  </node>
+  <node pkg="ros_farmer_pc" type="relay_test.py" name="relay_test" output="log" respawn="false">
+         <param name="~relay_1_sub_name" value="relay_1_sub"/>
+    </node>
+</launch>
