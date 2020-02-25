@@ -107,7 +107,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
    LIBRARIES ros_farmer_pc
-   CATKIN_DEPENDS message_generation message_runtime roscpp rospy rosserial
+   CATKIN_DEPENDS message_generation message_runtime roscpp rospy
 #  DEPENDS system_lib
 )
 
@@ -163,6 +163,7 @@ include_directories(
 ## in contrast to setup.py, you can choose the destination
 install(PROGRAMS
    scripts/test_scripts/relay_test.py
+   scripts/test_scripts/one_channel_relay_test.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
