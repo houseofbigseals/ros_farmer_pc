@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#from typing import Tuple, Optional
+# from typing import Tuple, Optional
 import serial
 import logging
 import six
 from time import sleep
 import sys
+
+from future import *
 
 # there must be uart wrapper object that realizes all
 # methods for communication with our GIC
@@ -17,10 +19,12 @@ import sys
 #
 # ./pycrc.py --model=ccitt --generate table
 
-logger = logging.getLogger('Worker.Units.Led_wrapper.LedUartWrapper')
-handler = logging.StreamHandler(sys.stdout)
-handler.setLevel(logging.DEBUG)
-logger.addHandler(handler)
+# logging = logging.getLogger('Worker.Units.Led_wrapper.LedUartWrapper')
+# logger = logging.getLogger('LedUartWrapper')
+logging.basicConfig(level=logging.DEBUG)
+# handler = logging.StreamHandler(sys.stdout)
+# handler.setLevel(logging.DEBUG)
+# logger.addHandler(handler)
 
 CRC16_CCITT_TAB = \
     [
@@ -75,10 +79,11 @@ class UartWrapper:
     #        0x55     0xAA    0x02  0x02   0x07   0x34     0x12
     #     SET_C b'\x55\xCC\x04\x0B\x01\x00\x00\x25\xB1')
     """
+
     def __init__(self,
-                 devname = '/dev/ttyUSB0',
-                 baudrate = 19200,
-                 timeout = 10
+                 devname='/dev/ttyUSB0',
+                 baudrate=19200,
+                 timeout=10
                  ):
         self.dev = devname
         self.baud = baudrate
@@ -86,98 +91,127 @@ class UartWrapper:
 
     def send_command(self,
                      com,
-                     log_comment= None
+                     log_comment=None
                      ):
         ans = None
-        logger.debug("-------------------------------")
-        if(log_comment):
-            logger.debug("Sending {}".format(log_comment))
+        logging.debug("-------------------------------")
+        if (log_comment):
+            logging.debug("Sending {}".format(log_comment))
         else:
-            logger.debug("We want to send this:")
-        logger.debug(self.parse_command(com))
+            logging.debug("We want to send this:")
+        logging.debug(self.parse_command(com))
         try:
             ser = serial.Serial(port=self.dev, baudrate=self.baud, timeout=self.timeout)
             ser.write(com)
         except Exception as e:
-            logger.debug("Error happened while write: {}".format(e))
-            logger.debug("-------------------------------")
+            logging.debug("Error happened while write: {}".format(e))
+            logging.debug("-------------------------------")
             return ans
 
         try:
-            ans = ser.read(len(com))
+            ans = ser.read(len(com))  # returns str in python2, oooooff
+            logging.debug("We  have read {} bytes".format(len(ans)))
+
+
         except Exception as e:
-            logger.debug("Error happened while read: {}".format(e))
-            logger.debug("-------------------------------")
+            logging.debug("Error happened while read: {}".format(e))
+            logging.debug("-------------------------------")
             return ans
 
-        if(not ans or (len(ans) != len(com))):
-            logger.debug("Broken answer from GIC: {}".format(ans))
-            logger.debug("-------------------------------")
+        if (not ans or (len(ans) != len(com))):
+            logging.debug("Broken answer from GIC: {}".format(ans))
+            logging.debug("-------------------------------")
         else:
-            logger.debug("Succesfully got answer from GIC:")
-            logger.debug(self.parse_command(ans))
-        return ans
+            logging.debug("Succesfully got answer from GIC:")
+
+            # lets try to decode to int
+            byte_ans = bytearray()
+            for b_ in ans:
+                b_decoded = ord(b_)  # important when encode ser.read() output back to int
+                logging.debug("Decoded answer byte: {}".format(hex(b_decoded)))
+                byte_ans.extend([b_decoded])
+
+            logging.debug(self.parse_command(byte_ans))
+            return byte_ans
 
     def parse_command(self, com):
         # parse content of command
         data_length = com[2]
         length = len(com)
         parsed_output = ""
-        logger.debug("-------------------------------")
-        logger.debug("Parsed command {} ".format(com.hex()))
-        logger.debug("{} - header byte ".format(hex(com[0])))
-        logger.debug("{} - destination byte".format(hex(com[1])))
-        logger.debug("{} - length of command".format(hex(com[2])))
-        logger.debug("{} - type of command".format(hex(com[3])))
+        logging.debug("-------------------------------")
+        logging.debug("Parsed command ")
+        for b_ in com:
+            #logging.debug("{} - type of raw byte".format(type(b_)))
+            logging.debug("{} - type of raw byte, and hex value of it {} ".format(type(b_), hex(b_)))
+            #logging.debug("{} - raw byte ".format(hex(b_)))
+        logging.debug("------------------")
+        logging.debug("{} - header byte ".format(hex(com[0])))
+        logging.debug("{} - destination byte".format(hex(com[1])))
+        logging.debug("{} - length of command".format(hex(com[2])))
+        logging.debug("{} - type of command".format(hex(com[3])))
         if data_length > 1:
             # parse content of command
             for i in range(4, 4 + data_length - 1):
-                logger.debug("{} - data byte".format(hex(com[i])))
+                logging.debug("{} - data byte".format(hex(com[i])))
         else:
             pass
-        logger.debug("{} - last byte of CRC16 ccitt control sum".format(hex(com[length - 2])))
-        logger.debug("{} - first byte of CRC16 ccitt control sum".format(hex(com[length - 1])))
-        logger.debug("-------------------------------")
+        logging.debug("{} - last byte of CRC16 ccitt control sum".format(hex(com[length - 2])))
+        logging.debug("{} - first byte of CRC16 ccitt control sum".format(hex(com[length - 1])))
+        logging.debug("-------------------------------")
         return parsed_output
 
     def create_command(self,
-                       preamble = b'\x55',
-                       direction = b'\xCC',
-                       length = None,
-                       ctype = b'\x01',
-                       data = None
+                       preamble=0x55,
+                       direction=0xCC,
+                       length=None,
+                       ctype=0x01,
+                       data=None
                        ):
         command = bytearray()
         # print("preamble ", preamble)
-        command.extend(preamble)
+        command.extend([preamble])
         # print("direction ", direction)
-        command.extend(direction)
-        if(not length):
+        command.extend([direction])
+        if (not length):
             # length of command is length of data + 1 byte of command_type
-            if(data):
-                lenn = len(bytearray(data)) + 1
-                length = int.to_bytes(lenn, 1, byteorder = 'big')
-                command.extend(length)
+            if (data):
+                length = len(bytearray(data)) + 1
+                # split and add to length
+
+                # length = int.to_bytes(lenn, 1, byteorder = 'big')
+                command.extend([length])
             else:
-                length = b'\x01'
-                command.extend(length)
+                length = 0x01
+                command.extend([length])
         else:
-            command.extend(length)
+            command.extend([length])
         # print("length ", length)
         # print("ctype ", ctype)
-        command.extend(ctype)
-        if(data):
+        command.extend([ctype])
+        if (data):
+            # data must be list or none
             command.extend(data)
-        # print("data ", data)
+            # print("data ", data)
         # crc should be calculated only for LENGTH | TYPE | DATA fields
         payload = bytearray()
-        payload.extend(length)
-        payload.extend(ctype)
-        if(data):
+        payload.extend([length])
+        payload.extend([ctype])
+        if (data):
             payload.extend(data)
-        crc_raw = self.crc16_ccitt(payload)
-        # print("crc_raw ", hex(crc_raw))
-        crc_bytes = crc_raw.to_bytes(2, byteorder='little')  # byteorder='little'
+        crc_raw = self.crc16_ccitt(payload)  # returns int
+        logging.debug("{} - crc raw ".format(hex(crc_raw)))
+        # crc_bytes = crc_raw.to_bytes(2, byteorder='little')  # byteorder='little'
+
+        first_byte = ((crc_raw & 0xff00) >> 8)
+        last_byte = (crc_raw & 0x00ff)
+
+        logging.debug("{} - first crc byte".format(hex(first_byte)))
+
+        logging.debug("{} - last crc byte".format(hex(last_byte)))
+        # then reorder
+        crc_bytes = bytearray([last_byte, first_byte])
+
         # its important
         # print("crc_bytes ", crc_bytes)
         command.extend(crc_bytes)
@@ -200,33 +234,41 @@ class UartWrapper:
         then the resultant checksum from this function should be 0.
         """
         tab = CRC16_CCITT_TAB  # minor optimization (now in locals)
-        for byte in six.iterbytes(data_):
+        # for byte in six.iterbytes(data_):
+        for byte in data_:
+            logging.debug("current byte is{}".format(hex(byte)))
             crc = (((crc << 8) & 0xff00) ^ tab[((crc >> 8) & 0xff) ^ byte])
+            logging.debug("current crc is{}".format( hex(byte)))
+        #print(hex(crc & 0xffff))
+        logging.debug("final crc is {}".format(hex(crc & 0xffff)))
         return crc & 0xffff
 
     def simple_command(self,
-                       ACK= b'\x00',
-                       NACK= b'\x80',
-                       ctype = b'\x00',
-                       data = None,
-                       name = None
+                       ACK=0x00,
+                       NACK=0x80,
+                       ctype=0x00,
+                       data=None,
+                       name=None
                        ):
+
+        # data is list of ints or None
+
         # there is a simple command template
         command = self.create_command(ctype=ctype, data=data)
         ans = self.send_command(command, log_comment=name)
         if ans:
             answer = bytearray(ans)
             if ACK in answer:
-                logger.debug("There is ACK flag 0x{} in answer ".format(ACK.hex()))
-                logger.debug("-------------------------------")
+                logging.debug("There is ACK flag {} in answer ".format(hex(ACK)))
+                logging.debug("-------------------------------")
             if NACK in answer:
-                logger.debug("There is NACK flag 0x{} in answer ".format(NACK.hex()))
-                logger.debug("Something went wrong in GIC")
-                logger.debug("-------------------------------")
+                logging.debug("There is NACK flag {} in answer ".format(hex(NACK)))
+                logging.debug("Something went wrong in GIC")
+                logging.debug("-------------------------------")
             return ans
         else:
-            logger.debug("Something went wrong, we got no answer")
-            logger.debug("-------------------------------")
+            logging.debug("Something went wrong, we got no answer")
+            logging.debug("-------------------------------")
             return ans
 
     def PING_PONG(self):
@@ -238,75 +280,74 @@ class UartWrapper:
         # there we must parse data in answer
         # but maybe later
         return self.simple_command(
-                        ACK= b'\x01',
-                        NACK=b'\x81',
-                        ctype=b'\x01',
-                        data=None,
-                        name="GET_STATUS"
-                       )
+            ACK=0x01,
+            NACK=0x81,
+            ctype=0x01,
+            data=None,
+            name="GET_STATUS"
+        )
 
     def START(self):
         # START = bytearray(b'\x55\xCC\x01\x02\x7C\x0E')
         return self.simple_command(
-                        ACK= b'\x02',
-                        NACK=b'\x82',
-                        ctype=b'\x02',
-                        data=None,
-                        name="START"
-                       )
+            ACK=0x02,
+            NACK=0x82,
+            ctype=0x02,
+            data=None,
+            name="START"
+        )
 
     def STOP(self):
         # STOP = bytearray(b'\x55\xCC\x01\x03\x5D\x1E')
         return self.simple_command(
-                        ACK= b'\x03',
-                        NACK=b'\x83',
-                        ctype=b'\x03',
-                        data=None,
-                        name="STOP"
-                       )
+            ACK=0x03,
+            NACK=0x83,
+            ctype=0x03,
+            data=None,
+            name="STOP"
+        )
 
-    def GET_PROFILE(self, num = b'\x01'):
+    def GET_PROFILE(self, num=0x01):
         # GET_PROFILE = bytearray(b'\x55\xCC\x02\x04\x04\xBC\x2E')
         # -> DATA – uint8_t[0...4]
         # <- DATA – uProfile[1] – вернет требуемый профайл
         return self.simple_command(
-                        ACK= b'\x04',
-                        NACK=b'\x84',
-                        ctype=b'\x04',
-                        data=num,
-                        name="GET_PROFILE"
-                       )
+            ACK=0x04,
+            NACK=0x84,
+            ctype=0x04,
+            data=list(num),
+            name="GET_PROFILE"
+        )
 
     def START_CONFIGURE(self):
         # START_CONFIGURE = bytearray(b'\x55\xCC\x01\x05\x9B\x7E')
         return self.simple_command(
-                        ACK= b'\x05',
-                        NACK=b'\x85',
-                        ctype=b'\x05',
-                        data=None,
-                        name="START_CONFIGURE"
-                       )
+            ACK=0x05,
+            NACK=0x85,
+            ctype=0x05,
+            data=None,
+            name="START_CONFIGURE"
+        )
 
     def EXIT_WITHOUT_SAVING(self):
         # EXIT_WITHOUT_SAVING = bytearray(b'"\x55\xCC\x01\x06\xF8\x4E')
         return self.simple_command(
-                        ACK= b'\x06',
-                        NACK=b'\x86',
-                        ctype=b'\x06',
-                        data=None,
-                        name="EXIT_WITHOUT_SAVING"
-                       )
-
+            ACK=0x06,
+            NACK=0x86,
+            ctype=0x06,
+            data=None,
+            name="EXIT_WITHOUT_SAVING"
+        )
 
     def FINISH_CONFIGURE_WITH_SAVING(self):
         # FINISH_CONFIGURE_WITH_SAVING = bytearray(b'\x55\xCC\x01\x07\xD9\x5E')
         return self.simple_command(
-                        ACK= b'\x07',
-                        NACK=b'\x87',
-                        ctype=b'\x07',
-                        data=None,
-                        name="FINISH_CONFIGURE_WITH_SAVING"
-                       )
+            ACK=0x07,
+            NACK=0x87,
+            ctype=0x07,
+            data=None,
+            name="FINISH_CONFIGURE_WITH_SAVING"
+        )
 
     def SET_PROFILE(self):
         # WRONG CRC !!
@@ -319,21 +360,36 @@ class UartWrapper:
     def SAVE_PROFILE_TO_EEPROM(self):
         SAVE_PROFILE_TO_EEPROM = bytearray(b'\x55\xCC\x02\x0A\x00\x00\x00')
 
-    def SET_CURRENT(self, channel= 0, value= 200):
+    def SET_CURRENT(self, channel=0, value=100):
         # SET_CURRENT = bytearray(b'\x55\xCC\x04\x0B\x01\xE8\x03\x00\x00')
         # SET_CURRENT_200_1 = bytearray(b'\x55\xCC\x04\x0B\x01\xC8\x00\xD8\x2E')
         # SET_CURRENT_200_0 = bytearray(b'\x55\xCC\x04\x0B\x00\xC8\x00\xE8\x19')
         # SET_CURRENT_50_1 = bytearray(b'\x55\xCC\x04\x0B\x01\x32\x00\xD2\xD2')
         data = bytearray()
-        data.extend(int.to_bytes(channel, 1, byteorder='big'))
-        data.extend(int.to_bytes(value, 2, byteorder='little'))
+        data.extend([channel])
+        # split value bytes and add in little-endian to data
+        #
+        #       first_byte = ((crc_raw & 0xff00) >> 8)
+        #       last_byte = (crc_raw & 0x00ff)
+        #       logging.debug("current byte is{}".format(hex(byte)))
+
+        logging.debug("value raw {}".format(hex(value)))
+        # crc_bytes = crc_raw.to_bytes(2, byteorder='little')  # byteorder='little'
+        value_first_byte = ((value & 0xff00) >> 8)
+        logging.debug("value first byte {}".format(hex(value_first_byte)))#, value_first_byte)
+        value_last_byte = (value & 0x00ff)
+        logging.debug("value last byte {}".format(hex(value_last_byte)))#, value_last_byte)
+        # data.extend(int.to_bytes(channel, 1, byteorder='big'))
+        # data.extend(int.to_bytes(value, 2, byteorder='little'))
+        data.extend([value_last_byte, value_first_byte])
+        logging.debug("final data array {}".format(data))
         return self.simple_command(
-                        ACK= b'\x0B',
-                        NACK=b'\x8B',
-                        ctype=b'\x0B',
-                        data=data,
-                        name="SET_CURRENT_{}_{}".format(channel, value)
-                       )
+            ACK=0x0B,
+            NACK=0x8B,
+            ctype=0x0B,
+            data=data,
+            name="SET_CURRENT_{}_{}".format(channel, value)
+        )
 
     def GET_CURRENT(self):
         GET_CURRENT = bytearray(b'\x55\xCC\x02\x0C\x00\x00\x00')
@@ -368,23 +424,13 @@ class UartWrapper:
     def RESET(self):
         RESET = bytearray(b'\x55\xCC\x07\x15\x52\x45\x53\x45\x54\x00\x00\x00')
 
+
 if __name__ == "__main__":
     a = UartWrapper()
-    # start = (a.create_command(
-    #     length=None,
-    #     ctype=b'\x02',
-    #     data=None
-    # ))
-    #
-    # print(a.parse_command(start))
-    # print(a.send_command(start)[0])
-    # print(a.send_command(start)[1])
-    # print(a.START())
-    # print(a.GET_STATUS()[1])
-    print(a.START_CONFIGURE()[1])
-    print(a.SET_CURRENT(0, 10)[1])
-    print(a.SET_CURRENT(1, 10)[1])
-    print(a.FINISH_CONFIGURE_WITH_SAVING()[1])
-    print(a.START()[1])
+    print(a.START_CONFIGURE())
+    print(a.SET_CURRENT(0, 120))
+    print(a.SET_CURRENT(1, 120))
+    print(a.FINISH_CONFIGURE_WITH_SAVING())
+    print(a.START())
     sleep(20)
     print(a.STOP()[1])
