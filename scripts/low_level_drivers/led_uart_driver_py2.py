@@ -4,9 +4,7 @@
 # from typing import Tuple, Optional
 import serial
 import logging
-import six
 from time import sleep
-import sys
 
 from future import *
 
@@ -429,7 +427,7 @@ if __name__ == "__main__":
     a = UartWrapper()
     print(a.START_CONFIGURE())
     print(a.SET_CURRENT(0, 120))
-    print(a.SET_CURRENT(1, 120))
+    print(a.SET_CURRENT(1, 10))
     print(a.FINISH_CONFIGURE_WITH_SAVING())
     print(a.START())
     sleep(20)

@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_runtime
   roscpp
   rospy
-#  rosserial
+  std_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -49,18 +49,19 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
+add_message_files(
+   FILES
 #   Message1.msg
 #   Message2.msg
-# )
+)
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
+add_service_files(
+   FILES
+   LedDevice.srv
 #   Service1.srv
 #   Service2.srv
-# )
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -164,6 +165,9 @@ include_directories(
 install(PROGRAMS
    scripts/test_scripts/relay_test.py
    scripts/test_scripts/one_channel_relay_test.py
+   scripts/low_level_drivers/led_uart_driver_py2.py
+   scripts/low_level_drivers/sba_5_driver.py
+   scripts/devices_scripts/led_device.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
