@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# from typing import Tuple, Optional
 import serial
 import logging
 from time import sleep
@@ -19,7 +18,9 @@ from future import *
 
 # logging = logging.getLogger('Worker.Units.Led_wrapper.LedUartWrapper')
 # logger = logging.getLogger('LedUartWrapper')
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(filename='led_uart_driver.log',
+                    format='%(asctime)s;%(levelname)s;%(message)s',
+                    level=logging.DEBUG)
 # handler = logging.StreamHandler(sys.stdout)
 # handler.setLevel(logging.DEBUG)
 # logger.addHandler(handler)
