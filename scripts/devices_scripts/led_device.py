@@ -22,6 +22,7 @@ class LedDeviceServer(object):
         rospy.loginfo('LedDeviceServer: start node')
 
         # get roslaunch params and reinit part of params
+        self._log_node_name = rospy.get_param('~_led_log_node_name', 'led_log_node')
         self._port = rospy.get_param('~_led_port', '/dev/ttyUSB0')
         self._baudrate = rospy.get_param('~_led_baudrate', 19200)
         self._timeout = rospy.get_param('~_led_timeout', 10)
@@ -37,8 +38,37 @@ class LedDeviceServer(object):
         # at first find what user wants from us:
         if not req.command:
             # if we got empty string
-            return 
-        pass
+            resp = 'error_empty_command'
+            return resp
+
+        elif req.command == 'start':
+            resp = 'error_empty_command'
+            return resp
+
+        elif req.command == 'stop':
+            resp = 'error_empty_command'
+            return resp
+
+        elif req.command == 'start_configure':
+            resp = 'error_empty_command'
+            return resp
+
+        elif req.command == 'finish_configure_and_save':
+            resp = 'error_empty_command'
+            return resp
+
+        elif req.command == 'set_current':
+            resp = 'error_empty_command'
+            return resp
+
+        elif req.command == 'full_reconfigure':
+            resp = 'error_empty_command'
+            return resp
+
+        else:
+            resp = 'error_unknown_command'
+            return resp
+
 
     #def led_device_server(self, ss):
     #    rospy.init_node('')

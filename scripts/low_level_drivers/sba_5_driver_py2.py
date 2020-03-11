@@ -1,16 +1,21 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+
 # this module contains methods to get data
 # and send commands to SBA-5 CO2 Gas Analyzer
 # from PP systems
 
 
 import serial
-import asyncio
 import time
 import csv
 import logging
 
-logger = logging.getLogger("Worker.Units.CO2Sensor.SBA5Wrapper")
-
+#logger = logging.getLogger("Worker.Units.CO2Sensor.SBA5Wrapper")
+logging.basicConfig(filename='sba_5_driver.log',
+                    format='%(asctime)s;%(levelname)s;%(message)s',
+                    level=logging.DEBUG)
 
 class SBAWrapper(object):
     """
@@ -18,15 +23,15 @@ class SBAWrapper(object):
     """
     def __init__(
             self,
-            devname: str = '/dev/ttyUSB0',
-            baudrate: int = 19200,
-            timeout: float = 0.1
+            devname='/dev/ttyUSB0',
+            baudrate=19200,
+            timeout= 0.1
     ):
         self.dev = devname
         self.baud = baudrate
         self.timeout = timeout
 
-    async def send_command(self, command: str):
+    def send_command(self, command):
         """
         Command must ends with \r\n !
         Its important
@@ -56,7 +61,7 @@ class SBAWrapper(object):
             bcom = command.encode('utf-8')
             ser.write(bcom)
         except Exception as e:
-            logger.error("SBAWrapper error while send command: {}".format(e))
+            logging.error("SBAWrapper error while send command: {}".format(e))
         # then try to read answer
         # it must be two messages, ended with \r\n
         try:
@@ -69,9 +74,9 @@ class SBAWrapper(object):
             status = (ser.readline()).decode('utf-8')
             return echo+status
         except Exception as e:
-            logger.error("SBAWrapper error while read answer from command: {}".format(e))
+            logging.error("SBAWrapper error while read answer from command: {}".format(e))
 
-    async def get_periodic_data(self):
+    def get_periodic_data(self):
         try:
             ser = serial.Serial(
                 port=self.dev,
@@ -81,7 +86,7 @@ class SBAWrapper(object):
             ans = (ser.readline()).decode('utf-8')
             return ans
         except Exception as e:
-            logger.error("SBAWrapper error while read: {}".format(e))
+            logging.error("SBAWrapper error while read: {}".format(e))
 
 
 def read():
@@ -93,6 +98,7 @@ def read():
     while True:
         ans = (ser.readline()).decode('utf-8')
         print(ans)
+
 
 def send_command(c):
     ser = serial.Serial(
@@ -110,14 +116,14 @@ def send_command(c):
         print(ans)
 
 
-async def main():
+def read_loop():
     s = SBAWrapper()
     date_ = time.strftime("%x", time.localtime())
     time_ = time.strftime("%X", time.localtime())
     _datafile = 'co2_test_{}.csv'.format(time.time())
 
     while True:
-        co2 = await s.send_command('M\r\n')
+        co2 = s.send_command('M\r\n')
         fieldnames = ["date", "time", "CO2"]
         date_ = time.strftime("%x", time.localtime())
         time_ = time.strftime("%X", time.localtime())
@@ -127,7 +133,7 @@ async def main():
             "CO2": co2.split(' ')[3],
         }
 
-        with open(_datafile, "a", newline='') as out_file:
+        with open(_datafile, "a") as out_file:
             writer = csv.DictWriter(out_file, delimiter=',', fieldnames=fieldnames)
             writer.writerow(data)
 
@@ -135,13 +141,12 @@ async def main():
         time.sleep(2)
 
 
-async def test():
+def test():
     s = SBAWrapper()
-    co2 = await s.send_command('M\r\n')
+    co2 = s.send_command('M\r\n')
     print(co2)
-    pump_off = await s.send_command('P0\r\n')
+    pump_off = s.send_command('P0\r\n')
     print(pump_off)
 
 if __name__=="__main__":
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(test())
+    read_loop()
