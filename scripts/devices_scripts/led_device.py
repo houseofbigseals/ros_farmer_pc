@@ -12,9 +12,9 @@ from future import *
 
 
 # that file realizes all commands from IGC (Impulse Current Generator)
-# documentation as its own methods
-# can generate CRC and should be able to parse all commands
-# it works as c-style structure - collects everything about uart
+# documentation, as its own methods
+# can generate CRC and  able to parse all commands
+# it just collects everything about uart
 # in a big bunch
 #
 
@@ -84,7 +84,9 @@ class LedDeviceServer(object):
     """
     def __init__(self):
         # hardcoded constants
-        pass
+        self._success_response = "success"
+        self._error_response = "error: "
+
 
         # start node
         rospy.init_node('led_device_server')
@@ -96,6 +98,10 @@ class LedDeviceServer(object):
         self._baudrate = rospy.get_param('~_led_baudrate', 19200)
         self._timeout = rospy.get_param('~_led_timeout', 10)
         self._service_name = rospy.get_param('~_led_service_name', 'led_device')
+        self._max_red_current = rospy.get_param('~_led_max_red_current', 250)
+        self._min_red_current = rospy.get_param('~_led_min_red_current', 10)
+        self._max_white_current = rospy.get_param('~_led_max_white_current', 250)
+        self._min_white_current = rospy.get_param('~_led_min_white_current', 10)
 
         # create log topic publisher
         self._log_pub = rospy.Publisher(self._log_node_name, String, queue_size=10)
@@ -116,56 +122,57 @@ class LedDeviceServer(object):
     def handle_request(self, req):
         # check params from request
         # at first find what user wants from us:
-
+        self._logger.debug("+++++++++++++++++++++++++++++++++++++++++++++++")
+        self._logger.debug("+++++++++++++++++++++++++++++++++++++++++++++++")
         self._logger.debug("we got request: {}".format(req))
 
         if not req.command:
             # if we got empty string
-            resp = 'error_empty_command'
+            resp = self._error_response + 'empty_command'
             return resp
 
         elif req.command == 'start':
             try:
                 self._start()
-                resp = "No errors"
+                resp = self._success_response
                 return resp
             except LedDeviceException as e:
-                resp = e.args[0]
+                resp = self._error_response + e.args[0]
                 return resp
 
         elif req.command == 'stop':
             try:
                 self._stop()
-                resp = "No errors"
+                resp = self._success_response
                 return resp
             except LedDeviceException as e:
-                resp = e.args[0]
+                resp = self._error_response + e.args[0]
                 return resp
 
         elif req.command == 'start_configure':
             try:
                 self._start_configure()
-                resp = "No errors"
+                resp = self._success_response
                 return resp
             except LedDeviceException as e:
-                resp = e.args[0]
+                resp = self._error_response + e.args[0]
                 return resp
 
         elif req.command == 'finish_configure_and_save':
             try:
                 self._finish_configure_with_saving()
-                resp = "No errors"
+                resp = self._success_response
                 return resp
             except LedDeviceException as e:
-                resp = e.args[0]
+                resp = self._error_response + e.args[0]
                 return resp
 
         elif req.command == 'set_current':
-            if req.red < 10 or req.red > 250:
-                resp = 'error: too big red current'
+            if req.red < self._min_red_current or req.red > self._max_red_current:
+                resp = self._error_response + 'too big red current'
                 return resp
-            elif req.white < 10 or req.white > 250:
-                resp = 'error: too big white current'
+            elif req.white < self._min_white_current or req.white > self._max_white_current:
+                resp = self._error_response + 'too big white current'
                 return resp
             else:
                 try:
@@ -173,19 +180,19 @@ class LedDeviceServer(object):
                     self._set_current(0, int(req.red))
                     # white
                     self._set_current(1, int(req.white))
-                    resp = 'No errors'
+                    resp = self._success_response
                     return resp
 
                 except LedDeviceException as e:
-                    resp = e.args[0]
+                    resp = self._error_response + e.args[0]
                     return resp
 
         elif req.command == 'full_reconfigure':
-            if req.red < 10 or req.red > 250:
-                resp = 'error: too big red current'
+            if req.red < self._min_red_current or req.red > self._max_red_current:
+                resp = self._error_response + 'too big red current'
                 return resp
-            elif req.white < 10 or req.white > 250:
-                resp = 'error: too big white current'
+            elif req.white < self._min_white_current or req.white > self._max_white_current:
+                resp = self._error_response + 'too big white current'
                 return resp
             else:
                 try:
@@ -197,15 +204,15 @@ class LedDeviceServer(object):
                     self._set_current(1, int(req.white))
                     self._finish_configure_with_saving()
                     self._start()
-                    resp = 'No errors'
+                    resp = self._success_response
                     return resp
 
                 except LedDeviceException as e:
-                    resp = e.args[0]
+                    resp = self._error_response + e.args[0]
                     return resp
 
         else:
-            resp = 'error: unknown command'
+            resp = self._error_response + 'unknown command'
             return resp
 
     # ==================== low level command wrappers ==================
@@ -215,7 +222,7 @@ class LedDeviceServer(object):
                      log_comment=None
                      ):
         ans = None
-        self._log_pub.publish("-------------------------------")
+        self._logger.debug("-------------------------------")
         if (log_comment):
             self._logger.debug("Sending {}".format(log_comment))
 
@@ -283,8 +290,9 @@ class LedDeviceServer(object):
         self._logger.debug("-------------------------------")
         self._logger.debug("Parsed command ")
         for b_ in com:
+            pass
             # self._logger.debug("{} - type of raw byte".format(type(b_)))
-            self._logger.debug("{} - type of raw byte, and hex value of it {} ".format(type(b_), hex(b_)))
+            # self._logger.debug("{} - type of raw byte, and hex value of it {} ".format(type(b_), hex(b_)))
             # self._logger.debug("{} - raw byte ".format(hex(b_)))
         self._logger.debug("------------------")
         self._logger.debug("{} - header byte ".format(hex(com[0])))
