@@ -8,10 +8,10 @@
     <node pkg="rosserial_python" type="serial_node.py" name="serial_node">
         <param name="_port" value="$(arg arduino_port)"/>
         <param name="_baud" value="$(arg arduino_baudrate)"/>
-        </node>
+    </node>
 
   <node pkg="ros_farmer_pc" type="led_device.py" name="led_device">
     <param name="_led_port" value="$(arg led_device_port)"/>
     <param name="_led_baudrate" value="$(arg led_baudrate)"/>
-    </node>
+  </node>
 </launch>

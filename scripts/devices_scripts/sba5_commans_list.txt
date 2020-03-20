@@ -1,0 +1,38 @@
+Axxx<CR> Time [minutes] between zero operations
+Bxxx<CR> Averaging limit for CO 2 running average.
+Cxxx<CR> Number of digits to the right of the decimal point for ccc.ccc. range: 0-3
+(integer)
+Dxxx<CR> Determines if there is a zero operation at warmup
+Exxx<CR> Zero operation duration, argument is S, M, or L
+Fxxx<CR> Measurement string format. 0 to 255 to enable individual outputs
+H<min>,<max>CR Analog output H2OVOUT hardware scaling
+Jxxx<CR> Sets the mode of the spare I/O pin. See Spare I/O Line on page 24.
+Kxxx<CR> Turns source lamp on or off
+Lxxx<CR> Low CO 2 In [ppm] alarm.
+M Display a measurement.
+N Returns external board voltage and Spare I/O voltage
+O<min>,<max>CR Analog output CO2VOUT hardware scaling
+Pxxx<CR> Turns on-board pump on or off (if installed)
+S,11,xxx<CR> Sets the measurement string output interval in seconds. 0.1-36000.
+S,9,xxx<CR> Sets pump voltage from 0-100%
+S,16, xxx<CR> CRC appended to each output string. 1 enables, 0 disables
+Txxx<CR> Sets IRGA thermostats temperature
+Uxxx<CR> Sets the user scale factor (for user calibrations)
+V Returns the SBA-5 serial numbers and firmware version numbers
+Wxxx<CR> Defines the measurement and zero ports on the solenoid valve.
+Z Perform a zero operation.
+! Turns measurement display off.
+@ Turns measurement display on.
+? Display the SBA-5 configuration currently in use.
+SBA-5 Operation Manual V. 2.00
+26
+support@ppsystems.com]
+Restore the factory default configuration.
+The following describes each command grouped by functional type.
+Measurement Commands
+M Display a measurement
+! Turns measurement display off.
+@ Turns measurement display on.
+S,11,xxx<CR> Sets the measurement string output interval in seconds. 0.1-36000. Default is
+1.0 sec. (Older SBA-5s had a fixed output interval of 1.6 sec)
+S,16, xxx<CR> CRC appended to each output string. 1 enables, 0 disables. Default disabled.

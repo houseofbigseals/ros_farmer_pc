@@ -59,6 +59,9 @@ add_message_files(
 add_service_files(
    FILES
    LedDevice.srv
+   LowLevelRelay.srv
+   RelayDevice.srv
+   SBA5Device.srv
 #   Service1.srv
 #   Service2.srv
 )
@@ -168,6 +171,8 @@ install(PROGRAMS
    scripts/low_level_drivers/led_uart_driver_py2.py
    scripts/low_level_drivers/sba_5_driver_py2.py
    scripts/devices_scripts/led_device.py
+   scripts/devices_scripts/relay_device.py
+   scripts/devices_scripts/sba5_device.py
    scripts/data_scripts/custom_logger.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
