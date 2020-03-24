@@ -298,6 +298,23 @@ class SBA5DeviceServer(object):
                 resp = self._error_response + e.args[0]
                 return resp
 
+        elif req.command == 'recalibrate':
+            try:
+                ans = self.do_calibration()
+                resp = self._success_response + ans
+                return resp
+            except SBA5DeviceException as e:
+                resp = self._error_response + e.args[0]
+                return resp
+
+        elif req.command == 'init':
+            try:
+                ans = self.set_initial_params()
+                resp = self._success_response + ans
+                return resp
+            except SBA5DeviceException as e:
+                resp = self._error_response + e.args[0]
+                return resp
 
         else:
             resp = self._error_response + 'unknown command'
@@ -365,24 +382,31 @@ class SBA5DeviceServer(object):
         # if not "OK" in ans:
         #     self.logger.info("CO2SensorError: {}".format(ans))
         #     return "CO2SensorError: {}".format(ans)
-
+        ans_ = ""
         # we need to shut down auto measurements
         ans = self.send_command("!\r\n")
+        ans_ += ans
         self._logger.debug("Command !, answer: {}".format(ans)[:-1])
         # we need to shut down auto zero operations
-        ans = self.send_command("A0\r\n")
+        ans += self.send_command("A0\r\n")
+        ans_ += ans
         self._logger.debug("Command A0, answer: {}".format(ans)[:-1])
         # we need to set format of output
-        ans = self.send_command("F252\r\n")
+        ans += self.send_command("F252\r\n")
+        ans_ += ans
         self._logger.debug("Command F252, answer: {}".format(ans)[:-1])
         # we need to start pump
-        ans = self.send_command("P1\r\n")
+        ans += self.send_command("P1\r\n")
+        ans_ += ans
         self._logger.debug("Command P1, answer: {}".format(ans)[:-1])
         # set medium time of calibration
-        ans = self.send_command("EL\r\n")
+        ans += self.send_command("EL\r\n")
+        ans_ += ans
         self._logger.debug("Command EL, answer: {}".format(ans)[:-1])
+        return ans_
 
     def get_info(self):
+        # only first line of answer
         ans = self.send_command("?\r\n")
         self._logger.debug("Getting info from SBA5")
         return ans[:-1]

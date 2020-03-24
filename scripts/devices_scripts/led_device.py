@@ -94,7 +94,7 @@ class LedDeviceServer(object):
         # get roslaunch params and reinit part of params
         self._logname = rospy.get_param('~led_log_name', 'LED')
         self._log_node_name = rospy.get_param('~led_log_node_name', 'led_log_node')
-        self._port = rospy.get_param('~led_port', '/dev/ttyUSB0')
+        self._port = rospy.get_param('~led_port', '/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0')
         self._baudrate = rospy.get_param('~led_baudrate', 19200)
         self._timeout = rospy.get_param('~led_timeout', 10)
         self._service_name = rospy.get_param('~led_service_name', 'led_device')

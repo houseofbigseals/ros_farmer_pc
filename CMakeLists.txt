@@ -171,9 +171,12 @@ install(PROGRAMS
    scripts/low_level_drivers/led_uart_driver_py2.py
    scripts/low_level_drivers/sba_5_driver_py2.py
    scripts/devices_scripts/led_device.py
+   scripts/devices_scripts/K30_device.py
    scripts/devices_scripts/relay_device.py
    scripts/devices_scripts/sba5_device.py
    scripts/data_scripts/custom_logger.py
+   scripts/experiment_scripts/control_system.py
+   scripts/experiment_scripts/table_test_experiment.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
