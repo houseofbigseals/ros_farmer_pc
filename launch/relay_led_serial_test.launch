@@ -24,4 +24,5 @@
     <param name="_relay_number_of_channels" value="$(arg relay_number_of_channels)"/>
     <param name="_relay_mapping_string" value="$(arg relay_mapping_string)"/>
     <param name="_raw_relay_topic_name" value="$(arg raw_relay_topic_name)"/>
+  </node>
 </launch>
