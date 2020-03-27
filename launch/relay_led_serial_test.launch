@@ -1,0 +1,27 @@
+<launch>
+    <arg name="arduino_baudrate" default="57600"/>
+    <arg name="arduino_port" default="/dev/serial/by-id/usb-1a86_USB2.0-Serial-if00-port0"/>
+
+    <arg name="led_baudrate" default="19200"/>
+    <arg name="led_device_port" default="/dev/serial/by-id/usb-Prolific_Technology_Inc._USB-Serial_Controller-if00-port0"/>
+
+    <arg name="relay_number_of_channels" default="8"/>
+    <arg name="relay_mapping_string" default="N2_VALVE,AIR_PUMP_1,AIR_PUMP_2,COOLER_1,AIR_VALVE_1,AIR_VALVE_2,EMPTY,EMPTY"/>
+    <arg name="raw_relay_topic_name" default="relay_1_sub"/>
+
+
+    <node pkg="rosserial_python" type="serial_node.py" name="serial_node">
+        <param name="_port" value="$(arg arduino_port)"/>
+        <param name="_baud" value="$(arg arduino_baudrate)"/>
+    </node>
+
+  <node pkg="ros_farmer_pc" type="led_device.py" name="led_device">
+    <param name="_led_port" value="$(arg led_device_port)"/>
+    <param name="_led_baudrate" value="$(arg led_baudrate)"/>
+  </node>
+
+  <node pkg="ros_farmer_pc" type="relay_device.py" name="relay_device">
+    <param name="_relay_number_of_channels" value="$(arg relay_number_of_channels)"/>
+    <param name="_relay_mapping_string" value="$(arg relay_mapping_string)"/>
+    <param name="_raw_relay_topic_name" value="$(arg raw_relay_topic_name)"/>
+</launch>
