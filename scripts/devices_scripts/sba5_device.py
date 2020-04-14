@@ -7,7 +7,7 @@ from std_msgs.msg import String
 import serial
 from data_scripts.custom_logger import CustomLogger
 from ros_farmer_pc.srv import SBA5Device
-
+import re
 
 #
 # To initiate a command, the USB port or RS232 port sends an ASCII character or string.
@@ -248,7 +248,7 @@ class SBA5DeviceServer(object):
         self._log_node_name = rospy.get_param('~sba5_log_node_name', 'sba5_log_node')
         self._port = rospy.get_param('~sba5_port', '/dev/serial/by-id/usb-FTDI_FT230X_Basic_UART_DN03WQZS-if00-port0')
         self._baudrate = rospy.get_param('~sba5_baudrate', 19200)
-        self._timeout = rospy.get_param('~sba5_timeout', 10)
+        self._timeout = rospy.get_param('~sba5_timeout', 0.2)
         self._service_name = rospy.get_param('~sba5_service_name', 'sba5_device')
 
         # create log topic publisher
@@ -289,11 +289,26 @@ class SBA5DeviceServer(object):
                 resp = self._error_response + e.args[0]
                 return resp
 
-        elif req.command == 'measure':
+        elif req.command == 'measure_full':
             try:
                 ans = self.do_measurement()
                 resp = self._success_response + ans
                 return resp
+            except SBA5DeviceException as e:
+                resp = self._error_response + e.args[0]
+                return resp
+
+        elif req.command == 'measure_co2':
+            try:
+                ans = self.do_measurement()
+
+                pattern = re.compile(r'M \d+ \d+ (\d+.\d+) \d+.\d+ \d+.\d+ \d+.\d+ \d+ \d+\r\n')
+                res = pattern.findall(ans)
+
+                self._logger.debug("we have found this {}".format(res[0]))
+                resp = self._success_response + str(res[0])
+                return resp
+
             except SBA5DeviceException as e:
                 resp = self._error_response + e.args[0]
                 return resp
@@ -367,6 +382,7 @@ class SBA5DeviceServer(object):
             echo = (ser.readline()).decode('utf-8')
             status = (ser.readline()).decode('utf-8')
             return echo+status
+            #return status
 
         except Exception as e:
             raise SBA5DeviceException("SBAWrapper error while read answer from command: {}".format(e))

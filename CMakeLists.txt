@@ -61,6 +61,7 @@ add_service_files(
    LedDevice.srv
    LowLevelRelay.srv
    RelayDevice.srv
+   ControlSystem.srv
    SBA5Device.srv
 #   Service1.srv
 #   Service2.srv
