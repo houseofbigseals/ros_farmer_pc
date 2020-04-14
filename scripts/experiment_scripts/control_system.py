@@ -60,7 +60,7 @@ class ControlSystemServer(object):
             self._n2_calibration_time - self._air_valves_open_time
 
         # flags of current control regime
-        self._mode = rospy.get_param('~control_start_mode', 'experiment')
+        self._mode = rospy.get_param('~control_start_mode', 'life_support')
         # mode can be :
         # experiment
         # life_support
