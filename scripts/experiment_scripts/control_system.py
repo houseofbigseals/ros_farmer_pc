@@ -46,7 +46,7 @@ class ControlSystemServer(object):
         # devices services names
         self._relay_service_name = rospy.get_param('~control_relay_service_name', 'relay_device')
         self._led_service_name = rospy.get_param('~control_led_service_name', 'led_device')
-        self._co2_service_name = rospy.get_param('~control_co2_service_name', 'sba5_device') # we are using sba5 by default co2 sensor
+        self._sba5_service_name = rospy.get_param('~control_sba5_service_name', 'sba5_device')  # we are using sba5 by default co2 sensor
 
         # experiment params
         self._default_red = rospy.get_param('~control_default_red', 50)  # mA
@@ -215,9 +215,9 @@ class ControlSystemServer(object):
 
         if self._sba5_measure_allowed:
             # event is rospy.TimerEvent
-            rospy.wait_for_service(self._co2_service_name)
+            rospy.wait_for_service(self._sba5_service_name)
             try:
-                sba_device = rospy.ServiceProxy(self._co2_service_name, SBA5Device)
+                sba_device = rospy.ServiceProxy(self._sba5_service_name, SBA5Device)
                 raw_resp = sba_device("measure_co2")
                 self._logger.debug("We got raw response from sba5 {}".format(raw_resp))
 
