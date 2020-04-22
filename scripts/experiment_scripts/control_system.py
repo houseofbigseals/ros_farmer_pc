@@ -7,6 +7,7 @@ from std_msgs.msg import String
 from data_scripts.custom_logger import CustomLogger
 from ros_farmer_pc.srv import ControlSystem, LedDevice, RelayDevice, SBA5Device
 from sensor_msgs.msg import Temperature
+from threading import Lock, Event
 import time
 import re
 # from future import *
@@ -79,9 +80,12 @@ class ControlSystemServer(object):
         self._logger = CustomLogger(name=self._logname, logpub=self._log_pub)
         self._logger.debug("control_server init")
 
+        # create Locks
+        self._sba5_measure_allowed_event = Event()
+
         # create timers for async periodic tasks using internal ros mechanics
         # Create a ROS Timer for reading data
-        rospy.Timer(rospy.Duration(1.0), self._get_sba5_measure())  # 1 Hz
+        rospy.Timer(rospy.Duration(1.0), self._get_sba5_measure)  # 1 Hz
         # create ros timer for main loop
 
         # TODO connect to led and relay services
@@ -130,29 +134,37 @@ class ControlSystemServer(object):
         # every 15 minutes by default
         if t.tm_min % (self._full_experiment_loop_time/60.0) == 0:
             # start it again
-            # get new regime
-            self._update_control_params()
+            self._logger.debug("start experiment loop again")
             # start ventilation and calibration
             self._start_ventilation()
-            # stop measuring co2
+            # stop measuring co2 using threading event
+            self._sba5_measure_allowed_event.clear()
             # do calibration of sba-5
             self._perform_sba5_calibration()
             # start measuring co2 again
+            self._sba5_measure_allowed_event.set()
             # wait for self._ventilation_time
-            vent_done_flag = False
-            vent_start_time = time.localtime()
-            while not vent_done_flag:
-                pass
-
-            # stop
-        pass
+            rospy.sleep(self._ventilation_time)
+            # stop ventilation
+            self._stop_ventilation()
+            # wait self._isolated_measure_time
+            rospy.sleep(self._isolated_measure_time)
+            # get new regime
+            self._update_control_params()
 
     # =============================== support methods ==============================
 
-
     def _update_control_params(self):
         # get new params and set them to corresponding self.xxxx values
+
+        # differentiate all collected on current step data
         pass
+        # send this data, current params and gotten F to G-calculation method
+        pass
+        # send all data and G to search method, to get new light mode params
+        pass
+        # set them
+        self._set_new_light_mode(self._default_red, self._default_white)  # for a time
 
     def _start_ventilation(self):
         # open drain valves  'set_air_valves'
@@ -174,9 +186,22 @@ class ControlSystemServer(object):
 
     def _perform_sba5_calibration(self):
         # open n2 valve
+        self._logger.debug("start sba recalibration")
+        self._set_new_relay_state('set_n2_valve', 0)
         # send Z to sba-5
-        # wait for calibration time 21/40/90 sec
+        rospy.wait_for_service(self._sba5_service_name)
+        try:
+            sba_device = rospy.ServiceProxy(self._sba5_service_name, SBA5Device)
+            raw_resp = sba_device('recalibrate')
+            self._logger.debug("We got raw response from sba5 {}".format(raw_resp))
+            # wait for calibration time 21/40/90 sec
+            rospy.sleep(self._n2_calibration_time)
+
+        except Exception as e:
+            self._logger.error("Service call failed: {}".format(e))
+
         # close n2 valve
+        self._set_new_relay_state('set_n2_valve', 1)
         pass
 
     def _publish_sba5_measure(self, data):
@@ -199,7 +224,7 @@ class ControlSystemServer(object):
             self._logger.error("Service call failed: {}".format(e))
 
     def _set_new_light_mode(self, red, white):
-        self._logger.debug("start settting new light mode {} {}".format(red, white))
+        self._logger.debug("start setting new light mode {} {}".format(red, white))
         rospy.wait_for_service(self._led_service_name)
         try:
             led_wrapper = rospy.ServiceProxy(self._led_service_name, LedDevice)
@@ -213,28 +238,29 @@ class ControlSystemServer(object):
 
     def _get_sba5_measure(self, event=None):
 
-        if self._sba5_measure_allowed:
-            # event is rospy.TimerEvent
-            rospy.wait_for_service(self._sba5_service_name)
-            try:
-                sba_device = rospy.ServiceProxy(self._sba5_service_name, SBA5Device)
-                raw_resp = sba_device("measure_co2")
-                self._logger.debug("We got raw response from sba5 {}".format(raw_resp))
+        # if self._sba5_measure_allowed:
+        # event is rospy.TimerEvent
+        self._sba5_measure_allowed_event.wait()
+        rospy.wait_for_service(self._sba5_service_name)
+        try:
+            sba_device = rospy.ServiceProxy(self._sba5_service_name, SBA5Device)
+            raw_resp = sba_device("measure_co2")
+            self._logger.debug("We got raw response from sba5 {}".format(raw_resp))
 
-                # lets get co2 measure from that string
-                pattern = re.compile(r'\w+: (\d+.\d+)')  # for answers like "success: 55.21"
-                co2_data = float(pattern.findall(raw_resp)[0])
+            # lets get co2 measure from that string
+            pattern = re.compile(r'\w+: (\d+.\d+)')  # for answers like "success: 55.21"
+            co2_data = float(pattern.findall(raw_resp)[0])
 
-                # add to self array
-                self._add_new_data_to_array(co2_data)
+            # add to self array
+            self._add_new_data_to_array(co2_data)
 
-                # then publish it
-                self._publish_sba5_measure(co2_data)
+            # then publish it
+            self._publish_sba5_measure(co2_data)
 
-                return float(co2_data)
+            return float(co2_data)
 
-            except Exception as e:
-                self._logger.error("Service call failed: {}".format(e))
+        except Exception as e:
+            self._logger.error("Service call failed: {}".format(e))
 
     def _add_new_data_to_array(self, data):
         pass

@@ -254,8 +254,6 @@ class SBA5DeviceServer(object):
         # create log topic publisher
         self._log_pub = rospy.Publisher(self._log_node_name, String, queue_size=10)
 
-        # create data topic publisher ?
-
         # logger
         self._logger = CustomLogger(name=self._logname, logpub=self._log_pub)
         self._logger.debug("sba5_device_server init")
