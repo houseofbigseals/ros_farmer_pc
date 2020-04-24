@@ -25,8 +25,8 @@
     </node>
 
   <node pkg="ros_farmer_pc" type="led_device.py" name="led_device">
-    <param name="_led_port" value="$(arg led_device_port)"/>
-    <param name="_led_baudrate" value="$(arg led_baudrate)"/>
+    <param name="led_port" value="$(arg led_device_port)"/>
+    <param name="led_baudrate" value="$(arg led_baudrate)"/>
   </node>
 
   <node pkg="ros_farmer_pc" type="relay_device.py" name="relay_device">

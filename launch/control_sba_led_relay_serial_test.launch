@@ -19,8 +19,8 @@
 
 
     <node pkg="rosserial_python" type="serial_node.py" name="serial_node">
-        <param name="_port" value="$(arg arduino_port)"/>
-        <param name="_baud" value="$(arg arduino_baudrate)"/>
+        <param name="port" value="$(arg arduino_port)"/>
+        <param name="baud" value="$(arg arduino_baudrate)"/>
     </node>
 
 

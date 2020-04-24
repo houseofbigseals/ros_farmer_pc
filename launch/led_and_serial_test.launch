@@ -6,8 +6,8 @@
     <arg name="led_device_port" default="/dev/serial/by-id/usb-Prolific_Technology_Inc._USB-Serial_Controller-if00-port0"/>
 
     <node pkg="rosserial_python" type="serial_node.py" name="serial_node">
-        <param name="_port" value="$(arg arduino_port)"/>
-        <param name="_baud" value="$(arg arduino_baudrate)"/>
+        <param name="port" value="$(arg arduino_port)"/>
+        <param name="baud" value="$(arg arduino_baudrate)"/>
     </node>
 
   <node pkg="ros_farmer_pc" type="led_device.py" name="led_device">
