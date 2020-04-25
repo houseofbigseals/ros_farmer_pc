@@ -3,7 +3,7 @@
     <arg name="arduino_port" default="/dev/serial/by-id/usb-1a86_USB2.0-Serial-if00-port0"/>
 
     <arg name="led_baudrate" default="19200"/>
-    <arg name="led_device_port" default="/dev/serial/by-id/usb-Prolific_Technology_Inc._USB-Serial_Controller-if00-port0"/>
+    <arg name="led_device_port" default="/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0"/>
 
     <arg name="sba5_baudrate" default="19200"/>
     <arg name="sba5_device_port" default='/dev/serial/by-id/usb-FTDI_FT230X_Basic_UART_DN03WQZS-if00-port0'/>
