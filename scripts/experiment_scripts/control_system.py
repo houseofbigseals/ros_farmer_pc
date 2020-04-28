@@ -109,7 +109,7 @@ class ControlSystemServer(object):
             elif self._mode == 'life_support':
                 self._life_support_loop()
             pass
-            rospy.spin()
+            #rospy.spin()
 
     def _life_support_loop(self):
         # one loop

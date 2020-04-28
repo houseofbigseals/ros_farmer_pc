@@ -122,6 +122,9 @@ def read_loop():
     time_ = time.strftime("%X", time.localtime())
     _datafile = 'co2_test_{}.csv'.format(time.time())
 
+    pump_on = s.send_command('P1\r\n')
+    print(pump_on)
+
     while True:
         co2 = s.send_command('M\r\n')
         fieldnames = ["date", "time", "CO2"]
@@ -148,5 +151,39 @@ def test():
     pump_off = s.send_command('P0\r\n')
     print(pump_off)
 
+
+def test_calibration():
+    s = SBAWrapper()
+    #pump_off = s.send_command('P0\r\n')
+    #print(pump_off)
+    print(s.send_command("EL\r\n"))
+    res = s.send_command('Z\r\n')
+    print(res)
+    ser = serial.Serial(
+        port="/dev/ttyUSB0",
+        baudrate=19200,
+        timeout=1)
+    while True:
+        ans = (ser.readline()).decode('utf-8')
+        print(ans)
+        # sleep()
+
+def test_info():
+    s = SBAWrapper()
+    #pump_off = s.send_command('P0\r\n')
+    #print(pump_off)
+    res = s.send_command('?\r\n')
+    print(res)
+    ser = serial.Serial(
+        port="/dev/ttyUSB0",
+        baudrate=19200,
+        timeout=1)
+    while True:
+        ans = (ser.readline()).decode('utf-8')
+        print(ans)
+        # sleep()
+
 if __name__=="__main__":
     read_loop()
+    #test_calibration()
+    #test_info()
