@@ -140,6 +140,8 @@ class ControlSystemServer(object):
         if t.tm_min % (self._full_experiment_loop_time/60.0) == 0:
             # start it again
             self._logger.debug("start experiment loop again")
+            # set inside ventilation coolers on
+            self._set_new_relay_state('set_vent_coolers', 0)
             # start ventilation and calibration
             self._start_ventilation()
             # stop measuring co2 using threading event
@@ -272,7 +274,7 @@ class ControlSystemServer(object):
             raise ControlSystemException(e)
 
     def _update_sba5_params(self):
-        self._logger.debug("Try to reinit sba5 sba5")
+        self._logger.debug("Try to reinit sba5")
         rospy.wait_for_service(self._sba5_service_name)
         try:
             sba_device = rospy.ServiceProxy(self._sba5_service_name, SBA5Device)
@@ -330,6 +332,15 @@ class ControlSystemServer(object):
             try:
                 self._update_sba5_params()
                 resp = self._success_response
+                return resp
+            except ControlSystemException as e:
+                resp = self._error_response + e.args[0]
+                return resp
+
+        elif req.command == 'get_co2_measure':
+            try:
+                co2 = self._get_sba5_measure()
+                resp = self._success_response + str(co2)
                 return resp
             except ControlSystemException as e:
                 resp = self._error_response + e.args[0]
