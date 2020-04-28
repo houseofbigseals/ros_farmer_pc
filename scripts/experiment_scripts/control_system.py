@@ -311,7 +311,7 @@ class ControlSystemServer(object):
             if req.argument == 'experiment':
                 self._mode = 'experiment'
                 resp = self._success_response
-            if req.argument == 'life_support':
+            elif req.argument == 'life_support':
                 self._mode = 'life_support'
                 resp = self._success_response
             else:
