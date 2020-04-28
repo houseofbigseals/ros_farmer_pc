@@ -8,6 +8,7 @@
     <arg name="sba5_baudrate" default="19200"/>
     <arg name="sba5_device_port" default='/dev/serial/by-id/usb-FTDI_FT230X_Basic_UART_DN03WQZS-if00-port0'/>
     <arg name="sba5_timeout" default="0.2"/>
+    <arg name="sba5_calibration_time" default="90"/>
 
     <arg name="relay_number_of_channels" default="8"/>
     <arg name="relay_mapping_string" default="N2_VALVE,AIR_PUMP_1,AIR_PUMP_2,COOLER_1,AIR_VALVE_1,AIR_VALVE_2,EMPTY,EMPTY"/>
@@ -34,6 +35,7 @@
     <param name="_sba5_port" value="$(arg sba5_device_port)"/>
     <param name="_sba5_baudrate" value="$(arg sba5_baudrate)"/>
     <param name="_sba5_timeout" value="$(arg sba5_timeout)"/>
+    <param name="_sba5_calibration_time" value="$(arg sba5_calibration_time)"/>
   </node>
 
 
@@ -48,6 +50,7 @@
      <param name="_control_relay_service_name" value="$(arg control_relay_service_name)"/>
      <param name="_control_led_service_name" value="$(arg control_led_service_name)"/>
      <param name="_control_sba5_service_name" value="$(arg control_sba5_service_name)"/>
+     <param name="_control_n2_calibration_time" value="$(arg sba5_calibration_time)"/>
   </node>
 
 </launch>

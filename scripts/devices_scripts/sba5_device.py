@@ -250,6 +250,7 @@ class SBA5DeviceServer(object):
         self._baudrate = rospy.get_param('~sba5_baudrate', 19200)
         self._timeout = rospy.get_param('~sba5_timeout', 0.2)
         self._service_name = rospy.get_param('~sba5_service_name', 'sba5_device')
+        self._calibration_time = rospy.get_param('~sba5_calibration_time', 90)
 
         # create log topic publisher
         self._log_pub = rospy.Publisher(self._log_node_name, String, queue_size=10)
@@ -413,10 +414,21 @@ class SBA5DeviceServer(object):
         ans += self.send_command("P1\r\n")
         ans_ += ans
         self._logger.debug("Command P1, answer: {}".format(ans)[:-1])
-        # set medium time of calibration
-        ans += self.send_command("EL\r\n")
+        # set time of calibration
+        if self._calibration_time == 90:
+            command = "EL\r\n"
+        elif self._calibration_time == 40:
+            command = "EM\r\n"
+        elif self._calibration_time == 21:
+            command = "ES\r\n"
+        else:
+            self._logger.error("wrong initial calibration time, {}".format(self._calibration_time))
+            self._logger.error("default time will be 90 sec")
+            command = "EL\r\n"
+
+        ans += self.send_command(command)
         ans_ += ans
-        self._logger.debug("Command EL, answer: {}".format(ans)[:-1])
+        self._logger.debug("Command calibraton, answer: {}".format(ans)[:-1])
         return ans_
 
     def get_info(self):

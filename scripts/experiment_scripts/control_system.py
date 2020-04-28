@@ -54,7 +54,7 @@ class ControlSystemServer(object):
         self._default_white = rospy.get_param('~control_default_white', 50)  # mA
         self._full_experiment_loop_time = rospy.get_param('~control_full_experiment_loop_time', 900.0) # sec
         self._isolated_measure_time = rospy.get_param('~control_isolated_measure_time', 480.0)  # sec
-        self._n2_calibration_time = rospy.get_param('~control_n2_calibration_time', 40.0)  # depends on
+        self._n2_calibration_time = rospy.get_param('~control_n2_calibration_time', 90.0)  # depends on
         self._air_valves_open_time = rospy.get_param('~control_air_valves_open_time', 15.0)  # sec
         self._co2_measure_time = rospy.get_param('~control_co2_measure_time', 1.0)  # sec
         self._ventilation_time = self._full_experiment_loop_time - self._isolated_measure_time - \
@@ -93,6 +93,10 @@ class ControlSystemServer(object):
 
         # service
         self._service = rospy.Service(self._service_name, ControlSystem, self._handle_request)
+
+        # reinit sba5
+        self._update_sba5_params()
+
         self._loop()
 
     # ===================== loops for different control modes ======================
@@ -267,6 +271,21 @@ class ControlSystemServer(object):
             self._logger.error("Service call failed: {}".format(e))
             raise ControlSystemException(e)
 
+    def _update_sba5_params(self):
+        self._logger.debug("Try to reinit sba5 sba5")
+        rospy.wait_for_service(self._sba5_service_name)
+        try:
+            sba_device = rospy.ServiceProxy(self._sba5_service_name, SBA5Device)
+            raw_resp = sba_device('init')
+            self._logger.debug("We got raw response from sba5 {}".format(raw_resp))
+            return raw_resp
+
+        except Exception as e:
+            self._logger.error("Service call failed: {}".format(e))
+            raise ControlSystemException(e)
+
+
+
     def _add_new_data_to_array(self, data):
         pass
 
@@ -301,6 +320,15 @@ class ControlSystemServer(object):
         elif req.command == 'stop_ventilation':
             try:
                 self._stop_ventilation()
+                resp = self._success_response
+                return resp
+            except ControlSystemException as e:
+                resp = self._error_response + e.args[0]
+                return resp
+
+        elif req.command == 'update_sba5_parameters':
+            try:
+                self._update_sba5_params()
                 resp = self._success_response
                 return resp
             except ControlSystemException as e:
