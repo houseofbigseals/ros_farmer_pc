@@ -105,6 +105,7 @@ class ControlSystemServer(object):
             elif self._mode == 'life_support':
                 self._life_support_loop()
             pass
+            rospy.spin()
 
     def _life_support_loop(self):
         # one loop
@@ -199,6 +200,7 @@ class ControlSystemServer(object):
 
         except Exception as e:
             self._logger.error("Service call failed: {}".format(e))
+            # raise ControlSystemException(e)
 
         # close n2 valve
         self._set_new_relay_state('set_n2_valve', 1)
@@ -222,6 +224,7 @@ class ControlSystemServer(object):
 
         except rospy.ServiceException, e:
             self._logger.error("Service call failed: {}".format(e))
+            # raise ControlSystemException(e)
 
     def _set_new_light_mode(self, red, white):
         self._logger.debug("start setting new light mode {} {}".format(red, white))
@@ -235,6 +238,7 @@ class ControlSystemServer(object):
 
         except rospy.ServiceException, e:
             self._logger.error("Service call failed: {}".format(e))
+            #raise ControlSystemException(e)
 
     def _get_sba5_measure(self, event=None):
 
@@ -261,12 +265,64 @@ class ControlSystemServer(object):
 
         except Exception as e:
             self._logger.error("Service call failed: {}".format(e))
+            raise ControlSystemException(e)
 
     def _add_new_data_to_array(self, data):
         pass
 
-    def _handle_request(self, reqv):
-        pass
+    def _handle_request(self, req):
+        self._logger.debug("+++++++++++++++++++++++++++++++++++++++++++++++")
+        self._logger.debug("+++++++++++++++++++++++++++++++++++++++++++++++")
+        self._logger.debug("we got request: {}".format(req))
+
+        if not req.command:
+            # if we got empty string
+            resp = self._error_response + 'empty_command'
+            return resp
+
+        elif req.command == 'perform_sba5_calibration':
+            try:
+                self._perform_sba5_calibration()
+                resp = self._success_response
+                return resp
+            except ControlSystemException as e:
+                resp = self._error_response + e.args[0]
+                return resp
+
+        elif req.command == 'start_ventilation':
+            try:
+                self._start_ventilation()
+                resp = self._success_response
+                return resp
+            except ControlSystemException as e:
+                resp = self._error_response + e.args[0]
+                return resp
+
+        elif req.command == 'stop_ventilation':
+            try:
+                self._stop_ventilation()
+                resp = self._success_response
+                return resp
+            except ControlSystemException as e:
+                resp = self._error_response + e.args[0]
+                return resp
+
+        elif req.command == 'set_mode':
+            if req.argument == 'experiment':
+                self._mode = 'experiment'
+                resp = self._success_response
+            if req.argument == 'life_support':
+                self._mode = 'life_support'
+                resp = self._success_response
+            else:
+                resp = self._error_response + "no such control mode"
+
+            return resp
+
+        else:
+            resp = self._error_response + 'unknown command'
+            return resp
+
 
 
 if __name__ == "__main__":
