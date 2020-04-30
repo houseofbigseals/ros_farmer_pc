@@ -257,17 +257,20 @@ class ControlSystemServer(object):
             try:
                 sba_device = rospy.ServiceProxy(self._sba5_service_name, SBA5Device)
                 raw_resp = sba_device("measure_co2")
-                self._logger.debug("We got raw response from sba5 {}".format(raw_resp))
-
+                self._logger.debug("We got raw response from sba5 : {}".format(raw_resp))
+                self._logger.debug("Type of raw response : {}".format(type(raw_resp)))
+                self._logger.debug("Size of raw response : {}".format(len(raw_resp)))
                 # lets get co2 measure from that string
                 pattern = re.compile(r'\w+: (\d+.\d+)')  # for answers like "success: 55.21"
                 co2_data = float(pattern.findall(raw_resp)[0])
 
+                self._logger.debug("We find co2 using re : {}".format(co2_data))
                 # add to self array
                 self._add_new_data_to_array(co2_data)
 
                 # then publish it
                 self._publish_sba5_measure(co2_data)
+                self._logger.debug("We published it")
 
                 return float(co2_data)
 
