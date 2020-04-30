@@ -66,7 +66,7 @@ class ControlSystemServer(object):
         # experiment
         # life_support
         # ...
-        self._sba5_measure_allowed = False  # by default
+        #self._sba5_measure_allowed = False  # by default
         self._at_work = rospy.get_param('~control_start_at_work', True)
         # start node and loop immediately after launch or
 
@@ -96,6 +96,8 @@ class ControlSystemServer(object):
 
         # reinit sba5
         self._update_sba5_params()
+        # allow measures of sba5
+        self._sba5_measure_allowed_event.set()
 
         self._loop()
 
@@ -250,28 +252,28 @@ class ControlSystemServer(object):
 
         # if self._sba5_measure_allowed:
         # event is rospy.TimerEvent
-        self._sba5_measure_allowed_event.wait()
-        rospy.wait_for_service(self._sba5_service_name)
-        try:
-            sba_device = rospy.ServiceProxy(self._sba5_service_name, SBA5Device)
-            raw_resp = sba_device("measure_co2")
-            self._logger.debug("We got raw response from sba5 {}".format(raw_resp))
+        if self._sba5_measure_allowed_event.is_set():
+            rospy.wait_for_service(self._sba5_service_name)
+            try:
+                sba_device = rospy.ServiceProxy(self._sba5_service_name, SBA5Device)
+                raw_resp = sba_device("measure_co2")
+                self._logger.debug("We got raw response from sba5 {}".format(raw_resp))
 
-            # lets get co2 measure from that string
-            pattern = re.compile(r'\w+: (\d+.\d+)')  # for answers like "success: 55.21"
-            co2_data = float(pattern.findall(raw_resp)[0])
+                # lets get co2 measure from that string
+                pattern = re.compile(r'\w+: (\d+.\d+)')  # for answers like "success: 55.21"
+                co2_data = float(pattern.findall(raw_resp)[0])
 
-            # add to self array
-            self._add_new_data_to_array(co2_data)
+                # add to self array
+                self._add_new_data_to_array(co2_data)
 
-            # then publish it
-            self._publish_sba5_measure(co2_data)
+                # then publish it
+                self._publish_sba5_measure(co2_data)
 
-            return float(co2_data)
+                return float(co2_data)
 
-        except Exception as e:
-            self._logger.error("Service call failed: {}".format(e))
-            raise ControlSystemException(e)
+            except Exception as e:
+                self._logger.error("Service call failed: {}".format(e))
+                raise ControlSystemException(e)
 
     def _update_sba5_params(self):
         self._logger.debug("Try to reinit sba5")
@@ -338,12 +340,16 @@ class ControlSystemServer(object):
                 return resp
 
         elif req.command == 'get_co2_measure':
-            try:
-                co2 = self._get_sba5_measure()
-                resp = self._success_response + str(co2)
-                return resp
-            except ControlSystemException as e:
-                resp = self._error_response + e.args[0]
+            if self._sba5_measure_allowed_event.is_set():
+                try:
+                    co2 = self._get_sba5_measure()
+                    resp = self._success_response + str(co2)
+                    return resp
+                except ControlSystemException as e:
+                    resp = self._error_response + e.args[0]
+                    return resp
+            else:
+                resp = self._error_response + "co2 measures are not allowed now"
                 return resp
 
         elif req.command == 'set_mode':
