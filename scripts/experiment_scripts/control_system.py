@@ -61,7 +61,8 @@ class ControlSystemServer(object):
             self._n2_calibration_time - self._air_valves_open_time
 
         # flags of current control regime
-        self._mode = rospy.get_param('~control_start_mode', 'life_support')
+        #self._mode = rospy.get_param('~control_start_mode', 'life_support')
+        self._mode = rospy.get_param('~control_start_mode', 'experiment')
         # mode can be :
         # experiment
         # life_support
@@ -85,7 +86,7 @@ class ControlSystemServer(object):
 
         # create timers for async periodic tasks using internal ros mechanics
         # Create a ROS Timer for reading data
-        rospy.Timer(rospy.Duration(1.0), self._get_sba5_measure)  # 1 Hz
+        rospy.Timer(rospy.Duration(2.0), self._get_sba5_measure)  # 1 Hz
         # create ros timer for main loop
 
         # TODO connect to led and relay services
@@ -215,10 +216,12 @@ class ControlSystemServer(object):
         pass
 
     def _publish_sba5_measure(self, data):
+        self._logger.debug("publish_sba5_measure: We got data: {}".format(data))
         co2_msg = Temperature()
         co2_msg.header.stamp = rospy.Time.now()
         co2_msg.temperature = data
-        self._co2_pub.publish()
+        self._logger.debug("Message: {}".format(co2_msg))
+        self._co2_pub.publish(co2_msg)
 
     def _set_new_relay_state(self, command, state):
         # command - str, state - 0 or 1
@@ -252,32 +255,33 @@ class ControlSystemServer(object):
 
         # if self._sba5_measure_allowed:
         # event is rospy.TimerEvent
-        if self._sba5_measure_allowed_event.is_set():
-            rospy.wait_for_service(self._sba5_service_name)
-            try:
-                sba_device = rospy.ServiceProxy(self._sba5_service_name, SBA5Device)
-                raw_resp = sba_device("measure_co2")
-                self._logger.debug("We got raw response from sba5 : {}".format(raw_resp.response))
-                self._logger.debug("Type of raw response : {}".format(type(raw_resp.response)))
-                self._logger.debug("Size of raw response : {}".format(len(raw_resp.response)))
-                # lets get co2 measure from that string
-                pattern = re.compile(r'\w+: (\d+.\d+)')  # for answers like "success: 55.21"
-                co2_data = float(pattern.findall(raw_resp.response)[0])
+        self._sba5_measure_allowed_event.wait()
+        rospy.wait_for_service(self._sba5_service_name)
+        try:
+            sba_device = rospy.ServiceProxy(self._sba5_service_name, SBA5Device)
+            raw_resp = sba_device("measure_co2")
+            #self._logger.debug("We got raw response from sba5 : {}".format(raw_resp.response))
+            #self._logger.debug("Type of raw response : {}".format(type(raw_resp.response)))
+            #self._logger.debug("Size of raw response : {}".format(len(raw_resp.response)))
+            # lets get co2 measure from that string
+            pattern = re.compile(r'\w+: (\d+.\d+)')  # for answers like "success: 55.21"
+            co2_data = float(pattern.findall(raw_resp.response)[0])
 
-                self._logger.debug("We find co2 using re : {}".format(co2_data))
-                # add to self array
-                self._add_new_data_to_array(co2_data)
+            self._logger.debug("measure_co2: We find co2 using re : {}".format(co2_data))
+            # add to self array
+            self._add_new_data_to_array(co2_data)
 
-                # then publish it
-                self._publish_sba5_measure(co2_data)
-                self._logger.debug("We published it")
+            # then publish it
+            self._publish_sba5_measure(co2_data)
+            #self._logger.debug("We published it")
 
-                return float(co2_data)
+            return float(co2_data)
 
-            except Exception as e:
-                print("Service call failed: {}".format(e))
-                self._logger.error("Service call failed: {}".format(e))
-                #raise ControlSystemException(e)
+        except Exception as e:
+            print("Service call failed: {}".format(e))
+            self._logger.error("Service call failed: {}".format(e))
+            # raise ControlSystemException(e)
+            raise
 
     def _update_sba5_params(self):
         self._logger.debug("Try to reinit sba5")
