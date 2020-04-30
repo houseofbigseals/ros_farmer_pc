@@ -5,7 +5,7 @@
 import rospy
 from std_msgs.msg import String
 from data_scripts.custom_logger import CustomLogger
-from ros_farmer_pc.srv import ControlSystem, LedDevice, RelayDevice, SBA5Device
+from ros_farmer_pc.srv import ControlSystem, LedDevice, RelayDevice, SBA5Device, SBA5DeviceResponse
 from sensor_msgs.msg import Temperature
 from threading import Lock, Event
 import time
@@ -257,12 +257,12 @@ class ControlSystemServer(object):
             try:
                 sba_device = rospy.ServiceProxy(self._sba5_service_name, SBA5Device)
                 raw_resp = sba_device("measure_co2")
-                self._logger.debug("We got raw response from sba5 : {}".format(raw_resp))
-                self._logger.debug("Type of raw response : {}".format(type(raw_resp)))
-                self._logger.debug("Size of raw response : {}".format(len(raw_resp)))
+                self._logger.debug("We got raw response from sba5 : {}".format(raw_resp.response))
+                self._logger.debug("Type of raw response : {}".format(type(raw_resp.response)))
+                self._logger.debug("Size of raw response : {}".format(len(raw_resp.response)))
                 # lets get co2 measure from that string
                 pattern = re.compile(r'\w+: (\d+.\d+)')  # for answers like "success: 55.21"
-                co2_data = float(pattern.findall(raw_resp)[0])
+                co2_data = float(pattern.findall(raw_resp.response)[0])
 
                 self._logger.debug("We find co2 using re : {}".format(co2_data))
                 # add to self array
