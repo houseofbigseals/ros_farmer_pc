@@ -283,7 +283,8 @@ class ControlSystemServer(object):
             print("Service call failed: {}".format(e))
             self._logger.error("Service call failed: {}".format(e))
             #raise ControlSystemException(e)
-            raise
+            #raise 
+            # TODO FIX
 
     def _update_sba5_params(self):
         self._logger.debug("Try to reinit sba5")
