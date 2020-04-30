@@ -300,7 +300,7 @@ class SBA5DeviceServer(object):
         elif req.command == 'measure_co2':
             try:
                 ans = self.do_measurement()
-
+                self._logger.debug("raw result from measure {}".format(ans))
                 pattern = re.compile(r'M \d+ \d+ (\d+.\d+) \d+.\d+ \d+.\d+ \d+.\d+ \d+ \d+\r\n')
                 res = pattern.findall(ans)
 

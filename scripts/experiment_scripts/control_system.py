@@ -149,10 +149,12 @@ class ControlSystemServer(object):
             self._start_ventilation()
             # stop measuring co2 using threading event
             self._sba5_measure_allowed_event.clear()
+            self._logger.debug("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
             # do calibration of sba-5
             self._perform_sba5_calibration()
             # start measuring co2 again
             self._sba5_measure_allowed_event.set()
+            self._logger.debug("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
             # wait for self._ventilation_time
             rospy.sleep(self._ventilation_time)
             # stop ventilation
@@ -280,7 +282,7 @@ class ControlSystemServer(object):
         except Exception as e:
             print("Service call failed: {}".format(e))
             self._logger.error("Service call failed: {}".format(e))
-            # raise ControlSystemException(e)
+            #raise ControlSystemException(e)
             raise
 
     def _update_sba5_params(self):
@@ -353,8 +355,9 @@ class ControlSystemServer(object):
                     co2 = self._get_sba5_measure()
                     resp = self._success_response + str(co2)
                     return resp
-                except ControlSystemException as e:
-                    resp = self._error_response + e.args[0]
+                #except ControlSystemException as e:
+                except Exception as e:
+                    resp = self._error_response + str(e) #+e.args[0]
                     return resp
             else:
                 resp = self._error_response + "co2 measures are not allowed now"
