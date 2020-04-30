@@ -272,8 +272,9 @@ class ControlSystemServer(object):
                 return float(co2_data)
 
             except Exception as e:
+                print("Service call failed: {}".format(e))
                 self._logger.error("Service call failed: {}".format(e))
-                raise ControlSystemException(e)
+                #raise ControlSystemException(e)
 
     def _update_sba5_params(self):
         self._logger.debug("Try to reinit sba5")
