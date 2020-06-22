@@ -66,6 +66,7 @@ class ControlSystemServer(object):
         # mode can be :
         # experiment
         # life_support
+        # test
         # ...
         #self._sba5_measure_allowed = False  # by default
         self._at_work = rospy.get_param('~control_start_at_work', True)
@@ -86,7 +87,7 @@ class ControlSystemServer(object):
 
         # create timers for async periodic tasks using internal ros mechanics
         # Create a ROS Timer for reading data
-        rospy.Timer(rospy.Duration(2.0), self._get_sba5_measure)  # 1 Hz
+        rospy.Timer(rospy.Duration(2.0), self._get_sba5_measure)  # 2 Hz
         # create ros timer for main loop
 
         # TODO connect to led and relay services
@@ -111,8 +112,18 @@ class ControlSystemServer(object):
                 self._experiment_loop()
             elif self._mode == 'life_support':
                 self._life_support_loop()
+            elif self._mode == 'test':
+                self._test_loop()
             pass
             #rospy.spin()
+
+    def _test_loop(self):
+        t = time.localtime()
+        # every 15 minutes by default
+        if t.tm_min % (self._full_experiment_loop_time / 60.0) == 0:
+            self._logger.debug("start test loop again")
+            rospy.sleep(self._air_valves_open_time)
+            self._logger.debug("we have done nothing, really")
 
     def _life_support_loop(self):
         # one loop
@@ -283,7 +294,7 @@ class ControlSystemServer(object):
             print("Service call failed: {}".format(e))
             self._logger.error("Service call failed: {}".format(e))
             #raise ControlSystemException(e)
-            #raise 
+            #raise
             # TODO FIX
 
     def _update_sba5_params(self):
@@ -370,6 +381,9 @@ class ControlSystemServer(object):
                 resp = self._success_response
             elif req.argument == 'life_support':
                 self._mode = 'life_support'
+                resp = self._success_response
+            elif req.argument == 'test':
+                self._mode = 'test'
                 resp = self._success_response
             else:
                 resp = self._error_response + "no such control mode"
