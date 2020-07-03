@@ -15,7 +15,7 @@
     <arg name="control_relay_service_name" default="relay_device"/>
     <arg name="control_led_service_name" default="led_device"/>
     <arg name="control_sba5_service_name" default="sba5_device"/>
-    <arg name="control_start_mode", "life_support"/>
+    <arg name="control_start_mode" default="life_support"/>
 
     <!-- nodes -->
     <node pkg="ros_farmer_pc" type="control_system.py" name="control_node">
@@ -23,7 +23,7 @@
         <param name="control_led_service_name" value="$(arg control_led_service_name)"/>
         <param name="control_sba5_service_name" value="$(arg control_sba5_service_name)"/>
         <!-- set LSS mode -->
-        <param name="_control_start_mode", value="$(arg control_start_mode)"/>
+        <param name="control_start_mode", value="$(arg control_start_mode)"/>
     </node>
 
     <node pkg="rosserial_python" type="serial_node.py" name="serial_node">
