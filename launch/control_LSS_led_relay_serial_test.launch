@@ -23,7 +23,7 @@
         <param name="control_led_service_name" value="$(arg control_led_service_name)"/>
         <param name="control_sba5_service_name" value="$(arg control_sba5_service_name)"/>
         <!-- set LSS mode -->
-        <param name="control_start_mode", value="$(arg control_start_mode)"/>
+        <param name="control_start_mode" value="$(arg control_start_mode)"/>
     </node>
 
     <node pkg="rosserial_python" type="serial_node.py" name="serial_node">
