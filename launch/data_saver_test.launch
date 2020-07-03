@@ -26,8 +26,19 @@
         { name: '/raw_co2_pub',  type: 'co2',  dtype: 'float64', units: 'ppmv', status: 'raw' },
         { name: '/si7021_1_hum_pub',  type: 'humidity', dtype: 'float64', units: 'percents', status: 'raw' },
         { name: '/si7021_1_temp_pub', type: 'temperature', dtype: 'float64', units: 'C', status: 'raw'}
-        <!--{ name: '/raw_co2_pub', dtype: 'float64'}-->
         ]
+        </rosparam>
+
+        <rosparam param="data_saver_experiment_description">
+        {
+            experiment_type: 'test',
+            machine_id: 'undefined',
+            experiment_legend: 'test table-search experiment without IRGA',
+            start_datetime: '2020_07_03T23:00:00',
+            end_datetime: '2020_27_03T23:00:00',
+            additional_notes: 'add any notes about experiment errors or smth other important',
+            experiment_id: '2020_07_03_TESTTYPE_0001'
+        }
         </rosparam>
 
         <rosparam param="data_saver_exp_topics">

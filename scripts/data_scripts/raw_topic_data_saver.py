@@ -96,6 +96,8 @@ class DataSaverServer(object):
         self._raw_topics = rospy.get_param('~data_saver_raw_topics')
         self._exp_topics = rospy.get_param('~data_saver_exp_topics')
 
+        self._description = rospy.get_param('~data_saver_experiment_description')
+
         # list to keep subscribers (for what?)
         self._subscribers_list = list()
 
@@ -262,13 +264,15 @@ class DataSaverServer(object):
 
                 # then we have to create metadata to all datasets of this file
                 try:
-                    # TODO check metadata
                     meta = {
                         'start_date': datetime.datetime.now().strftime('%Y_%m_%d'),
                         'data_type': topic['type'],
                         'data_units': topic['units'],
                         'sensor_name': topic['name']
                     }
+
+
+
                     ds = f['Raw_Data'+topic['name']]
                     ds.attrs.update(meta)
                 except Exception as v:
@@ -319,14 +323,17 @@ class DataSaverServer(object):
 
             # global meta about all experiment
             try:
-                meta = {
-                    'start_datetime': datetime.datetime.now().strftime('%Y_%m_%dT%H:%M:%S'),
-                    'end_datetime': 'unknown',
-                    'experiment_type': 'unknown',
-                    'experiment_legend': 'unknown',
-                    'experiment_id': self._experiment_id
-                    # TODO add this params from .launch file, not from here
-                }
+                # meta = {
+                #     'start_datetime': datetime.datetime.now().strftime('%Y_%m_%dT%H:%M:%S'),
+                #     'end_datetime': 'unknown',
+                #     'experiment_type': 'unknown',
+                #     'experiment_legend': 'unknown',
+                #     'experiment_id': self._experiment_id
+                #     # TODO add this params from .launch file, not from here
+                # }
+
+                meta = self._description
+
                 f.attrs.update(meta)
             except Exception as e:
                 self._logger.warning("error while adding global meta to hdf data file: {}".format(v))

@@ -19,9 +19,9 @@
 
     <!-- nodes -->
     <node pkg="ros_farmer_pc" type="control_system.py" name="control_node">
-        <param name="_control_relay_service_name" value="$(arg control_relay_service_name)"/>
-        <param name="_control_led_service_name" value="$(arg control_led_service_name)"/>
-        <param name="_control_sba5_service_name" value="$(arg control_sba5_service_name)"/>
+        <param name="control_relay_service_name" value="$(arg control_relay_service_name)"/>
+        <param name="control_led_service_name" value="$(arg control_led_service_name)"/>
+        <param name="control_sba5_service_name" value="$(arg control_sba5_service_name)"/>
         <!-- set LSS mode -->
         <param name="_control_start_mode", value="$(arg control_start_mode)"/>
     </node>
@@ -37,15 +37,16 @@
   </node>
 
   <node pkg="ros_farmer_pc" type="relay_device.py" name="relay_device">
-    <param name="_relay_number_of_channels" value="$(arg relay_number_of_channels)"/>
-    <param name="_relay_mapping_string" value="$(arg relay_mapping_string)"/>
-    <param name="_raw_relay_topic_name" value="$(arg raw_relay_topic_name)"/>
+    <param name="relay_number_of_channels" value="$(arg relay_number_of_channels)"/>
+    <param name="relay_mapping_string" value="$(arg relay_mapping_string)"/>
+    <param name="raw_relay_topic_name" value="$(arg raw_relay_topic_name)"/>
   </node>
-
+<!--
    <node pkg="ros_farmer_pc" type="sba5_device.py" name="sba5_device">
     <param name="_sba5_port" value="$(arg sba5_device_port)"/>
     <param name="_sba5_baudrate" value="$(arg sba5_baudrate)"/>
     <param name="_sba5_timeout" value="$(arg sba5_timeout)"/>
     <param name="_sba5_calibration_time" value="$(arg sba5_calibration_time)"/>
   </node>
+  -->
 </launch>
