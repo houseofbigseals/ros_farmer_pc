@@ -1,0 +1,75 @@
+<launch>
+    <!-- arguments -->
+
+    <arg name="data_saver_log_name" default="data_saver"/>
+    <arg name="data_saver_log_node_name" default="/data_saver_log"/>
+    <arg name="data_saver_experiment_id" default="2020_01_01_TESTTYPE_0000"/>
+    <arg name="data_saver_data_folder" default="/home/greencrow/test_data"/>
+    <arg name="data_saver_data_file_name" default="raw_data.hdf5"/>
+
+
+    <!-- data saver node-->
+    <node pkg="ros_farmer_pc" type="raw_topic_data_saver.py" name="raw_data_saver" output="screen">
+        <!--<rosparam param="source_list" subst_value="True">$(arg source_list)</rosparam>-->
+
+        <!-- we can use that example to store descriptions of raw_topics
+        and then parse that thing dynamically in __init__
+        -->
+
+        <!--http://wiki.ros.org/roslaunch/XML/rosparam-->
+        <!-- IMPORTANT! The <rosparam> tag can be put inside of a <node> tag,
+        in which case the parameter is treated like a private name. -->
+        <rosparam param="data_saver_raw_topics">
+        [
+        { name: '/bmp180_1_temp_pub', type: 'temperature', dtype: 'float64', units: 'C', status: 'raw' },
+        { name: '/bmp180_1_pressure_pub', type: 'pressure', dtype: 'float64', units: 'kPa', status: 'raw' },
+        { name: '/raw_co2_pub',  type: 'co2',  dtype: 'float64', units: 'ppmv', status: 'raw' },
+        { name: '/si7021_1_hum_pub',  type: 'humidity', dtype: 'float64', units: 'percents', status: 'raw' },
+        { name: '/si7021_1_temp_pub', type: 'temperature', dtype: 'float64', units: 'C', status: 'raw'}
+        <!--{ name: '/raw_co2_pub', dtype: 'float64'}-->
+        ]
+        </rosparam>
+
+        <rosparam param="data_saver_exp_topics">
+        [
+        { name: '/exp_point_id',  type: 'number of search point', dtype: 'float64', units: 'Num', status: 'exp'},
+        { name: '/exp_red_current', type: 'current', dtype: 'float64', units: 'mA', status: 'exp'  },
+        { name: '/exp_white_current', type: 'current', dtype: 'float64', units: 'mA', status: 'exp'  },
+        { name: '/exp_F', type: 'photosynthesis', dtype: 'float64', units: 'Unknown', status: 'exp' },
+        { name: '/exp_G', type: 'final efficiency', dtype: 'float64', units: 'Unknown', status: 'exp' },
+        { name: '/exp_start_time', type: 'epochs start time', dtype: 'float64', units: 'Sec', status: 'exp' },
+        { name: '/exp_end_time', type: 'epochs end time', dtype: 'float64', units: 'Sec', status: 'exp' },
+        { name: '/exp_search_epoch', type: 'number of search epoch', dtype: 'float64', units: 'Num', status: 'exp' }
+        ]
+        </rosparam>
+        <!-- usual params -->
+        <param name="data_saver_log_name" value="$(arg data_saver_log_name)"/>
+        <param name="data_saver_log_node_name" value="$(arg data_saver_log_node_name)"/>
+        <param name="data_saver_experiment_id" value="$(arg data_saver_experiment_id)"/>
+        <param name="data_saver_data_folder" value="$(arg data_saver_data_folder)"/>
+        <param name="data_saver_data_file_name" value="$(arg data_saver_data_file_name)"/>
+    </node>
+
+
+
+    <!--
+    <group if="$(arg foo)">
+    stuff that will only be evaluated if foo is true
+    </group>
+
+    <param name="foo" value="bar" unless="$(arg foo)" />
+     This param won't be set when "unless" condition is met
+    -->
+
+
+    <!--
+      <node pkg="rosserial_python" type="serial_node.py" name="serial_node">
+        <param name="port" value="/dev/ttyUSB0"/>
+        <param name="baud" value="57600"/>
+      </node>
+
+      <node pkg="ros_farmer_pc" type="relay_test.py" name="relay_test" output="log" respawn="false">
+             <param name="~relay_1_sub_name" value="relay_1_sub"/>
+        </node>
+        -->
+</launch>

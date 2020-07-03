@@ -31,22 +31,26 @@ class CustomLogger(object):
         _time=rospy.get_time()
         msg = str(_time) + self._logsep + str(self._name) + self._logsep + self._logdebug + self._logsep + str(_message)
         self._logpub.publish(msg)
+        rospy.logdebug(msg)
         return msg
 
     def info(self, _message):
         _time = rospy.get_time()
         msg = str(_time) + self._logsep + str(self._name) + self._logsep + self._loginfo + self._logsep + str(_message)
         self._logpub.publish(msg)
+        rospy.loginfo(msg)
         return msg
 
     def warning(self, _message):
         _time = rospy.get_time()
         msg = str(_time) + self._logsep + str(self._name) + self._logsep + self._logwarning + self._logsep + str(_message)
         self._logpub.publish(msg)
+        rospy.logwarn(msg)
         return msg
 
     def error(self, _message):
         _time = rospy.get_time()
         msg = str(_time) + self._logsep + str(self._name) + self._logsep + self._logerror + self._logsep + str(_message)
         self._logpub.publish(msg)
+        rospy.logerr(msg)
         return msg
