@@ -1,6 +1,8 @@
 <launch>
-  <group name="wg">
-    <include file="$(find ros_farmer_pc)/launch/data_saver_test.launch" />
+  <group ns="wg">
+    <include file="$(find ros_farmer_pc)/launch/data_saver_test.launch">
+        <arg name="data_saver_data_folder" value="/home/pi/test_exp_data"/>
+    </include>
     <include file="$(find ros_farmer_pc)/launch/control_LSS_led_relay_serial_test.launch" />
     <!--
     <include file="$(find 2dnav_pr2)/config/new_amcl_node.xml" />

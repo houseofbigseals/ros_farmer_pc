@@ -89,6 +89,7 @@ class DataSaverServer(object):
         self._data_place = rospy.get_param('~data_saver_data_folder', './exp_data')
         self._data_file_name = rospy.get_param('~data_saver_data_file_name', 'raw_data.hdf5')
         self._data_path = self._data_place + '/' + self._data_file_name
+        self._logger.debug(" === data path is {}".format(self._data_path))
 
         #  example
         #  http://wiki.ros.org/rospy/Overview/Parameter%20Server

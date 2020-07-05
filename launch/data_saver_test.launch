@@ -4,7 +4,8 @@
     <arg name="data_saver_log_name" default="data_saver"/>
     <arg name="data_saver_log_node_name" default="/data_saver_log"/>
     <arg name="data_saver_experiment_id" default="2020_01_01_TESTTYPE_0000"/>
-    <arg name="data_saver_data_folder" default="/home/greencrow/test_data"/>
+    <arg name="data_saver_data_folder" default="/home/greencrow/test_exp_data"/>
+    <!--  self._data_path = self._data_place + '/' + self._data_file_name -->
     <arg name="data_saver_data_file_name" default="raw_data.hdf5"/>
 
 
