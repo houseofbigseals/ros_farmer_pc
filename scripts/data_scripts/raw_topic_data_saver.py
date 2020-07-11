@@ -186,8 +186,8 @@ class DataSaverServer(object):
                     dset_len = np.shape(dset)[1]
                     dset.resize((2, dset_len + 1))
                     dset[:, dset_len - 1] = np.array([timestamp, new_data])
-                    print("new dataset {} state : ".format(dset))
-                    print(dset[:,:])
+                    # print("new dataset {} state : ".format(dset))
+                    # print(dset[:,:])
 
                 elif topic_info['status'] == 'exp':
                     # it is exp data, we have to parse and save  3 fields: timestamp and poid and data
@@ -198,8 +198,8 @@ class DataSaverServer(object):
                     dset_len = np.shape(dset)[1]
                     dset.resize((3, dset_len + 1))
                     dset[:, dset_len - 1] = np.array([timestamp, exp_point_id, new_data])
-                    print("new dataset {} state : ".format(dset))
-                    print(dset[:,:])
+                    # print("new dataset {} state : ".format(dset))
+                    # print(dset[:,:])
 
 
     def _create_hdf5_file(self):
