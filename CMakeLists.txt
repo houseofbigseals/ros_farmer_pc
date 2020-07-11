@@ -176,6 +176,7 @@ install(PROGRAMS
    scripts/devices_scripts/relay_device.py
    scripts/devices_scripts/sba5_device.py
    scripts/data_scripts/custom_logger.py
+   scripts/data_scripts/data_plotter.py
    scripts/data_scripts/raw_topic_data_saver.py
    scripts/experiment_scripts/control_system.py
    scripts/experiment_scripts/table_test_experiment.py
