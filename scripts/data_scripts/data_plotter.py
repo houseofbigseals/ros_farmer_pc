@@ -23,7 +23,7 @@ class hdf_handler(object):
         self.ipv4 = os.popen('ip addr show tun0').read().split("inet ")[1].split("/")[0]
 
         self.web_addr = self.ipv4
-        self.web_port = "8090"  # on every rpi
+        self.web_port = 8090  # on every rpi
         self.list_of_hdf = list()
         self.metastring = "experiment metadata: \n"
         # self.list_of_datasets =
@@ -162,7 +162,7 @@ def update_graph(yaxis_column_name):
 
 if __name__ == "__main__":
     # app.run_server(debug=True, host='192.168.100.9', port=8090)
-    app.run_server(debug=True, host='10.9.0.13', port=8090)
+    app.run_server(debug=True, host=hh.web_addr, port=hh.web_port)
 
 
 
