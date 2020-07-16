@@ -8,6 +8,7 @@ import plotly.express as px
 import pandas as pd
 import time
 import datetime
+import os
 
 class hdf_handler(object):
 
@@ -15,8 +16,14 @@ class hdf_handler(object):
         print("========== start init")
         # self.data_path = "/home/greencrow/raw_data.hdf5"
         self.data_path = "/home/pi/test_exp_data/raw_data.hdf5"
-        self.web_addr = "192.168.100.9"
-        self.web_port = "8090"
+
+        # for default we will use current ip in tun0 protocol
+        # if there is no any tun0 - it must be a critical error
+
+        self.ipv4 = os.popen('ip addr show tun0').read().split("inet ")[1].split("/")[0]
+
+        self.web_addr = self.ipv4
+        self.web_port = "8090"  # on every rpi
         self.list_of_hdf = list()
         self.metastring = "experiment metadata: \n"
         # self.list_of_datasets =
