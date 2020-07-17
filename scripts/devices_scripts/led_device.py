@@ -89,7 +89,7 @@ class LedDeviceServer(object):
 
 
         # start node
-        rospy.init_node('led_device_server')
+        rospy.init_node('led_device_server', log_level=rospy.DEBUG)
 
         # get roslaunch params and reinit part of params
         self._logname = rospy.get_param('~led_log_name', 'LED')

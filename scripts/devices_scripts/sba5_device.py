@@ -241,7 +241,7 @@ class SBA5DeviceServer(object):
 
 
         # start node
-        rospy.init_node('sba5_device_server')
+        rospy.init_node('sba5_device_server', log_level=rospy.DEBUG)
 
         # get roslaunch params and reinit part of params
         self._logname = rospy.get_param('~sba5_log_name', 'sba5')

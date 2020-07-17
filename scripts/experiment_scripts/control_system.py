@@ -34,7 +34,7 @@ class ControlSystemServer(object):
         self._error_response = "error: "
 
         # start node
-        rospy.init_node('control_server')
+        rospy.init_node('control_server', log_level=rospy.DEBUG)
 
         # get roslaunch params
 
