@@ -20,7 +20,9 @@ class HDFHandler(object):
     def __init__(self):
         print("========== start init")
         # self.data_path = "/home/greencrow/raw_data.hdf5"
-        self.data_path = "/home/pi/test_exp_data/raw_data.hdf5"
+        self.data_path = rospy.get_param('~data_plotter_data_path',
+                                         "/home/pi/test_exp_data/raw_data.hdf5")
+
 
         # start node
         rospy.init_node('data_plotter_server', log_level=rospy.DEBUG)
@@ -57,7 +59,7 @@ class HDFHandler(object):
             for m in f.attrs.keys():
                 self.global_meta[m] = f.attrs[m]
                 self.metastring+='{}: {} \n'.format(m, f.attrs[m])
-                print('{}: {}'.format(m, f.attrs[m]))
+                # print('{}: {}'.format(m, f.attrs[m]))
 
         # TODO here service call to data_saver to free lock
         self.free_lock()
@@ -120,21 +122,21 @@ class HDFHandler(object):
 
         with h5py.File(self.data_path, 'r') as f:
             hdf_data = f[name]
-            print(np.shape(hdf_data))
+            # print(np.shape(hdf_data))
             numpy_data = f[name][:, 0:np.shape(hdf_data)[1]-1]
 
             # arr [points from 1st axe, points from 2 axe, ...]
-            print(numpy_data[:, 0:10])
+            # print(numpy_data[:, 0:10])
 
             meta = dict.fromkeys(hdf_data.attrs.keys())
             for m in hdf_data.attrs.keys():
                 meta[m] = hdf_data.attrs[m]
-                print('{}: {}'.format(m, hdf_data.attrs[m]))
-
-            print(type(hdf_data))
-            print(type(numpy_data))
-            print(type(meta))
-            print(meta)
+            #     print('{}: {}'.format(m, hdf_data.attrs[m]))
+            #
+            # print(type(hdf_data))
+            # print(type(numpy_data))
+            # print(type(meta))
+            # print(meta)
 
         self.free_lock()
 
