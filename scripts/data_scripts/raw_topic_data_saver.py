@@ -114,7 +114,7 @@ class DataSaverServer(object):
             # so here we think that it is "sensor_msgs/Temperature" as default
             s = rospy.Subscriber(name=topic['name'], data_class=Temperature,
                              callback=self._raw_data_callback, callback_args=topic,
-                 queue_size=0)  # 0 queue size means infinite queue size
+                 queue_size=100)
             print(s)
             self._subscribers_list.append(s)
 
@@ -127,7 +127,7 @@ class DataSaverServer(object):
             # Remember: we keep third value from exp_topic in variance
             s = rospy.Subscriber(name=topic['name'], data_class=Temperature,
                              callback=self._raw_data_callback, callback_args=topic,
-                 queue_size=0) # 0 queue size means infinite queue size
+                 queue_size=100)
             print(s)
             self._subscribers_list.append(s)
 
