@@ -1,0 +1,15 @@
+<launch>
+    <!-- arguments -->
+    <arg name="data_plotter_log_name" default="data_plotter"/>
+    <arg name="data_plotter_log_node_name" default="/data_plotter_log"/>
+    <arg name="data_plotter_data_path" default="/home/pi/test_exp_data/raw_data.hdf5"/>
+
+     <!-- data plotter node-->
+    <node pkg="ros_farmer_pc" type="data_plotter.py" name="data_plotter">
+        <param name="data_plotter_log_name" value="$(arg data_plotter_log_name)"/>
+        <!--  add port in future -->
+        <param name="data_plotter_log_node_name" value="$(arg data_plotter_log_node_name)"/>
+        <param name="data_plotter_data_path" value="$(arg data_plotter_data_path)"/>
+    </node>
+
+</launch>

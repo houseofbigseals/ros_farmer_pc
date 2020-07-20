@@ -226,22 +226,31 @@ def update_graph(yaxis_column_name):
 
     # dff = pd.(numpy_data)
 
-    fig = px.line(x=times,
-                     y=numpy_data[1, :])
-                     # hover_name=dff[dff['Indicator Name'] == yaxis_column_name]['Country Name'])
-    print("========== fig created")
+    if meta['status'] == 'raw':
+        fig = px.line(x=times,
+                         y=numpy_data[1, :])
+                         # hover_name=dff[dff['Indicator Name'] == yaxis_column_name]['Country Name'])
+        print("========== fig created")
+        fig.update_layout(margin={'l': 40, 'b': 40, 't': 10, 'r': 0}, hovermode='closest')
+        # fig.update_xaxes(title=xaxis_column_name,
+        #                  type='linear' if xaxis_type == 'Linear' else 'log')
+        print("========== fig layout updated")
+        fig.update_yaxes(title=yaxis_column_name, type='linear')
+                         # type='linear' if yaxis_type == 'Linear' else 'log')
+        return fig
 
-    fig.update_layout(margin={'l': 40, 'b': 40, 't': 10, 'r': 0}, hovermode='closest')
-
-    # fig.update_xaxes(title=xaxis_column_name,
-    #                  type='linear' if xaxis_type == 'Linear' else 'log')
-    print("========== fig layout updated")
-
-    fig.update_yaxes(title=yaxis_column_name, type='linear')
-                     # type='linear' if yaxis_type == 'Linear' else 'log')
-
-    return fig
-
+    elif meta['status'] == 'exp':
+        fig = px.line(x=numpy_data[1, :],
+                         y=numpy_data[2, :])
+                         # hover_name=dff[dff['Indicator Name'] == yaxis_column_name]['Country Name'])
+        print("========== fig created")
+        fig.update_layout(margin={'l': 40, 'b': 40, 't': 10, 'r': 0}, hovermode='closest')
+        # fig.update_xaxes(title=xaxis_column_name,
+        #                  type='linear' if xaxis_type == 'Linear' else 'log')
+        print("========== fig layout updated")
+        fig.update_yaxes(title=yaxis_column_name, type='linear')
+                         # type='linear' if yaxis_type == 'Linear' else 'log')
+        return fig
 
 
 

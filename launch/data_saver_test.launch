@@ -36,7 +36,7 @@
             machine_id: 'undefined',
             experiment_legend: 'test table-search experiment without IRGA',
             start_datetime: '2020_07_03T23:00:00',
-            end_datetime: '2020_27_03T23:00:00',
+            end_datetime: '2020_07_03T23:00:00',
             additional_notes: 'add any notes about experiment errors or smth other important',
             experiment_id: '2020_07_03_TESTTYPE_0001'
         }
