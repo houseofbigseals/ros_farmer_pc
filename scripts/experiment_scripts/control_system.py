@@ -114,7 +114,9 @@ class ControlSystemServer(object):
                 self._life_support_loop()
             elif self._mode == 'test':
                 self._test_loop()
-            pass
+            else:
+                self._logger.error("current mode is not real mode: {}".format(self._mode))
+                rospy.sleep(1)
             #rospy.spin()
 
     def _test_loop(self):
@@ -378,17 +380,26 @@ class ControlSystemServer(object):
         elif req.command == 'set_mode':
             if req.argument == 'experiment':
                 self._mode = 'experiment'
-                resp = self._success_response
+                resp = self._success_response + "mode was set to " + self._mode
             elif req.argument == 'life_support':
                 self._mode = 'life_support'
-                resp = self._success_response
+                resp = self._success_response + "mode was set to " + self._mode
             elif req.argument == 'test':
                 self._mode = 'test'
-                resp = self._success_response
+                resp = self._success_response + "mode was set to " + self._mode
             else:
                 resp = self._error_response + "no such control mode"
 
             return resp
+
+        elif req.command == 'get_mode':
+            try:
+                # self._update_sba5_params()
+                resp = self._success_response + "current mode is " + self._mode
+                return resp
+            except ControlSystemException as e:
+                resp = self._error_response + e.args[0]
+                return resp
 
         else:
             resp = self._error_response + 'unknown command'
