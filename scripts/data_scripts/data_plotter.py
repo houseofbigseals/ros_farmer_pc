@@ -94,6 +94,7 @@ class HDFHandler(object):
         print("========== end of init")
 
     def get_lock(self):
+        pass
         rospy.wait_for_service(self._data_saver_service)
         try:
             data_wrapper = rospy.ServiceProxy(self._data_saver_service, DataSaver)
@@ -105,6 +106,7 @@ class HDFHandler(object):
             self._logger.error("Service call failed: {}".format(e))
 
     def free_lock(self):
+        pass
         rospy.wait_for_service(self._data_saver_service)
         try:
             data_wrapper = rospy.ServiceProxy(self._data_saver_service, DataSaver)
@@ -220,6 +222,7 @@ print("========== app created")
 def update_graph(yaxis_column_name):
     print("========== start update_graph callback")
     numpy_data, meta = hh.get_dataset(yaxis_column_name)
+    print(meta)
     # convert timestamps to datetime str
     times = list()
     for t in numpy_data[0, :]:

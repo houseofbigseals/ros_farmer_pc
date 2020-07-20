@@ -275,7 +275,8 @@ class DataSaverServer(object):
                         'start_date': datetime.datetime.now().strftime('%Y_%m_%d'),
                         'data_type': topic['type'],
                         'data_units': topic['units'],
-                        'sensor_name': topic['name']
+                        'sensor_name': topic['name'],
+                        'status': topic['status']
                     }
 
 
@@ -319,7 +320,8 @@ class DataSaverServer(object):
                         'start_date': datetime.datetime.now().strftime('%Y_%m_%d'),
                         'data_type': topic['type'],
                         'data_units': topic['units'],
-                        'exp_value_name': topic['name']
+                        'exp_value_name': topic['name'],
+                        'status': topic['status']
                     }
                     ds = f['Exp_Data'+ topic['name']]
                     ds.attrs.update(meta)
