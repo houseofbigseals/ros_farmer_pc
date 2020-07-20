@@ -93,14 +93,22 @@ class ControlSystemServer(object):
         # TODO connect to led and relay services
         # or not
 
+        self._logger.debug("control_server service creation")
+
         # service
         self._service = rospy.Service(self._service_name, ControlSystem, self._handle_request)
 
-        # reinit sba5
-        self._update_sba5_params()
-        # allow measures of sba5
-        self._sba5_measure_allowed_event.set()
+        self._logger.debug("check if we are in experiment mode")
 
+        # reinit sba5
+        if self._mode == 'experiment':
+            self._logger.debug("update sba5 and allow sba5 measures")
+            self._update_sba5_params()
+
+            # allow measures of sba5
+            self._sba5_measure_allowed_event.set()
+
+        self._logger.debug("go to loop")
         self._loop()
 
     # ===================== loops for different control modes ======================
