@@ -1,3 +1,7 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+
 import h5py
 import numpy as np
 import dash
@@ -5,7 +9,6 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 import plotly.express as px
-import pandas as pd
 import time
 import datetime
 import os
