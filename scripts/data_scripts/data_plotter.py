@@ -51,10 +51,35 @@ class HDFHandler(object):
         self.metastring = "experiment metadata: \n"
         # self.list_of_datasets =
 
+        print("========== start get list of datasets")
+        list_of_hdf = list()
+
+        def get_all(name):
+            list_of_hdf.append(name)
+            print(name)
+
+        def _get_datasets(name, obj):
+            if (type(obj) == h5py._hl.dataset.Dataset):
+                # list_of_hdf.append((name, obj))
+                list_of_hdf.append(name)
+            # self.list_of_hdf = list_of_hdf
+            print(name)
+
+
         # TODO here service call to data_saver to get lock
         self.get_lock()
 
+
+
+        # self.get_lock()
         with h5py.File(self.data_path, 'r') as f:
+
+            f.visititems(_get_datasets)
+            # f.visit(get_all)
+            self.list_of_hdf = list_of_hdf
+            print(self.list_of_hdf)
+
+        # with h5py.File(self.data_path, 'r') as f:
             self.global_meta = dict.fromkeys(f.attrs.keys())
             for m in f.attrs.keys():
                 self.global_meta[m] = f.attrs[m]
@@ -87,32 +112,32 @@ class HDFHandler(object):
         except rospy.ServiceException, e:
             self._logger.error("Service call failed: {}".format(e))
 
-    def get_list_of_datasets(self):
-        print("========== start get list of datasets")
-        list_of_hdf = list()
-
-        def get_all(name):
-            list_of_hdf.append(name)
-            print(name)
-
-        def _get_datasets(name, obj):
-            if (type(obj) == h5py._hl.dataset.Dataset):
-                # list_of_hdf.append((name, obj))
-                list_of_hdf.append(name)
-            # self.list_of_hdf = list_of_hdf
-            print(name)
-
-        self.get_lock()
-        with h5py.File(self.data_path, 'r') as f:
-
-            f.visititems(_get_datasets)
-            # f.visit(get_all)
-            self.list_of_hdf = list_of_hdf
-            print(self.list_of_hdf)
-
-        self.free_lock()
-
-        print("========== end of get list of datasets")
+    # def get_list_of_datasets(self):
+    #     print("========== start get list of datasets")
+    #     list_of_hdf = list()
+    #
+    #     def get_all(name):
+    #         list_of_hdf.append(name)
+    #         print(name)
+    #
+    #     def _get_datasets(name, obj):
+    #         if (type(obj) == h5py._hl.dataset.Dataset):
+    #             # list_of_hdf.append((name, obj))
+    #             list_of_hdf.append(name)
+    #         # self.list_of_hdf = list_of_hdf
+    #         print(name)
+    #
+    #     # self.get_lock()
+    #     with h5py.File(self.data_path, 'r') as f:
+    #
+    #         f.visititems(_get_datasets)
+    #         # f.visit(get_all)
+    #         self.list_of_hdf = list_of_hdf
+    #         print(self.list_of_hdf)
+    #
+    #     # self.free_lock()
+    #
+    #     print("========== end of get list of datasets")
 
     def get_dataset(self, name):
         print("========== start get dataset {}".format(name))
@@ -153,8 +178,8 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 hh = HDFHandler()
-hh.get_list_of_datasets()
-numpy_data, meta = hh.get_dataset('Raw_Data/si7021_1_hum_pub')
+# hh.get_list_of_datasets()
+# numpy_data, meta = hh.get_dataset('Raw_Data/si7021_1_hum_pub')
 
 available_indicators = hh.list_of_hdf
 print("available_indicators: {}".format(available_indicators))
@@ -170,7 +195,7 @@ app.layout = html.Div([
         dcc.Dropdown(
             id='yaxis-column',
             options=[{'label': i, 'value': i} for i in available_indicators],
-            value='Raw_Data/bmp180_1_temp_pub'
+            value='Raw_Data/si7021_1_hum_pub'
         )
         ])])
 

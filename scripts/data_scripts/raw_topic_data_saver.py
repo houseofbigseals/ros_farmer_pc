@@ -8,7 +8,7 @@ from std_msgs.msg import String, Header
 from data_scripts.custom_logger import CustomLogger
 from ros_farmer_pc.srv import DataSaver
 from sensor_msgs.msg import Temperature
-from threading import RLock, Event
+from threading import RLock, Event, Lock
 import time
 import numpy as np
 import h5py
@@ -84,7 +84,7 @@ class DataSaverServer(object):
         # NUMB is uniq number of experiment
 
         # lets create lock to allow only one callback-thread to write to hdf5 file
-        self._data_write_lock = RLock()
+        self._data_write_lock = Lock()  #RLock()
 
         # check fields of hdf datafile
         self._data_place = rospy.get_param('~data_saver_data_folder', './exp_data')
