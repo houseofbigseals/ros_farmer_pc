@@ -6,7 +6,7 @@ import rospy
 import datetime
 from std_msgs.msg import String, Header
 from data_scripts.custom_logger import CustomLogger
-from ros_farmer_pc.srv import ControlSystem, LedDevice, RelayDevice, SBA5Device, SBA5DeviceResponse
+from ros_farmer_pc.srv import DataSaver
 from sensor_msgs.msg import Temperature
 from threading import RLock, Event
 import time
@@ -25,7 +25,7 @@ class DataSaverServer(object):
     it can
     - find all raw data topics
     - subscribe to them
-    - create hdf5-files for every raw data topic
+    - create hdf5-file
     - when there is new message in topic, we parse it, add normal time, date and
     info about experiment.
     after
@@ -66,6 +66,7 @@ class DataSaverServer(object):
         # names for self topics
         self._logname = rospy.get_param('~data_saver_log_name', 'data_saver')
         self._log_node_name = rospy.get_param('~data_saver_log_node_name', 'data_saver_log')
+        self._service_name = rospy.get_param('~data_saver_service_name', 'data_saver')
 
         # create log topic publisher
         self._log_pub = rospy.Publisher(self._log_node_name, String, queue_size=10)
@@ -113,7 +114,7 @@ class DataSaverServer(object):
             # so here we think that it is "sensor_msgs/Temperature" as default
             s = rospy.Subscriber(name=topic['name'], data_class=Temperature,
                              callback=self._raw_data_callback, callback_args=topic,
-                 queue_size=10)
+                 queue_size=20)
             print(s)
             self._subscribers_list.append(s)
 
@@ -127,6 +128,9 @@ class DataSaverServer(object):
                  queue_size=10)
             print(s)
             self._subscribers_list.append(s)
+
+        # service
+        self._service = rospy.Service(self._service_name, DataSaver, self._handle_request)
 
         self._logger.debug("end of init, go to loop")
 
@@ -356,6 +360,34 @@ class DataSaverServer(object):
             self._logger.debug("check meta of header of file")
             for m in f.attrs.keys():
                  print('{} : {}'.format(m, f.attrs[m]))
+
+    def _handle_request(self, req):
+        self._logger.debug("+++++++++++++++++++++++++++++++++++++++++++++++")
+        self._logger.debug("+++++++++++++++++++++++++++++++++++++++++++++++")
+        self._logger.debug("we got request: {}".format(req))
+
+        if not req.command:
+            # if we got empty string
+            resp = self._error_response + 'empty_command'
+            return resp
+
+        elif req.command == 'get_lock':
+            self._data_write_lock.acquire()
+            resp = self._success_response + "the lock has been acquared"
+            # lock will be acqured forever if we dont call free_lock command
+            # i think we cannot use some timer for that
+            # or not?
+            return resp
+
+        elif req.command == 'free_lock':
+            self._data_write_lock.release()
+            resp = self._success_response + "the lock has been released"
+            # lock will be acqured forever if we dont call free_lock command
+            return resp
+
+        else:
+            resp = self._error_response + 'unknown command'
+            return resp
 
 
 if __name__ == "__main__":

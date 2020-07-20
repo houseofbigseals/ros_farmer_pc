@@ -63,6 +63,7 @@ add_service_files(
    RelayDevice.srv
    ControlSystem.srv
    SBA5Device.srv
+   DataSaver.srv
 #   Service1.srv
 #   Service2.srv
 )

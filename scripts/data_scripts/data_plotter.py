@@ -9,14 +9,34 @@ import pandas as pd
 import time
 import datetime
 import os
+import rospy
+from std_msgs.msg import String
+from data_scripts.custom_logger import CustomLogger
+from ros_farmer_pc.srv import DataSaver
 
 
-class hdf_handler(object):
+class HDFHandler(object):
 
     def __init__(self):
         print("========== start init")
         # self.data_path = "/home/greencrow/raw_data.hdf5"
         self.data_path = "/home/pi/test_exp_data/raw_data.hdf5"
+
+        # start node
+        rospy.init_node('data_plotter_server', log_level=rospy.DEBUG)
+
+        # self logging
+        self._logname = rospy.get_param('~data_plotter_log_name', 'data_plotter')
+        self._log_node_name = rospy.get_param('~data_plotter_log_node_name', 'data_plotter_log_node')
+
+        # create log topic publisher
+        self._log_pub = rospy.Publisher(self._log_node_name, String, queue_size=10)
+
+        self._data_saver_service = rospy.get_param('~data_saver_service_name', 'data_saver')
+
+        # logger
+        self._logger = CustomLogger(name=self._logname, logpub=self._log_pub)
+        self._logger.debug("data_plotter_server init")
 
         # for default we will use current ip in tun0 protocol
         # if there is no any tun0 - it must be a critical error
@@ -28,13 +48,42 @@ class hdf_handler(object):
         self.list_of_hdf = list()
         self.metastring = "experiment metadata: \n"
         # self.list_of_datasets =
+
+        # TODO here service call to data_saver to get lock
+        self.get_lock()
+
         with h5py.File(self.data_path, 'r') as f:
             self.global_meta = dict.fromkeys(f.attrs.keys())
             for m in f.attrs.keys():
                 self.global_meta[m] = f.attrs[m]
                 self.metastring+='{}: {} \n'.format(m, f.attrs[m])
                 print('{}: {}'.format(m, f.attrs[m]))
+
+        # TODO here service call to data_saver to free lock
+        self.free_lock()
         print("========== end of init")
+
+    def get_lock(self):
+        rospy.wait_for_service(self._data_saver_service)
+        try:
+            data_wrapper = rospy.ServiceProxy(self._data_saver_service, DataSaver)
+            resp = data_wrapper('get_lock')
+            self._logger.debug(resp)
+            return resp
+
+        except rospy.ServiceException, e:
+            self._logger.error("Service call failed: {}".format(e))
+
+    def free_lock(self):
+        rospy.wait_for_service(self._data_saver_service)
+        try:
+            data_wrapper = rospy.ServiceProxy(self._data_saver_service, DataSaver)
+            resp = data_wrapper('free_lock')
+            self._logger.debug(resp)
+            return resp
+
+        except rospy.ServiceException, e:
+            self._logger.error("Service call failed: {}".format(e))
 
     def get_list_of_datasets(self):
         print("========== start get list of datasets")
@@ -51,6 +100,7 @@ class hdf_handler(object):
             # self.list_of_hdf = list_of_hdf
             print(name)
 
+        self.get_lock()
         with h5py.File(self.data_path, 'r') as f:
 
             f.visititems(_get_datasets)
@@ -58,10 +108,16 @@ class hdf_handler(object):
             self.list_of_hdf = list_of_hdf
             print(self.list_of_hdf)
 
+        self.free_lock()
+
         print("========== end of get list of datasets")
 
     def get_dataset(self, name):
         print("========== start get dataset {}".format(name))
+
+        # TODO here service call to data_saver to get lock
+        self.get_lock()
+
         with h5py.File(self.data_path, 'r') as f:
             hdf_data = f[name]
             print(np.shape(hdf_data))
@@ -80,8 +136,10 @@ class hdf_handler(object):
             print(type(meta))
             print(meta)
 
-            print("========== end of get dataset")
-            return numpy_data, meta
+        self.free_lock()
+
+        print("========== end of get dataset")
+        return numpy_data, meta
 
     # def show_plot(self, np_arr, meta):
 
@@ -92,7 +150,7 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
-hh = hdf_handler()
+hh = HDFHandler()
 hh.get_list_of_datasets()
 numpy_data, meta = hh.get_dataset('Raw_Data/si7021_1_hum_pub')
 
