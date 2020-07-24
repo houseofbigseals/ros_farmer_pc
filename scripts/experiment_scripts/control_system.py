@@ -325,6 +325,10 @@ class ControlSystemServer(object):
     def _add_new_data_to_array(self, data):
         pass
 
+    
+    def _shutdown(self):
+        pass
+
     def _handle_request(self, req):
         self._logger.debug("+++++++++++++++++++++++++++++++++++++++++++++++")
         self._logger.debug("+++++++++++++++++++++++++++++++++++++++++++++++")
