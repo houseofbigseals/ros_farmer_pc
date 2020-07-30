@@ -325,8 +325,28 @@ class ControlSystemServer(object):
     def _add_new_data_to_array(self, data):
         pass
 
-    
     def _shutdown(self):
+        self._logger.debug("trying to shutdown all relay things")
+        # try to kill all relay-connected devices
+        # dont care if there is SBA5 calibration
+        self._set_new_relay_state('set_air_pumps', 1)
+        self._set_new_relay_state('set_air_valves', 1)
+        self._set_new_relay_state('set_n2_valve', 1)
+        self._set_new_relay_state('set_vent_coolers', 1)
+
+        # kill led lights to minimum light
+
+        self._logger.debug("start stopping led lamps")
+        rospy.wait_for_service(self._led_service_name)
+        try:
+            led_wrapper = rospy.ServiceProxy(self._led_service_name, LedDevice)
+            command = 'stop'
+            resp = led_wrapper(command, 10, 10)
+            self._logger.debug(resp)
+            return resp
+
+        except rospy.ServiceException, e:
+            self._logger.error("Service call failed: {}".format(e))
         pass
 
     def _handle_request(self, req):
@@ -372,6 +392,15 @@ class ControlSystemServer(object):
                 resp = self._success_response
                 return resp
             except ControlSystemException as e:
+                resp = self._error_response + e.args[0]
+                return resp
+
+        elif req.command == 'shutdown':
+            try:
+                self._shutdown()
+                resp = self._success_response
+                return resp
+            except Exception as e:  # check, if it really need to catch here all exceptions?
                 resp = self._error_response + e.args[0]
                 return resp
 

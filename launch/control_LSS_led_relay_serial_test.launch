@@ -49,4 +49,5 @@
     <param name="_sba5_calibration_time" value="$(arg sba5_calibration_time)"/>
   </node>
   -->
+    <node pkg="ros_farmer_pc" type="watchdog.py" name="watchdog" required="true"/>
 </launch>
