@@ -9,7 +9,7 @@
     <arg name="led_device_port" default="/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0"/>
 
     <arg name="relay_number_of_channels" default="8"/>
-    <arg name="relay_mapping_string" default="N2_VALVE,AIR_PUMP_1,AIR_PUMP_2,COOLER_1,AIR_VALVE_1,AIR_VALVE_2,EMPTY,EMPTY"/>
+    <arg name="relay_mapping_string" default="N2_VALVE,AIR_PUMP_1,AIR_PUMP_2,COOLER_1,AIR_VALVE_1,AIR_VALVE_2,NDIR_PUMP,EMPTY"/>
     <arg name="raw_relay_topic_name" default="relay_1_sub"/>
 
     <arg name="control_relay_service_name" default="relay_device"/>
