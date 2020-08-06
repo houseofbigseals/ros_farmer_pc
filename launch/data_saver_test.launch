@@ -10,7 +10,7 @@
 
 
     <!-- data saver node-->
-    <node pkg="ros_farmer_pc" type="raw_topic_data_saver.py" name="raw_data_saver" output="screen">
+    <node pkg="ros_farmer_pc" type="raw_topic_data_saver.py" name="raw_data_saver">
         <!--<rosparam param="source_list" subst_value="True">$(arg source_list)</rosparam>-->
 
         <!-- we can use that example to store descriptions of raw_topics
