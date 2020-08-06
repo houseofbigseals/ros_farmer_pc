@@ -149,12 +149,12 @@ class ControlSystemServer(object):
             self._set_new_relay_state('set_vent_coolers', 0)
             # start ventilation
             self._start_ventilation()
-            self._set_new_relay_state('set_ndir_pump', 0)  # for test only
+            # self._set_new_relay_state('set_ndir_pump', 0)  # for test only
             # wait for self._ventilation_time
             rospy.sleep(self._ventilation_time)  # its not bad because service calls works in parallel threads
             # then stop it
             self._stop_ventilation()
-            self._set_new_relay_state('set_ndir_pump', 1)  # for test only
+            # self._set_new_relay_state('set_ndir_pump', 1)  # for test only
             # then wait and do nothing
 
 

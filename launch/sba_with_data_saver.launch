@@ -1,0 +1,6 @@
+<launch>
+    <include file="$(find ros_farmer_pc)/launch/control_sba_led_relay_serial_test.launch" />
+    <include file="$(find ros_farmer_pc)/launch/data_saver_test.launch">
+        <arg name="data_saver_data_folder" value="/home/pi/test_exp_data"/>
+    </include>
+</launch>
