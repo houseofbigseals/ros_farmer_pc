@@ -149,10 +149,12 @@ class ControlSystemServer(object):
             self._set_new_relay_state('set_vent_coolers', 0)
             # start ventilation
             self._start_ventilation()
+            self._set_new_relay_state('set_ndir_pump', 0)  # for test only
             # wait for self._ventilation_time
             rospy.sleep(self._ventilation_time)  # its not bad because service calls works in parallel threads
             # then stop it
             self._stop_ventilation()
+            self._set_new_relay_state('set_ndir_pump', 1)  # for test only
             # then wait and do nothing
 
 
@@ -218,8 +220,11 @@ class ControlSystemServer(object):
         pass
 
     def _perform_sba5_calibration(self):
-        # open n2 valve
+
         self._logger.debug("start sba recalibration")
+        # stop NDIRGA external air pump
+        self._set_new_relay_state('set_ndir_pump', 1)
+        # open n2 valve
         self._set_new_relay_state('set_n2_valve', 0)
         # send Z to sba-5
         rospy.wait_for_service(self._sba5_service_name)
@@ -236,6 +241,8 @@ class ControlSystemServer(object):
 
         # close n2 valve
         self._set_new_relay_state('set_n2_valve', 1)
+        # start NDIRGA external air pump
+        self._set_new_relay_state('set_ndir_pump', 0)
         pass
 
     def _publish_sba5_measure(self, data):
@@ -326,13 +333,22 @@ class ControlSystemServer(object):
         pass
 
     def _shutdown(self):
+
+        # set mode as test
+        self._mode = 'test'
+
         self._logger.debug("trying to shutdown all relay things")
         # try to kill all relay-connected devices
         # dont care if there is SBA5 calibration
-        self._set_new_relay_state('set_air_pumps', 1)
-        self._set_new_relay_state('set_air_valves', 1)
-        self._set_new_relay_state('set_n2_valve', 1)
-        self._set_new_relay_state('set_vent_coolers', 1)
+
+        self._set_new_relay_state('shutdown', 1)
+
+
+        # self._set_new_relay_state('set_air_pumps', 1)
+        # self._set_new_relay_state('set_air_valves', 1)
+        # self._set_new_relay_state('set_n2_valve', 1)
+        # self._set_new_relay_state('set_vent_coolers', 1)
+        # self._set_new_relay_state('set_ndir_pump', 1)
 
         # kill led lights to minimum light
 

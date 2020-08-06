@@ -38,13 +38,14 @@ class RelayDeviceServer(object):
     def __init__(self):
 
         # hardcoded constants
-        self._success_response = "success"
+        self._success_response = "success: "
         self._error_response = "error: "
         self._empty_key = 'EMPTY'
         self._cooler_key = 'COOLER'
         self._air_pump_key = 'AIR_PUMP'
         self._air_valve_key = 'AIR_VALVE'
         self._n2_valve_key = 'N2_VALVE'
+        self._ndir_pump_key = 'NDIR_PUMP'
         self._default_channel_state = 1
 
 
@@ -59,17 +60,18 @@ class RelayDeviceServer(object):
         self._number_of_channels = rospy.get_param('~relay_number_of_channels', 8)
         self._mapping_string = rospy.get_param(
             '~relay_mapping_string',
-            'N2_VALVE,AIR_PUMP_1,AIR_PUMP_2,COOLER_1,AIR_VALVE_1,AIR_VALVE_2,EMPTY,EMPTY')
+            'N2_VALVE,AIR_PUMP_1,AIR_PUMP_2,COOLER_1,AIR_VALVE_1,AIR_VALVE_2,NDIR_PUMP,EMPTY')
         self._raw_relay_topic = rospy.get_param('~raw_relay_topic_name', 'relay_1_sub')
 
-        self._commands = ['set_air_pumps', 'set_air_valves', 'set_n2_valve', 'set_vent_coolers']
+        self._commands = ['set_air_pumps', 'set_air_valves',
+                          'set_n2_valve', 'set_vent_coolers', 'set_ndir_pump', 'shutdown']
 
         # create dictionary with
         # {key - devname: str, value - [number of channel:int, state:int]}
         devnames = self._mapping_string.split(',')
         self._map = dict()
-        for i in range (0, len(devnames)):
-            self._map.update({devnames[i]:[i, self._default_channel_state]})
+        for i in range(0, len(devnames)):
+            self._map.update({devnames[i] : [i, self._default_channel_state]})
 
         # create log topic publisher
         self._log_pub = rospy.Publisher(self._log_node_name, String, queue_size=10)
@@ -136,6 +138,24 @@ class RelayDeviceServer(object):
                 resp = self._error_response + e.args[0]
                 return resp
 
+        elif req.command == 'set_ndir_pump':
+            try:
+                self._set_ndir_pump(req.state)
+                resp = self._success_response
+                return resp
+            except RelayDeviceException as e:
+                resp = self._error_response + e.args[0]
+                return resp
+
+        elif req.command == 'shutdown':
+            try:
+                self._shutdown()
+                resp = self._success_response
+                return resp
+            except RelayDeviceException as e:
+                resp = self._error_response + e.args[0]
+                return resp
+
         elif req.command == 'help':
             resp = "service commands is {}".format(self._commands)+\
                 "0 - to activate relay channel, 1 to close \n" + "map of devices and channels: \n"+\
@@ -149,10 +169,15 @@ class RelayDeviceServer(object):
 
         # ==================== real commands ==================
 
+    def _shutdown(self):
+        # create array of ones with correct length
+        array = list(1 for i in range(self._number_of_channels))
+        self._set_raw_relay_pins(array)
+
     def _set_raw_relay_pins(self, array):
 
         # This method dont handle self._current_state
-        if len(array) == 0 or len(array) > self._number_of_channels:
+        if len(array) != self._number_of_channels:
             raise RelayDeviceException(" length of new relay state array is out of range ")
         else:
             # 0 is enable relay
@@ -231,6 +256,9 @@ class RelayDeviceServer(object):
 
     def _set_vent_coolers(self, state):
         self._set_group_pins_by_key(self._cooler_key, state)
+
+    def _set_ndir_pump(self, state):
+        self._set_group_pins_by_key(self._ndir_pump_key, state)
 
 
 if __name__ == "__main__":
