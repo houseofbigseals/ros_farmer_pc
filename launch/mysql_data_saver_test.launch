@@ -1,8 +1,8 @@
 <launch>
     <!-- arguments -->
 
-    <arg name="data_saver_log_name" default="mysql_data_saver"/>
-    <arg name="data_saver_log_node_name" default="/mysql_data_saver_log"/>
+    <arg name="mysql_data_saver_log_name" default="mysql_data_saver"/>
+    <arg name="mysql_data_saver_log_node_name" default="/mysql_data_saver_log"/>
 
     <!-- TODO add params for mariadb -->
 
@@ -55,9 +55,6 @@
         <!-- usual params -->
         <param name="mysql_data_saver_log_name" value="$(arg mysql_data_saver_log_name)"/>
         <param name="mysql_data_saver_log_node_name" value="$(arg mysql_data_saver_log_node_name)"/>
-        <param name="mysql_data_saver_experiment_id" value="$(arg mysql_data_saver_experiment_id)"/>
-        <param name="mysql_data_saver_data_folder" value="$(arg mysql_data_saver_data_folder)"/>
-        <param name="mysql_data_saver_data_file_name" value="$(arg mysql_data_saver_data_file_name)"/>
-    </node>
+        </node>
 
 </launch>
