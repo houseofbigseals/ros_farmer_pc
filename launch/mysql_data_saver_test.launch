@@ -7,7 +7,7 @@
     <!-- TODO add params for mariadb -->
 
     <!-- data saver node-->
-    <node pkg="ros_farmer_pc" type="mysql_data_saver.py" name="mysql_data_saver">
+    <node pkg="ros_farmer_pc" type="mysql_data_saver.py" name="mysql_data_saver" output="screen">
         <!--<rosparam param="source_list" subst_value="True">$(arg source_list)</rosparam>-->
 
         <!-- we can use that example to store descriptions of raw_topics

@@ -113,6 +113,7 @@ class MYSQLDataSaver(object):
         rospy.spin()
 
     def _raw_data_callback(self, data_message, topic_info):
+
         # topic_info must be dict and contain 'name', 'id', 'type', 'dtype', 'units', 'status':
         # example:
         # { name: '/bmp180_1_temp_pub', id: '2', type: 'temperature', dtype: 'float64', units: 'C', status:'raw },
@@ -121,23 +122,30 @@ class MYSQLDataSaver(object):
         # (datetime.datetime.fromtimestamp(rospy.Time.now().to_sec())).strftime('%Y_%m_%d,%H:%M:%S')
 
         data_ = data_message.temperature
+        self._logger.debug("data: {}".format(data_))
+
         time_ = datetime.datetime.fromtimestamp(
             data_message.header.stamp.to_sec()).strftime('%Y_%m_%d %H:%M:%S')
+        self._logger.debug("time: {}".format(time_))
 
         sensor_ = topic_info["id"]
+        self._logger.debug("sensor: {}".format(sensor_))
 
         exp_id_ = self._description["experiment_number"]
+        self._logger.debug("exp_id: {}".format(exp_id_))
 
         cur = self.con.cursor()
 
-        cur.execute('insert into raw_data'
-                    '(exp_id, time, sensor_id, data)'
-                    'values("{}", "{}","{}", "{}" )'.format(
-            exp_id_, time_, sensor_, data_))
+        comm_str = 'insert into raw_data'\
+                   '(exp_id, time, sensor_id, data)'\
+                   'values("{}", "{}","{}", "{}" )'.format(
+            exp_id_, time_, sensor_, data_)
+
+        self._logger.debug("comm_str: {}".format(comm_str))
+
+        cur.execute(comm_str)
 
         cur.execute('commit')
-
-        pass
 
 
     def _create_database(self):
@@ -151,9 +159,11 @@ class MYSQLDataSaver(object):
         self._logger.debug("create table logs")
 
         cur.execute('create table if not exists logs'
-                    ' ( log_id mediumint unsigned primary key not null auto_increment,'
-                    ' exp_id int unsigned, time timestamp,'
-                    ' level int, node varchar(100),'
+                    ' ( log_id bigint unsigned primary key not null auto_increment,'
+                    ' exp_id SMALLINT unsigned,'
+                    ' time timestamp,'
+                    ' level TINYINT,'
+                    ' node varchar(100),'
                     ' msg varchar(1000) )'
                     )
 
@@ -163,10 +173,10 @@ class MYSQLDataSaver(object):
         self._logger.debug("create table raw_data")
 
         cur.execute('create table if not exists raw_data'
-                    ' (data_id mediumint unsigned primary key not null auto_increment,'
-                    ' exp_id  int unsigned,'
+                    ' (data_id bigint unsigned primary key not null auto_increment,'
+                    ' exp_id  SMALLINT unsigned,'
                     ' time timestamp,'
-                    ' sensor_id int unsigned,'
+                    ' sensor_id SMALLINT unsigned,'
                     ' data double)'
                     )
 
@@ -176,7 +186,7 @@ class MYSQLDataSaver(object):
         self._logger.debug("create table sensors")
 
         cur.execute('create table if not exists sensors'
-                    '(sensor_id int unsigned primary key not null,'
+                    '(sensor_id SMALLINT unsigned primary key not null,'
                     'name varchar(100),'
                     'type varchar(100),'
                     'units varchar(100),'
@@ -193,7 +203,7 @@ class MYSQLDataSaver(object):
 
 
         cur.execute('create table if not exists experiments'
-                    '( exp_id int unsigned primary key not null,'
+                    '( exp_id SMALLINT unsigned primary key not null,'
                     'start_date timestamp,'
                     'end_date timestamp,'
                     'params varchar(1000)'
