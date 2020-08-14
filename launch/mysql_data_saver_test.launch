@@ -17,7 +17,7 @@
         <!--http://wiki.ros.org/roslaunch/XML/rosparam-->
         <!-- IMPORTANT! The <rosparam> tag can be put inside of a <node> tag,
         in which case the parameter is treated like a private name. -->
-        <rosparam param="data_saver_raw_topics">
+        <rosparam param="mysql_data_saver_raw_topics">
         [
         { name: '/bmp180_1_temp_pub', id: '1', type: 'temperature', dtype: 'float64', units: 'C', status: 'raw' },
         { name: '/bmp180_1_pressure_pub', id: '2', type: 'pressure', dtype: 'float64', units: 'kPa', status: 'raw' },
@@ -40,7 +40,7 @@
         }
         </rosparam>
 
-        <rosparam param="data_saver_exp_topics">
+        <rosparam param="mysql_data_saver_exp_topics">
         [
         { name: '/exp_point_id',  type: 'number of search point', dtype: 'float64', units: 'Num', status: 'exp'},
         { name: '/exp_red_current', type: 'current', dtype: 'float64', units: 'mA', status: 'exp'  },
@@ -53,11 +53,11 @@
         ]
         </rosparam>
         <!-- usual params -->
-        <param name="data_saver_log_name" value="$(arg data_saver_log_name)"/>
-        <param name="data_saver_log_node_name" value="$(arg data_saver_log_node_name)"/>
-        <param name="data_saver_experiment_id" value="$(arg data_saver_experiment_id)"/>
-        <param name="data_saver_data_folder" value="$(arg data_saver_data_folder)"/>
-        <param name="data_saver_data_file_name" value="$(arg data_saver_data_file_name)"/>
+        <param name="mysql_data_saver_log_name" value="$(arg mysql_data_saver_log_name)"/>
+        <param name="mysql_data_saver_log_node_name" value="$(arg mysql_data_saver_log_node_name)"/>
+        <param name="mysql_data_saver_experiment_id" value="$(arg mysql_data_saver_experiment_id)"/>
+        <param name="mysql_data_saver_data_folder" value="$(arg mysql_data_saver_data_folder)"/>
+        <param name="mysql_data_saver_data_file_name" value="$(arg mysql_data_saver_data_file_name)"/>
     </node>
 
 </launch>
