@@ -129,6 +129,8 @@ class MYSQLDataSaver(object):
                               cursorclass=pymysql.cursors.DictCursor)
 
 
+
+
         data_ = data_message.temperature
         self._logger.debug("data: {}".format(data_))
 
@@ -143,6 +145,8 @@ class MYSQLDataSaver(object):
         self._logger.debug("exp_id: {}".format(exp_id_))
 
         cur = con.cursor()
+
+        cur.execute("use experiment")
 
         comm_str = 'insert into raw_data'\
                    '(exp_id, time, sensor_id, data)'\
