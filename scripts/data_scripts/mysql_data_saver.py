@@ -121,6 +121,14 @@ class MYSQLDataSaver(object):
         # example how to convert rospy time to datetime
         # (datetime.datetime.fromtimestamp(rospy.Time.now().to_sec())).strftime('%Y_%m_%d,%H:%M:%S')
 
+        con = pymysql.connect(host='localhost',
+                              user='admin',
+                              password='admin',
+                              # db='experiment',
+                              charset='utf8mb4',
+                              cursorclass=pymysql.cursors.DictCursor)
+
+
         data_ = data_message.temperature
         self._logger.debug("data: {}".format(data_))
 
@@ -134,7 +142,7 @@ class MYSQLDataSaver(object):
         exp_id_ = self._description["experiment_number"]
         self._logger.debug("exp_id: {}".format(exp_id_))
 
-        cur = self.con.cursor()
+        cur = con.cursor()
 
         comm_str = 'insert into raw_data'\
                    '(exp_id, time, sensor_id, data)'\
@@ -146,6 +154,7 @@ class MYSQLDataSaver(object):
         cur.execute(comm_str)
 
         cur.execute('commit')
+        con.close()
 
 
     def _create_database(self):
