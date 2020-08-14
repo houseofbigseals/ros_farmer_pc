@@ -141,13 +141,14 @@ class MYSQLDataSaver(object):
 
 
     def _create_database(self):
-
+        self._logger.debug("create database")
         cur = self.con.cursor()
 
         cur.execute("CREATE DATABASE IF NOT EXISTS experiment")
         cur.execute("use experiment")
 
         # TODO load params from .launch and put to the database
+        self._logger.debug("create table logs")
 
         cur.execute('create table if not exists logs'
                     ' ( log_id mediumint unsigned primary key not null auto_increment,'
@@ -156,12 +157,23 @@ class MYSQLDataSaver(object):
                     ' msg varchar(1000) )'
                     )
 
+        cur.execute('describe logs')
+        print(cur.fetchall())
+
+        self._logger.debug("create table raw_data")
+
         cur.execute('create table if not exists raw_data'
-                    ' ( exp_id mediumint unsigned primary key not null auto_increment,'
-                    ' data_id int unsigned, time timestamp,'
+                    ' (data_id mediumint unsigned primary key not null auto_increment,'
+                    ' exp_id  int unsigned,'
+                    ' time timestamp,'
                     ' sensor_id int unsigned,'
                     ' data double)'
                     )
+
+        cur.execute('describe raw_data')
+        print(cur.fetchall())
+
+        self._logger.debug("create table sensors")
 
         cur.execute('create table if not exists sensors'
                     '(sensor_id int unsigned primary key not null,'
@@ -173,6 +185,13 @@ class MYSQLDataSaver(object):
                     'status varchar(100)'
                     ')')
 
+        cur.execute('describe sensors')
+        print(cur.fetchall())
+
+        self._logger.debug("create table experiments")
+
+
+
         cur.execute('create table if not exists experiments'
                     '( exp_id int unsigned primary key not null,'
                     'start_date timestamp,'
@@ -180,6 +199,9 @@ class MYSQLDataSaver(object):
                     'params varchar(1000)'
                     ')'
                     )
+
+        cur.execute('describe experiments')
+        print(cur.fetchall())
 
         cur.execute('commit')
         print(cur.fetchall())
