@@ -27,7 +27,7 @@
         ]
         </rosparam>
 
-        <rosparam param="data_saver_experiment_description">
+        <rosparam param="mysql_data_saver_experiment_description">
         {
             experiment_type: 'test',
             machine_id: 'undefined',

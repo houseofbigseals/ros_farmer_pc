@@ -184,7 +184,7 @@ class MYSQLDataSaver(object):
         cur.execute('commit')
         print(cur.fetchall())
 
-        
+
 if __name__ == "__main__":
     MYSQLDataSaver()
 
