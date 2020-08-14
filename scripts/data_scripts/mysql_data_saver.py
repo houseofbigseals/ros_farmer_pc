@@ -168,7 +168,7 @@ class MYSQLDataSaver(object):
                     'name varchar(100),'
                     'type varchar(100),'
                     'units varchar(100),'
-                    'precision double,'
+                    'prec double,'
                     'description varchar(1000),'
                     'status varchar(100)'
                     ')')
