@@ -26,20 +26,18 @@ class MYSQLHandler(object):
 
 
         # start node
-        rospy.init_node('data_plotter_server', log_level=rospy.DEBUG, anonymous=True)
+        rospy.init_node('mysql_data_plotter_server', log_level=rospy.DEBUG, anonymous=True)
 
         # self logging
-        self._logname = rospy.get_param('~data_plotter_log_name', 'data_plotter')
-        self._log_node_name = rospy.get_param('~data_plotter_log_node_name', 'data_plotter_log_node')
+        self._logname = rospy.get_param('~mysql_data_plotter_log_name', 'mysql_data_plotter')
+        self._log_node_name = rospy.get_param('~mysql_data_plotter_log_node_name', 'mysql_data_plotter_log_node')
 
         # create log topic publisher
         self._log_pub = rospy.Publisher(self._log_node_name, String, queue_size=10)
 
-        self._data_saver_service = rospy.get_param('~data_saver_service_name', 'data_saver')
-
         # logger
         self._logger = CustomLogger(name=self._logname, logpub=self._log_pub)
-        self._logger.debug("data_plotter_server init")
+        self._logger.debug("mysql_data_plotter_server init")
 
         # for default we will use current ip in tun0 protocol
         # if there is no any tun0 - it must be a critical error
@@ -57,15 +55,14 @@ class MYSQLHandler(object):
 
         # TODO; fix -all below only for test  ||||
         #                            vvvv
-
-
-        self.list_of_tables = [  # TODO must be loaded from .launch
-            {'name': '/bmp180_1_temp_pub', 'id': 1, 'type': 'temperature', 'dtype': 'float64', 'units': 'C', 'status': 'raw_data'},
-            {'name': '/bmp180_1_pressure_pub', 'id': 2, 'type': 'pressure', 'dtype': 'float64', 'units': 'kPa', 'status': 'raw_data'},
-            {'name': '/raw_co2_pub', 'type': 'co2', 'id': 3, 'dtype': 'float64', 'units': 'ppmv', 'status': 'raw_data'},
-            {'name': '/si7021_1_hum_pub', 'id': 4, 'type': 'humidity', 'dtype': 'float64', 'units': 'percents', 'status': 'raw_data'},
-            {'name': '/si7021_1_temp_pub', 'id': 5, 'type': 'temperature', 'dtype': 'float64', 'units': 'C', 'status': 'raw_data'}
-        ]
+        self.list_of_tables = rospy.get_param('~mysql_data_plotter_raw_topics')
+        # self.list_of_tables = [  # TODO must be loaded from .launch
+        #     {'name': '/bmp180_1_temp_pub', 'id': 1, 'type': 'temperature', 'dtype': 'float64', 'units': 'C', 'status': 'raw_data'},
+        #     {'name': '/bmp180_1_pressure_pub', 'id': 2, 'type': 'pressure', 'dtype': 'float64', 'units': 'kPa', 'status': 'raw_data'},
+        #     {'name': '/raw_co2_pub', 'type': 'co2', 'id': 3, 'dtype': 'float64', 'units': 'ppmv', 'status': 'raw_data'},
+        #     {'name': '/si7021_1_hum_pub', 'id': 4, 'type': 'humidity', 'dtype': 'float64', 'units': 'percents', 'status': 'raw_data'},
+        #     {'name': '/si7021_1_temp_pub', 'id': 5, 'type': 'temperature', 'dtype': 'float64', 'units': 'C', 'status': 'raw_data'}
+        # ]
 
         print("========== end of init")
 

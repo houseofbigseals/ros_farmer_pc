@@ -1,0 +1,48 @@
+<launch>
+    <!-- arguments -->
+
+    <arg name="mysql_data_plotter_log_name" default="mysql_data_plotter"/>
+    <arg name="mysql_data_plotter_log_node_name" default="/mysql_data_plotter_log"/>
+
+    <!-- TODO add params for mariadb -->
+
+    <!-- data saver node-->
+    <node pkg="ros_farmer_pc" type="mysql_data_plotter.py" name="mysql_data_plotter" output="screen">
+        <!--<rosparam param="source_list" subst_value="True">$(arg source_list)</rosparam>-->
+
+        <!-- we can use that example to store descriptions of raw_topics
+        and then parse that thing dynamically in __init__
+        -->
+
+        <!--http://wiki.ros.org/roslaunch/XML/rosparam-->
+        <!-- IMPORTANT! The <rosparam> tag can be put inside of a <node> tag,
+        in which case the parameter is treated like a private name. -->
+        <rosparam param="mysql_data_plotter_raw_topics">
+        [
+        { name: '/bmp180_1_temp_pub', id: '1', type: 'temperature', dtype: 'float64', units: 'C', status: 'raw_data' },
+        { name: '/bmp180_1_pressure_pub', id: '2', type: 'pressure', dtype: 'float64', units: 'kPa', status: 'raw_data' },
+        { name: '/raw_co2_pub',  type: 'co2', id: '3', dtype: 'float64', units: 'ppmv', status: 'raw_data' },
+        { name: '/si7021_1_hum_pub', id: '4', type: 'humidity', dtype: 'float64', units: 'percents', status: 'raw_data' },
+        { name: '/si7021_1_temp_pub', id: '5', type: 'temperature', dtype: 'float64', units: 'C', status: 'raw_data'}
+        ]
+        </rosparam>
+
+
+        <rosparam param="mysql_data_plotter_exp_topics">
+        [
+        { name: '/exp_point_id',  type: 'number of search point', dtype: 'float64', units: 'Num', status: 'exp'},
+        { name: '/exp_red_current', type: 'current', dtype: 'float64', units: 'mA', status: 'exp'  },
+        { name: '/exp_white_current', type: 'current', dtype: 'float64', units: 'mA', status: 'exp'  },
+        { name: '/exp_F', type: 'photosynthesis', dtype: 'float64', units: 'Unknown', status: 'exp' },
+        { name: '/exp_G', type: 'final efficiency', dtype: 'float64', units: 'Unknown', status: 'exp' },
+        { name: '/exp_start_time', type: 'epochs start time', dtype: 'float64', units: 'Sec', status: 'exp' },
+        { name: '/exp_end_time', type: 'epochs end time', dtype: 'float64', units: 'Sec', status: 'exp' },
+        { name: '/exp_search_epoch', type: 'number of search epoch', dtype: 'float64', units: 'Num', status: 'exp' }
+        ]
+        </rosparam>
+        <!-- usual params -->
+        <param name="mysql_data_plotter_log_name" value="$(arg mysql_data_plotter_log_name)"/>
+        <param name="mysql_data_plotter_log_node_name" value="$(arg mysql_data_plotter_log_node_name)"/>
+        </node>
+
+</launch>
