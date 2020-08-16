@@ -48,6 +48,8 @@ class MYSQLHandler(object):
         self.web_port = 8090  # on every rpi
         self.list_of_hdf = list()
         self.metastring = "experiment metadata: \n"
+
+        # TODO load description from experiments table and add to metastring
         # self.list_of_datasets =
 
         print("========== start get list of datasets")
@@ -110,6 +112,7 @@ class MYSQLHandler(object):
 
             con.close()
 
+
             print("========== end of get dataset")
             return res_list, meta
 
@@ -140,7 +143,7 @@ app.layout = html.Div([
         dcc.Dropdown(
             id='yaxis-column',
             options=[{'label': i, 'value': i} for i in available_indicators],
-            value='Raw_Data/si7021_1_hum_pub'
+            value='/si7021_1_hum_pub'  # TODO for test only
         )
         ])])
 
@@ -162,6 +165,8 @@ print("========== app created")
 def update_graph(yaxis_column_name):
     print("========== start update_graph callback")
     full_data_list, meta = hh.get_dataset(yaxis_column_name)
+
+    print("res is: {}".format(full_data_list))
     print(meta)
     # convert timestamps to datetime str
     # times = list()
