@@ -166,7 +166,7 @@ def update_graph(yaxis_column_name):
     print("========== start update_graph callback")
     full_data_list, meta = hh.get_dataset(yaxis_column_name)
 
-    print("res is: {}".format(full_data_list))
+    # print("res is: {}".format(full_data_list))
     print(meta)
     # convert timestamps to datetime str
     # times = list()
