@@ -181,6 +181,7 @@ install(PROGRAMS
    scripts/data_scripts/data_plotter.py
    scripts/data_scripts/raw_topic_data_saver.py
    scripts/data_scripts/mysql_data_saver.py
+   scripts/data_scripts/mysql_data_plotter.py
    scripts/experiment_scripts/control_system.py
    scripts/experiment_scripts/watchdog.py
    scripts/experiment_scripts/table_test_experiment.py
