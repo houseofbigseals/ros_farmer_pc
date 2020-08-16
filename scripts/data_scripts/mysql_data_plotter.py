@@ -107,7 +107,7 @@ class MYSQLHandler(object):
 
             cur.execute(comm_str)
 
-            res_list = cur.fetchal()  # it must be array of dicts
+            res_list = cur.fetchall()  # it must be array of dicts
             # where each dict is one line from db
 
             con.close()
