@@ -19,11 +19,11 @@
         in which case the parameter is treated like a private name. -->
         <rosparam param="mysql_data_saver_raw_topics">
         [
-        { name: '/bmp180_1_temp_pub', id: '1', type: 'temperature', dtype: 'float64', units: 'C', status: 'raw' },
-        { name: '/bmp180_1_pressure_pub', id: '2', type: 'pressure', dtype: 'float64', units: 'kPa', status: 'raw' },
-        { name: '/raw_co2_pub',  type: 'co2', id: '3', dtype: 'float64', units: 'ppmv', status: 'raw' },
-        { name: '/si7021_1_hum_pub', id: '4', type: 'humidity', dtype: 'float64', units: 'percents', status: 'raw' },
-        { name: '/si7021_1_temp_pub', id: '5', type: 'temperature', dtype: 'float64', units: 'C', status: 'raw'}
+        { name: '/bmp180_1_temp_pub', id: '1', type: 'temperature', dtype: 'float64', units: 'C', status: 'raw_data' },
+        { name: '/bmp180_1_pressure_pub', id: '2', type: 'pressure', dtype: 'float64', units: 'kPa', status: 'raw_data' },
+        { name: '/raw_co2_pub',  type: 'co2', id: '3', dtype: 'float64', units: 'ppmv', status: 'raw_data' },
+        { name: '/si7021_1_hum_pub', id: '4', type: 'humidity', dtype: 'float64', units: 'percents', status: 'raw_data' },
+        { name: '/si7021_1_temp_pub', id: '5', type: 'temperature', dtype: 'float64', units: 'C', status: 'raw_data'}
         ]
         </rosparam>
 
