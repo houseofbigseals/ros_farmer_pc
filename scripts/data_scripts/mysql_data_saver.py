@@ -5,6 +5,7 @@
 import rospy
 import datetime
 from std_msgs.msg import String, Header
+from rosgraph_msgs.msg import Log
 from data_scripts.custom_logger import CustomLogger
 from sensor_msgs.msg import Temperature
 import time
@@ -50,6 +51,10 @@ class MYSQLDataSaver(object):
         self._log_node_name = rospy.get_param('~mysql_data_saver_log_node_name', 'mysql_data_saver_log')
         # self._service_name = rospy.get_param('~mysql_data_saver_service_name', 'mysql_data_saver')
 
+        self._system_log_sub = rospy.Subscriber(
+            name='/rosout_agg', data_class=Log,
+            callback=self._log_callback,
+            queue_size=50)
         # create log topic publisher
         self._log_pub = rospy.Publisher(self._log_node_name, String, queue_size=10)
 
@@ -101,7 +106,7 @@ class MYSQLDataSaver(object):
             # so here we think that it is "sensor_msgs/Temperature" as default
             s = rospy.Subscriber(name=topic['name'], data_class=Temperature,
                                  callback=self._raw_data_callback, callback_args=topic,
-                                 queue_size=100)
+                                 queue_size=50)
             print(s)
             self._subscribers_list.append(s)
 
@@ -112,6 +117,49 @@ class MYSQLDataSaver(object):
     def _loop(self):
         rospy.spin()
 
+    def _log_callback(self, log_msg):
+
+
+        exp_id_ = self._description["experiment_number"]
+
+        time_ = datetime.datetime.fromtimestamp(
+            log_msg.header.stamp.to_sec()).strftime('%Y_%m_%d %H:%M:%S')
+
+        level_ = log_msg.level
+        # # Pseudo-constants
+        # DEBUG = 1
+        # INFO = 2
+        # WARN = 4
+        # ERROR = 8
+        # FATAL = 16
+
+        node_ = log_msg.name
+
+        msg_ = log_msg.msg
+
+        con = pymysql.connect(host='localhost',
+                              user='admin',
+                              password='admin',
+                              # db='experiment',
+                              charset='utf8mb4',
+                              cursorclass=pymysql.cursors.DictCursor)
+
+        cur = con.cursor()
+
+        cur.execute("use experiment")
+
+        comm_str = 'insert into logs' \
+                   '(exp_id, time, level, node, msg)' \
+                   'values("{}", "{}","{}", "{}", "{}")'.format(
+            exp_id_, time_, level_, node_, msg_)
+
+        print("comm_str: {}".format(comm_str))  # TODO: remove after debug
+
+        cur.execute(comm_str)
+
+        cur.execute('commit')
+        con.close()
+
     def _raw_data_callback(self, data_message, topic_info):
 
         # topic_info must be dict and contain 'name', 'id', 'type', 'dtype', 'units', 'status':
@@ -121,12 +169,7 @@ class MYSQLDataSaver(object):
         # example how to convert rospy time to datetime
         # (datetime.datetime.fromtimestamp(rospy.Time.now().to_sec())).strftime('%Y_%m_%d,%H:%M:%S')
 
-        con = pymysql.connect(host='localhost',
-                              user='admin',
-                              password='admin',
-                              # db='experiment',
-                              charset='utf8mb4',
-                              cursorclass=pymysql.cursors.DictCursor)
+
 
 
 
@@ -143,6 +186,13 @@ class MYSQLDataSaver(object):
 
         exp_id_ = self._description["experiment_number"]
         self._logger.debug("exp_id: {}".format(exp_id_))
+
+        con = pymysql.connect(host='localhost',
+                              user='admin',
+                              password='admin',
+                              # db='experiment',
+                              charset='utf8mb4',
+                              cursorclass=pymysql.cursors.DictCursor)
 
         cur = con.cursor()
 
@@ -177,7 +227,7 @@ class MYSQLDataSaver(object):
                     ' time timestamp,'
                     ' level TINYINT,'
                     ' node varchar(100),'
-                    ' msg varchar(1000) )'
+                    ' msg varchar(2000) )'
                     )
 
         cur.execute('describe logs')
