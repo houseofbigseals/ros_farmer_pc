@@ -42,7 +42,7 @@ class MYSQLDataSaver(object):
         self._error_response = "error: "
 
         # start node
-        rospy.init_node('mysql_data_saver_server', log_level=rospy.DEBUG)
+        rospy.init_node('mysql_data_saver_server', log_level=rospy.INFO)
 
         # get roslaunch params
 
