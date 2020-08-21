@@ -308,7 +308,16 @@ class SBA5DeviceServer(object):
                 resp = self._success_response + str(res[0])
                 return resp
 
-            except SBA5DeviceException as e:
+            except Exception as e:
+                # todo fix, find root of problem
+                # [ERROR][1598038134.061680]: Error processing request: list index out of range
+                # ['Traceback (most recent call last):\n',
+                #  '  File "/opt/ros/melodic/lib/python2.7/dist-packages/rospy/impl/tcpros_service.py", line 632, in _handle_request\n    response = convert_return_to_response(self.handler(request), self.response_class)\n',
+                #  '  File "/opt/ros/melodic/lib/ros_farmer_pc/sba5_device.py", line 307, in handle_request\n    self._logger.debug("we have found this {}".format(res[0]))\n',
+                #  'IndexError: list index out of range\n']
+                # [ERROR][1598038134.067210]: 1598038134.07; control_system; error
+                #Service call failed: service[ / sba5_device] responded
+                # with an error: error processing request: list index out of range
                 resp = self._error_response + e.args[0]
                 return resp
 

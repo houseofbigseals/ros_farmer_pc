@@ -87,7 +87,7 @@ class ControlSystemServer(object):
 
         # create timers for async periodic tasks using internal ros mechanics
         # Create a ROS Timer for reading data
-        rospy.Timer(rospy.Duration(2.0), self._get_sba5_measure)  # 2 Hz
+        rospy.Timer(rospy.Duration(1.0), self._get_sba5_measure)  # 2 Hz
         # create ros timer for main loop
 
         # TODO connect to led and relay services
@@ -107,6 +107,9 @@ class ControlSystemServer(object):
 
             # allow measures of sba5
             self._sba5_measure_allowed_event.set()
+
+            self._default_red = 120
+            self._default_white = 120
 
         self._logger.debug("go to loop")
         self._loop()
