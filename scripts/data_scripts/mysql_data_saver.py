@@ -154,8 +154,12 @@ class MYSQLDataSaver(object):
             exp_id_, time_, level_, node_, msg_)
 
         print("comm_str: {}".format(comm_str))  # TODO: remove after debug
-
-        cur.execute(comm_str)
+        try:
+            cur.execute(comm_str)
+        except Exception as e:
+            print("Error while saving logs:")
+            print(e)
+            print(log_msg.msg)
 
         cur.execute('commit')
         con.close()
