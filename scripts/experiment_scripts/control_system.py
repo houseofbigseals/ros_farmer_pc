@@ -4,6 +4,8 @@
 
 import rospy
 from std_msgs.msg import String
+import traceback
+import sys
 from data_scripts.custom_logger import CustomLogger
 from ros_farmer_pc.srv import ControlSystem, LedDevice, RelayDevice, SBA5Device, SBA5DeviceResponse
 from sensor_msgs.msg import Temperature
@@ -87,7 +89,7 @@ class ControlSystemServer(object):
 
         # create timers for async periodic tasks using internal ros mechanics
         # Create a ROS Timer for reading data
-        rospy.Timer(rospy.Duration(1.0), self._get_sba5_measure)  # 2 Hz
+        rospy.Timer(rospy.Duration(2.0), self._get_sba5_measure)  # 2 Hz
         # create ros timer for main loop
 
         # TODO connect to led and relay services
@@ -239,7 +241,9 @@ class ControlSystemServer(object):
             rospy.sleep(self._n2_calibration_time)
 
         except Exception as e:
-            self._logger.error("Service call failed: {}".format(e))
+            exc_info = sys.exc_info()
+            err_list = traceback.format_exception(*exc_info)
+            self._logger.error("Service call failed: {}".format(err_list))
             # raise ControlSystemException(e)
 
         # close n2 valve
@@ -267,7 +271,11 @@ class ControlSystemServer(object):
             return resp
 
         except rospy.ServiceException, e:
-            self._logger.error("Service call failed: {}".format(e))
+            exc_info = sys.exc_info()
+            err_list = traceback.format_exception(*exc_info)
+            self._logger.error("Service call failed: {}".format(err_list))
+
+            # self._logger.error("Service call failed: {}".format(e))
             # raise ControlSystemException(e)
 
     def _set_new_light_mode(self, red, white):
@@ -281,7 +289,10 @@ class ControlSystemServer(object):
             return resp
 
         except rospy.ServiceException, e:
-            self._logger.error("Service call failed: {}".format(e))
+            exc_info = sys.exc_info()
+            err_list = traceback.format_exception(*exc_info)
+            self._logger.error("Service call failed: {}".format(err_list))
+            # self._logger.error("Service call failed: {}".format(e))
             #raise ControlSystemException(e)
 
     def _get_sba5_measure(self, event=None):
@@ -311,8 +322,12 @@ class ControlSystemServer(object):
             return float(co2_data)
 
         except Exception as e:
-            print("Service call failed: {}".format(e))
-            self._logger.error("Service call failed: {}".format(e))
+            exc_info = sys.exc_info()
+            err_list = traceback.format_exception(*exc_info)
+            self._logger.error("Service call failed: {}".format(err_list))
+
+            # print("Service call failed: {}".format(e))
+            # self._logger.error("Service call failed: {}".format(e))
             #raise ControlSystemException(e)
             #raise
             # TODO FIX
@@ -327,7 +342,10 @@ class ControlSystemServer(object):
             return raw_resp
 
         except Exception as e:
-            self._logger.error("Service call failed: {}".format(e))
+            exc_info = sys.exc_info()
+            err_list = traceback.format_exception(*exc_info)
+            self._logger.error("Service call failed: {}".format(err_list))
+            # self._logger.error("Service call failed: {}".format(e))
             raise ControlSystemException(e)
 
 
@@ -365,7 +383,10 @@ class ControlSystemServer(object):
             return resp
 
         except rospy.ServiceException, e:
-            self._logger.error("Service call failed: {}".format(e))
+            exc_info = sys.exc_info()
+            err_list = traceback.format_exception(*exc_info)
+            self._logger.error("Service call failed: {}".format(err_list))
+            # self._logger.error("Service call failed: {}".format(e))
         pass
 
     def _handle_request(self, req):
