@@ -6,7 +6,7 @@ import rospy
 import datetime
 from std_msgs.msg import String, Header
 from rosgraph_msgs.msg import Log
-from data_scripts.custom_logger import CustomLogger
+from custom_logger import CustomLogger
 from sensor_msgs.msg import Temperature
 import time
 import numpy as np
@@ -106,7 +106,7 @@ class MYSQLDataSaver(object):
             # so here we think that it is "sensor_msgs/Temperature" as default
             s = rospy.Subscriber(name=topic['name'], data_class=Temperature,
                                  callback=self._raw_data_callback, callback_args=topic,
-                                 queue_size=50)
+                                 queue_size=2)
             print(s)
             self._subscribers_list.append(s)
 
