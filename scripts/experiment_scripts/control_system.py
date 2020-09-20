@@ -6,8 +6,8 @@ import rospy
 from std_msgs.msg import String
 import traceback
 import sys
-from data_scripts.custom_logger import CustomLogger
-from ros_farmer_pc.srv import ControlSystem, LedDevice, RelayDevice, SBA5Device, SBA5DeviceResponse
+from custom_logger import CustomLogger
+from ros_farmer_pc.srv import ControlSystem, LedDevice, RelayDevice, SBA5Device
 from sensor_msgs.msg import Temperature
 from threading import Lock, Event
 import time
@@ -82,7 +82,7 @@ class ControlSystemServer(object):
 
         # logger
         self._logger = CustomLogger(name=self._logname, logpub=self._log_pub)
-        self._logger.debug("control_server init")
+        self._logger.info("control_server init")
 
         # create Locks
         self._sba5_measure_allowed_event = Event()
