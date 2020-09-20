@@ -186,7 +186,6 @@ install(PROGRAMS
    scripts/experiment_scripts/control_system.py
    scripts/experiment_scripts/exp_system.py
    scripts/experiment_scripts/watchdog.py
-   scripts/experiment_scripts/table_test_experiment.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
