@@ -114,7 +114,7 @@ class ControlSystemServer(object):
         self._system_log_sub = rospy.Subscriber(
             name='/rosout_agg', data_class=Log,
             callback=self._log_callback,
-            queue_size=50)
+            queue_size=5)
 
         # reinit sba5
         if self._mode == 'experiment':
@@ -247,7 +247,7 @@ class ControlSystemServer(object):
 
         # hardcoded thing just to handle serial errors
 
-        if log_msg.node == '/serial_node' and log_msg.level == 8:
+        if log_msg.name == '/serial_node' and log_msg.level == 8:
             self._logger.error("we got serial error {}".format(log_msg))
             self._serial_error_counter += 1
             if self._serial_error_counter >= self._serial_error_max:
@@ -267,6 +267,8 @@ class ControlSystemServer(object):
 
         self._logger.warning("waiting for serial node respawn")
 
+        time.sleep(1.5)
+
         # then check if it was created again
         serial_node_found = False
         while not serial_node_found:
@@ -275,7 +277,7 @@ class ControlSystemServer(object):
                 nodes[i] = nodes[i].replace("\n", "")
                 if nodes[i] == "/serial_node":
                     serial_node_found = True
-                    time.sleep(0.5)
+            time.sleep(0.5)
 
         # then send respawn signal to relay device to restore relay state on mcu
         self._logger.warning("send respawn signal to relay")
