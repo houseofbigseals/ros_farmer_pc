@@ -277,7 +277,10 @@ class ControlSystemServer(object):
                 nodes[i] = nodes[i].replace("\n", "")
                 if nodes[i] == "/serial_node":
                     serial_node_found = True
+                    self._logger.warning("found serial node in rosnode list")
             time.sleep(0.5)
+
+        time.sleep(5)
 
         # then send respawn signal to relay device to restore relay state on mcu
         self._logger.warning("send respawn signal to relay")

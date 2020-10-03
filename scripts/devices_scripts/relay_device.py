@@ -63,8 +63,8 @@ class RelayDeviceServer(object):
             'N2_VALVE,AIR_PUMP_1,AIR_PUMP_2,COOLER_1,AIR_VALVE_1,AIR_VALVE_2,NDIR_PUMP,EMPTY')
         self._raw_relay_topic = rospy.get_param('~raw_relay_topic_name', 'relay_1_sub')
 
-        self._commands = ['set_air_pumps', 'set_air_valves',
-                          'set_n2_valve', 'set_vent_coolers', 'set_ndir_pump', 'shutdown']
+        self._commands = ['set_air_pumps', 'set_air_valves', 'set_n2_valve',
+                          'set_vent_coolers', 'set_ndir_pump', 'shutdown', 'respawn']
 
         # create dictionary with
         # {key - devname: str, value - [number of channel:int, state:int]}
@@ -72,6 +72,8 @@ class RelayDeviceServer(object):
         self._map = dict()
         for i in range(0, len(devnames)):
             self._map.update({devnames[i] : [i, self._default_channel_state]})
+
+        self._last_relay_state = list(1 for i in range(0, self._number_of_channels))
 
         # create log topic publisher
         self._log_pub = rospy.Publisher(self._log_node_name, String, queue_size=10)
@@ -180,18 +182,18 @@ class RelayDeviceServer(object):
 
     def _respawn(self):
         # sends last relay state to controller again
-        # current data stored in self._map
+        # current data stored in self._map and in self._last_relay_state
 
-        # get list of sorted values by pin number
-        sort_ = list(sorted(self._map.values(), key=lambda t: t[0]))
-        self._logger.debug(str(sort_))
-
-        # then get from sorted array only states
-        pin_states_ = list(x[1] for x in sort_)
-        self._logger.debug(str(pin_states_))
+        # # get list of sorted values by pin number
+        # sort_ = list(sorted(self._map.values(), key=lambda t: t[0]))
+        # self._logger.debug(str(sort_))
+        #
+        # # then get from sorted array only states
+        # pin_states_ = list(x[1] for x in sort_)
+        # self._logger.debug(str(pin_states_))
 
         # then send it to raw relay sub
-        self._set_raw_relay_pins(pin_states_)
+        self._set_raw_relay_pins(self._last_relay_state)
 
     def _shutdown(self):
         # create array of ones with correct length
@@ -247,6 +249,9 @@ class RelayDeviceServer(object):
             # then send it to raw relay sub
             self._set_raw_relay_pins(pin_states_)
 
+            # save last relay pin states
+            self._last_relay_state = pin_states_
+
     def _set_group_pins_by_key(self, key, state):
         if state != 0 and state != 1:
             raise RelayDeviceException("wrong type of new state, state must be 0 or 1")
@@ -268,6 +273,9 @@ class RelayDeviceServer(object):
 
             # then send it to raw relay sub
             self._set_raw_relay_pins(pin_states_)
+
+            # save last relay pin states
+            self._last_relay_state = pin_states_
 
     def _set_air_pumps(self, state):
         self._set_group_pins_by_key(self._air_pump_key, state)
