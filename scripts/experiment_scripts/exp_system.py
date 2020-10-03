@@ -40,4 +40,7 @@ class ExpSystemServer(object):
         self._logger.info("exp_server init")
 
         # service
-        self._service = rospy.Service(self._service_name, ControlSystem, self._handle_request)
+        self._service = rospy.Service(self._service_name, ExpSystem, self._handle_request)
+
+    def _handle_request(self):
+        pass

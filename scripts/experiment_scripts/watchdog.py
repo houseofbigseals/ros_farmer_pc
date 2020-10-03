@@ -4,7 +4,7 @@
 
 import rospy
 from ros_farmer_pc.srv import Watchdog
-from data_scripts.custom_logger import CustomLogger
+from custom_logger import CustomLogger
 from std_msgs.msg import String, Header
 
 

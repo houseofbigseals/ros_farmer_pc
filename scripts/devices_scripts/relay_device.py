@@ -156,6 +156,15 @@ class RelayDeviceServer(object):
                 resp = self._error_response + e.args[0]
                 return resp
 
+        elif req.command == 'respawn':
+            try:
+                self._respawn()
+                resp = self._success_response
+                return resp
+            except RelayDeviceException as e:
+                resp = self._error_response + e.args[0]
+                return resp
+
         elif req.command == 'help':
             resp = "service commands is {}".format(self._commands)+\
                 "0 - to activate relay channel, 1 to close \n" + "map of devices and channels: \n"+\
@@ -168,6 +177,21 @@ class RelayDeviceServer(object):
             return resp
 
         # ==================== real commands ==================
+
+    def _respawn(self):
+        # sends last relay state to controller again
+        # current data stored in self._map
+
+        # get list of sorted values by pin number
+        sort_ = list(sorted(self._map.values(), key=lambda t: t[0]))
+        self._logger.debug(str(sort_))
+
+        # then get from sorted array only states
+        pin_states_ = list(x[1] for x in sort_)
+        self._logger.debug(str(pin_states_))
+
+        # then send it to raw relay sub
+        self._set_raw_relay_pins(pin_states_)
 
     def _shutdown(self):
         # create array of ones with correct length

@@ -7,11 +7,14 @@ from std_msgs.msg import String
 import traceback
 import sys
 from custom_logger import CustomLogger
-from ros_farmer_pc.srv import ControlSystem, LedDevice, RelayDevice, SBA5Device
+from ros_farmer_pc.srv import ControlSystem, LedDevice, RelayDevice, SBA5Device, ExpSystem
 from sensor_msgs.msg import Temperature
 from threading import Lock, Event
 import time
 import re
+import os
+from rosgraph_msgs.msg import Log
+import roslaunch
 # from future import *
 
 # custom errors
@@ -50,6 +53,7 @@ class ControlSystemServer(object):
         self._relay_service_name = rospy.get_param('~control_relay_service_name', 'relay_device')
         self._led_service_name = rospy.get_param('~control_led_service_name', 'led_device')
         self._sba5_service_name = rospy.get_param('~control_sba5_service_name', 'sba5_device')  # we are using sba5 by default co2 sensor
+        self._exp_service_name = rospy.get_param('~control_exp_service_name', 'exp_system')
 
         # experiment params
         self._default_red = rospy.get_param('~control_default_red', 50)  # mA
@@ -69,10 +73,14 @@ class ControlSystemServer(object):
         # experiment
         # life_support
         # test
+        # search_experiment
         # ...
         #self._sba5_measure_allowed = False  # by default
         self._at_work = rospy.get_param('~control_start_at_work', True)
         # start node and loop immediately after launch or
+
+        self._co2_search_time_stop = 0
+        self._co2_search_time_start = 0
 
 
         # create log topic publisher
@@ -92,15 +100,21 @@ class ControlSystemServer(object):
         rospy.Timer(rospy.Duration(2.0), self._get_sba5_measure)  # 2 Hz
         # create ros timer for main loop
 
-        # TODO connect to led and relay services
-        # or not
-
         self._logger.debug("control_server service creation")
 
         # service
         self._service = rospy.Service(self._service_name, ControlSystem, self._handle_request)
 
         self._logger.debug("check if we are in experiment mode")
+
+
+        self._serial_error_counter = 0
+        self._serial_error_max = 5
+        # subscribe to rosout_agg to know if there is fatal error and we need to do smth
+        self._system_log_sub = rospy.Subscriber(
+            name='/rosout_agg', data_class=Log,
+            callback=self._log_callback,
+            queue_size=50)
 
         # reinit sba5
         if self._mode == 'experiment':
@@ -171,6 +185,8 @@ class ControlSystemServer(object):
         if t.tm_min % (self._full_experiment_loop_time/60.0) == 0:
             # start it again
             self._logger.debug("start experiment loop again")
+            # get new regime
+            self._update_control_params()
             # set inside ventilation coolers on
             self._set_new_relay_state('set_vent_coolers', 0)
             # start ventilation and calibration
@@ -189,10 +205,114 @@ class ControlSystemServer(object):
             self._stop_ventilation()
             # wait self._isolated_measure_time
             rospy.sleep(self._isolated_measure_time)
-            # get new regime
-            self._update_control_params()
+
+
+    def _full_experiment_loop(self):
+        # one loop
+        # all experiment
+        t = time.localtime()
+        # every 15 minutes by default
+        if t.tm_min % (self._full_experiment_loop_time/60.0) == 0:
+            # start it again
+            self._logger.debug("start experiment loop again")
+            # set inside ventilation coolers on
+            self._set_new_relay_state('set_vent_coolers', 0)
+            # start ventilation and calibration
+            self._start_ventilation()
+            # get new led light params from exp_node
+            self._get_new_coordinates()
+            # stop measuring co2 using threading event
+            self._sba5_measure_allowed_event.clear()
+            self._logger.debug("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
+            # do calibration of sba-5
+            self._perform_sba5_calibration()
+            # start measuring co2 again
+            self._sba5_measure_allowed_event.set()
+            self._logger.debug("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
+            self._co2_search_time_start = time.localtime()
+            # wait for self._ventilation_time
+            rospy.sleep(self._ventilation_time)
+            # stop ventilation
+            self._stop_ventilation()
+            # wait self._isolated_measure_time
+            rospy.sleep(self._isolated_measure_time)
+
+            self._co2_search_time_stop = time.localtime()
+            # send start and stop times of this search point to exp_node
+            self._send_exp_data()
 
     # =============================== support methods ==============================
+
+    def _log_callback(self, log_msg):
+
+        # hardcoded thing just to handle serial errors
+
+        if log_msg.node == '/serial_node' and log_msg.level == 8:
+            self._logger.error("we got serial error {}".format(log_msg))
+            self._serial_error_counter += 1
+            if self._serial_error_counter >= self._serial_error_max:
+                self._logger.error("max number of serial error counted: {}".format(self._serial_error_counter))
+                self._restart_serial_node()
+
+                self._serial_error_counter = 0
+
+
+    def _restart_serial_node(self):
+        # we just need to kill serial node
+        # master must rebirth it
+
+        self._logger.warning("trying to kill serial node")
+
+        os.system("rosnode kill /serial_node")
+
+        self._logger.warning("waiting for serial node respawn")
+
+        # then check if it was created again
+        serial_node_found = False
+        while not serial_node_found:
+            nodes = os.popen("rosnode list").readlines()
+            for i in range(len(nodes)):
+                nodes[i] = nodes[i].replace("\n", "")
+                if nodes[i] == "/serial_node":
+                    serial_node_found = True
+                    time.sleep(0.5)
+
+        # then send respawn signal to relay device to restore relay state on mcu
+        self._logger.warning("send respawn signal to relay")
+        rospy.wait_for_service(self._relay_service_name)
+        try:
+            relay_wrapper = rospy.ServiceProxy(self._relay_service_name, RelayDevice)
+            resp = relay_wrapper("respawn", 1)
+            self._logger.debug(resp)
+            return resp
+
+        except rospy.ServiceException, e:
+            exc_info = sys.exc_info()
+            err_list = traceback.format_exception(*exc_info)
+            self._logger.error("Service call failed: {}".format(err_list))
+
+
+    def _send_exp_data(self):
+        pass
+
+    def _get_new_coordinates(self):
+
+        rospy.wait_for_service(self._exp_service_name)
+        try:
+            exp_device = rospy.ServiceProxy(self._exp_service_name, ExpSystem)
+            
+
+
+            return float(co2_data)
+
+        except Exception as e:
+            exc_info = sys.exc_info()
+            err_list = traceback.format_exception(*exc_info)
+            self._logger.error("Service call failed: {}".format(err_list))
+
+        pass
+
+
 
     def _update_control_params(self):
         # get new params and set them to corresponding self.xxxx values

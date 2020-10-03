@@ -26,7 +26,7 @@
         <param name="control_start_mode" value="$(arg control_start_mode)"/>
     </node>
 
-    <node pkg="rosserial_python" type="serial_node.py" name="serial_node">
+    <node pkg="rosserial_python" type="serial_node.py" name="serial_node" respawn="true">
         <param name="port" value="$(arg arduino_port)"/>
         <param name="baud" value="$(arg arduino_baudrate)"/>
     </node>
