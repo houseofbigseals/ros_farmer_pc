@@ -294,10 +294,10 @@ class MYSQLDataSaver(object):
                     'start_time timestamp,'    # start time of dataset
                     'end_time timestamp,'     # end time of dataset
                     'number_of_data_points int unsigned,'   # num of points in set
-                    'point_of_calc,'   # point X where we calculate value of derivative
-                    'F_val double,'    # value of derivative dCO2/dt(X) on this dataset
-                    'Q_val double,'
-                    'is_finished SMALLINT unsigned'  # flag to mark if point was finished correctly and how
+                    'point_of_calc double,'   # point X where we calculate value of derivative
+                    'f_val double,'    # value of derivative dCO2/dt(X) on this dataset
+                    'q_val double,'
+                    'is_finished SMALLINT unsigned '  # flag to mark if point was finished correctly and how
                     ')'
                     )
         # finished SMALLINT unsigned'
@@ -305,7 +305,7 @@ class MYSQLDataSaver(object):
         # 1 - not finished
         #
 
-        cur.execute('describe experiments')
+        cur.execute('describe exp_data')
         print(cur.fetchall())
 
         cur.execute('commit')
