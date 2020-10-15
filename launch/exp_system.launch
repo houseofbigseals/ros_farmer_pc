@@ -1,0 +1,15 @@
+<launch>
+    <!-- arguments -->
+    <node pkg="ros_farmer_pc" type="mysql_data_saver.py" name="mysql_data_saver">
+
+
+
+
+    </node>
+
+
+
+
+
+
+</launch>

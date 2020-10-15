@@ -6,3 +6,8 @@ uint16 red
 uint16 white
 ---
 string response
+uint32 point_id
+time start_time
+time end_time
+uint16 red
+uint16 white

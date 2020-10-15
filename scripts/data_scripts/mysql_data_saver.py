@@ -280,6 +280,34 @@ class MYSQLDataSaver(object):
         cur.execute('describe experiments')
         print(cur.fetchall())
 
+        self._logger.debug("create table exp_data")
+
+        # experiment consists of search steps
+        # search step consists of points
+
+        cur.execute('create table if not exists exp_data'
+                    '( point_id bigint unsigned primary key not null auto_increment,'
+                    ' step_id int unsigned,'    # id of search step whom this point belongs
+                    ' exp_id  SMALLINT unsigned,'
+                    ' red int,'
+                    ' white int,'
+                    ' start_time timestamp,'    # start time of dataset
+                    ' end_time timestamp,'     # end time of dataset
+                    ' number_of_data_points int unsigned,'   # num of points in set
+                    ' point_of_calc,'   # point X where we calculate value of derivative
+                    ' F double,'    # value of derivative dCO2/dt(X) on this dataset
+                    ' Q double, '
+                    ' finished SMALLINT unsigned'  # flag to mark if point was finished correctly and how
+                    ')'
+                    )
+        # finished SMALLINT unsigned'
+        # 0 - finished correctly
+        # 1 - not finished
+        #
+
+        cur.execute('describe experiments')
+        print(cur.fetchall())
+
         cur.execute('commit')
         print(cur.fetchall())
 

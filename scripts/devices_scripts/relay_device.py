@@ -191,6 +191,7 @@ class RelayDeviceServer(object):
         # # then get from sorted array only states
         # pin_states_ = list(x[1] for x in sort_)
         # self._logger.debug(str(pin_states_))
+        self._logger.debug("respawn relay state to saved state {}".format(self._last_relay_state))
 
         # then send it to raw relay sub
         self._set_raw_relay_pins(self._last_relay_state)

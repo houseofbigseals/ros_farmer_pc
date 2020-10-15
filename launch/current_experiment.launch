@@ -1,0 +1,8 @@
+
+<!-- file for store params of current experiment -->
+
+<launch>
+    <!-- arguments -->
+    <include file="$(find ros_farmer_pc)/launch/sba_mysql_115200.launch" />
+
+</launch>
