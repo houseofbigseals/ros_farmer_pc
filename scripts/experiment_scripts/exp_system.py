@@ -79,11 +79,11 @@ class ExpSystemServer(object):
             resp = self._error_response + 'empty_command'
             return resp
 
-        elif req.command == 'put_exp_data':
+        elif req.command == 'put_point_data':
             # TODO fix
 
             try:
-                self._put_exp_data(req)
+                self._put_point_data(req)
                 resp = ExpSystemResponse()
                 resp.response = self._success_response
                 return resp
@@ -112,14 +112,38 @@ class ExpSystemServer(object):
                 resp = self._error_response + e.args[0]
                 return resp
 
+
+        elif req.command == 'get_current_point':
+            # request from control_node to get current point_id
+            try:
+                self._get_light_mode(req)
+                resp = ExpSystemResponse()
+                resp.point_id = self._current_point_id
+                # resp.response = self._success_response
+                # resp.point_id =
+                #req.
+                return resp
+            except Exception as e:
+                exc_info = sys.exc_info()
+                err_list = traceback.format_exception(*exc_info)
+                self._logger.error("Service call failed: {}".format(err_list))
+                resp = self._error_response + e.args[0]
+                return resp
+
         else:
             resp = self._error_response + 'unknown command'
             return resp
 
+    def _get_last_search_point_from_db(self):
+        """
+        sends request to mariadb to get last row in exp_data table , corresponds to exp_id
+        """
+        pass
+
     def _get_point_from_db_by_id(self, point_id):
         pass
 
-    def _put_exp_data(self, req):
+    def _put_point_data(self, req):
         # this command handles incoming msg with data about experiment
         # we want to get from this msg
         # uint32 point_id
