@@ -14,7 +14,7 @@
     <arg name="relay_mapping_string" default="N2_VALVE,AIR_PUMP_1,AIR_PUMP_2,COOLER_1,AIR_VALVE_1,AIR_VALVE_2,NDIR_PUMP,EMPTY"/>
     <arg name="raw_relay_topic_name" default="relay_1_sub"/>
 
-    <arg name="control_relay_service_name" default="relay_device"/>
+    <arg name="control_relay_service_name" default="relay_device" />
     <arg name="control_led_service_name" default="led_device"/>
     <arg name="control_sba5_service_name" default="sba5_device"/>
     <arg name="control_start_mode" default="experiment"/>
@@ -26,13 +26,13 @@
     </node>
 
 
-  <node pkg="ros_farmer_pc" type="led_device.py" name="led_device">
+  <node pkg="ros_farmer_pc" type="led_device.py" name="led_device" respawn="true">
     <param name="led_port" value="$(arg led_device_port)"/>
     <param name="led_baudrate" value="$(arg led_baudrate)"/>
   </node>
 
 
-  <node pkg="ros_farmer_pc" type="sba5_device.py" name="sba5_device">
+  <node pkg="ros_farmer_pc" type="sba5_device.py" name="sba5_device" respawn="true">
     <param name="sba5_port" value="$(arg sba5_device_port)"/>
     <param name="sba5_baudrate" value="$(arg sba5_baudrate)"/>
     <param name="sba5_timeout" value="$(arg sba5_timeout)"/>
@@ -40,7 +40,7 @@
   </node>
 
 
-  <node pkg="ros_farmer_pc" type="relay_device.py" name="relay_device">
+  <node pkg="ros_farmer_pc" type="relay_device.py" name="relay_device" respawn="true">
     <param name="relay_number_of_channels" value="$(arg relay_number_of_channels)"/>
     <param name="relay_mapping_string" value="$(arg relay_mapping_string)"/>
     <param name="raw_relay_topic_name" value="$(arg raw_relay_topic_name)"/>

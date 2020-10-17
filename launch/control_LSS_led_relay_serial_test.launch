@@ -31,12 +31,12 @@
         <param name="baud" value="$(arg arduino_baudrate)"/>
     </node>
 
-  <node pkg="ros_farmer_pc" type="led_device.py" name="led_device">
+  <node pkg="ros_farmer_pc" type="led_device.py" name="led_device" respawn="true">
     <param name="led_port" value="$(arg led_device_port)"/>
     <param name="led_baudrate" value="$(arg led_baudrate)"/>
   </node>
 
-  <node pkg="ros_farmer_pc" type="relay_device.py" name="relay_device">
+  <node pkg="ros_farmer_pc" type="relay_device.py" name="relay_device" respawn="true">
     <param name="relay_number_of_channels" value="$(arg relay_number_of_channels)"/>
     <param name="relay_mapping_string" value="$(arg relay_mapping_string)"/>
     <param name="raw_relay_topic_name" value="$(arg raw_relay_topic_name)"/>

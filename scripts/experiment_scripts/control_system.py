@@ -261,6 +261,10 @@ class ControlSystemServer(object):
         # we just need to kill serial node
         # master must rebirth it
 
+        self._logger.warning("trying to kill relay node")
+
+        os.system("rosnode kill /relay_device")
+
         self._logger.warning("trying to kill serial node")
 
         os.system("rosnode kill /serial_node")
@@ -278,6 +282,10 @@ class ControlSystemServer(object):
                 if nodes[i] == "/serial_node":
                     serial_node_found = True
                     self._logger.warning("found serial node in rosnode list")
+
+                if nodes[i] == "/relay_device":
+                    # serial_node_found = True
+                    self._logger.warning("found relay_device in rosnode list")
             time.sleep(0.5)
 
         time.sleep(5)
