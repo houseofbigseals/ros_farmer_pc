@@ -9,17 +9,16 @@ import traceback
 import sys
 from custom_logger import CustomLogger
 from ros_farmer_pc.srv import ExpSystem, ExpSystemResponse
-import special_configs.search_config_default
 
 class TableSearchHandler(object):
     """
 
     """
 
-    def __init__(self, path_to_config):
+    def __init__(self, search_table):
         # TODO fix to read xml file and parse it correctly
 
-        self.search_table = search_config_default.search_table
+        self.search_table = search_table
 
     def calculate_next_point(self):
         pass
@@ -49,11 +48,12 @@ class ExpSystemServer(object):
         # mode of work
         # no matter which method is chosen we will parse params for all of them from .launch file
         self._mode = rospy.get_param('~exp_mode_name', 'table')
-        self._exp_config_path = rospy.get_param('~exp_config_path', 'test.xml')
+        self._search_table = rospy.get_param('exp_search_table')
+        # self._exp_config_path = rospy.get_param('~exp_config_path', 'test.xml')
         # todo add here parsing params of gradient search and other smart methods
 
         if self._mode == 'table':
-            self._search_handler = TableSearchHandler(self._exp_config_path)
+            self._search_handler = TableSearchHandler(self._search_table)
 
         # todo add other search modes
 
