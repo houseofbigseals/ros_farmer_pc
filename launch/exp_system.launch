@@ -37,10 +37,11 @@
     ]
     </rosparam>
 
-    <arg name="control_start_mode" default="full_experiment"/>
+
 
     <include file="$(find ros_farmer_pc)/launch/control_sba_led_relay_serial_test.launch" >
-            <arg name="arduino_baudrate" default="115200"/>
+        <arg name="arduino_baudrate" default="115200"/>
+        <arg name="control_start_mode" default="full_experiment"/>
     </include>
     <include file="$(find ros_farmer_pc)/launch/mysql_data_saver_test.launch"/>
 
