@@ -44,7 +44,7 @@
 
 
         -->
-
+        <!-- TODO remove -->
         <rosparam param="mysql_data_saver_exp_topics">
         [
         { name: '/exp_point_id',  type: 'number of search point', dtype: 'float64', units: 'Num', status: 'exp'},

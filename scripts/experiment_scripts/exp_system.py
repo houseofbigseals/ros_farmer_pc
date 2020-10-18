@@ -9,7 +9,7 @@ import traceback
 import sys
 from custom_logger import CustomLogger
 from ros_farmer_pc.srv import ExpSystem, ExpSystemResponse
-
+import search_config_default
 
 class TableSearchHandler(object):
     """
@@ -18,7 +18,7 @@ class TableSearchHandler(object):
 
     def __init__(self, path_to_config):
         # TODO fix to read xml file and parse it correctly
-        import search_config_default
+
         self.search_table = search_config_default.search_table
 
     def calculate_next_point(self):
