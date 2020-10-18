@@ -3,6 +3,7 @@
 
 
 import rospy
+import random
 from std_msgs.msg import String
 import traceback
 import sys
@@ -79,13 +80,16 @@ class ExpSystemServer(object):
             resp = self._error_response + 'empty_command'
             return resp
 
-        elif req.command == 'put_point_data':
+        elif req.command == 'set_point_data':
             # TODO fix
 
             try:
-                self._put_point_data(req)
+                # self._put_point_data(req)
                 resp = ExpSystemResponse()
                 resp.response = self._success_response
+                self._logger.info("we got data from control t_start={} t_stop={}".format(
+                    req.start_time, req.stop_time
+                ))
                 return resp
             except Exception as e:
                 exc_info = sys.exc_info()
@@ -93,32 +97,19 @@ class ExpSystemServer(object):
                 self._logger.error("Service call failed: {}".format(err_list))
                 resp = self._error_response + e.args[0]
                 return resp
-
-        elif req.command == 'get_light_mode':
-            # TODO fix
-            # TODO mb we need command to start generate new point?
-            # it means that it is time to get new
-            try:
-                self._get_light_mode(req)
-                resp = ExpSystemResponse()
-                # resp.response = self._success_response
-                # resp.point_id =
-                #req.
-                return resp
-            except Exception as e:
-                exc_info = sys.exc_info()
-                err_list = traceback.format_exception(*exc_info)
-                self._logger.error("Service call failed: {}".format(err_list))
-                resp = self._error_response + e.args[0]
-                return resp
-
 
         elif req.command == 'get_current_point':
             # request from control_node to get current point_id
             try:
-                self._get_light_mode(req)
+                p_id, red, white = self._get_current_point()
                 resp = ExpSystemResponse()
-                resp.point_id = self._current_point_id
+                resp.response = self._success_response
+                resp.point_id = p_id
+                resp.red = red
+                resp.white = white
+                self._logger.info("we got reqv from control; and p_id={} red={} white={}".format(
+                    p_id, red, white
+                ))
                 # resp.response = self._success_response
                 # resp.point_id =
                 #req.
@@ -134,16 +125,18 @@ class ExpSystemServer(object):
             resp = self._error_response + 'unknown command'
             return resp
 
-    def _get_last_search_point_from_db(self):
-        """
-        sends request to mariadb to get last row in exp_data table , corresponds to exp_id
-        """
-        pass
+    # def _get_last_search_point_from_db(self):
+    #     """
+    #     sends request to mariadb to get last row in exp_data table , corresponds to exp_id
+    # WE NEED ALL SEARCH POINTS FROM THIS EXP because they were used randomly
+    # and we dont know how exactly
+    #     """
+    #     pass
 
     def _get_point_from_db_by_id(self, point_id):
         pass
 
-    def _put_point_data(self, req):
+    def _set_point_data(self, req):
         # this command handles incoming msg with data about experiment
         # we want to get from this msg
         # uint32 point_id
@@ -153,13 +146,18 @@ class ExpSystemServer(object):
         #
         pass
 
-    def _start_calculating(self, req):
-        # when we got this command, we have to start calculate new search point
-        pass
+    # def _start_calculating(self, req):
+    #     # when we got this command, we have to start calculate new search point
+    #     pass
 
 
-    def _get_light_mode(self, req):
-        pass
+    def _get_current_point(self):
+        return (random.randint(0,100), 120, 50)
+
 
     def _calculate_new_point(self):
         pass
+
+
+if __name__ == "__main__":
+    ExpSystemServer()

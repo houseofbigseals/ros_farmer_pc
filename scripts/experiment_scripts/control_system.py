@@ -5,9 +5,10 @@
 import rospy
 from std_msgs.msg import String
 import traceback
+import datetime
 import sys
 from custom_logger import CustomLogger
-from ros_farmer_pc.srv import ControlSystem, LedDevice, RelayDevice, SBA5Device, ExpSystem
+from ros_farmer_pc.srv import ControlSystem, LedDevice, RelayDevice, SBA5Device, ExpSystem, ExpSystemResponse
 from sensor_msgs.msg import Temperature
 from threading import Lock, Event
 import time
@@ -37,6 +38,7 @@ class ControlSystemServer(object):
         # hardcoded constants
         self._success_response = "success: "
         self._error_response = "error: "
+        self._logsep = ";"
 
         # start node
         rospy.init_node('control_server', log_level=rospy.DEBUG)
@@ -48,6 +50,7 @@ class ControlSystemServer(object):
         self._log_node_name = rospy.get_param('~control_log_node_name', 'control_log_node')
         self._service_name = rospy.get_param('~control_service_name', 'control_system')
         self._raw_co2_pub_name = rospy.get_param('~control_raw_co2_pub_name', 'raw_co2_pub')
+        self._operator_pub_name = rospy.get_param('~control_operator_pub_name', 'operator_pub')
 
         # devices services names
         self._relay_service_name = rospy.get_param('~control_relay_service_name', 'relay_device')
@@ -79,14 +82,22 @@ class ControlSystemServer(object):
         self._at_work = rospy.get_param('~control_start_at_work', True)
         # start node and loop immediately after launch or
 
-        self._co2_search_time_stop = 0
+        # params of search experiment
         self._co2_search_time_start = 0
+        self._co2_search_time_stop = 0
+        self._current_search_point_id = 0
+        self._current_red = self._default_red
+        self._current_white = self._default_white
+        self._current_search_is_finished = 1  # by default it is not finished
+
 
 
         # create log topic publisher
         self._log_pub = rospy.Publisher(self._log_node_name, String, queue_size=10)
         # create data topic publisher
         self._co2_pub = rospy.Publisher(self._raw_co2_pub_name, Temperature, queue_size=10)
+        # create operator-topic to send important msgs to operator
+        self._operator_pub = rospy.Publisher(self._operator_pub_name, String, queue_size=10)
 
         # logger
         self._logger = CustomLogger(name=self._logname, logpub=self._log_pub)
@@ -97,7 +108,7 @@ class ControlSystemServer(object):
 
         # create timers for async periodic tasks using internal ros mechanics
         # Create a ROS Timer for reading data
-        rospy.Timer(rospy.Duration(2.0), self._get_sba5_measure)  # 2 Hz
+        rospy.Timer(rospy.Duration(1.0), self._get_sba5_measure)  # 1 Hz
         # create ros timer for main loop
 
         self._logger.debug("control_server service creation")
@@ -117,7 +128,7 @@ class ControlSystemServer(object):
             queue_size=5)
 
         # reinit sba5
-        if self._mode == 'experiment':
+        if self._mode == 'experiment' or self._mode == 'full_experiment':
             self._logger.debug("update sba5 and allow sba5 measures")
             self._update_sba5_params()
 
@@ -126,6 +137,9 @@ class ControlSystemServer(object):
 
             self._default_red = 120
             self._default_white = 120
+
+            self._current_red = self._default_red
+            self._current_white = self._default_white
 
         self._logger.debug("go to loop")
         self._loop()
@@ -141,6 +155,8 @@ class ControlSystemServer(object):
                 self._life_support_loop()
             elif self._mode == 'test':
                 self._test_loop()
+            elif self._mode == 'full_experiment':
+                self._full_experiment_loop()
             else:
                 self._logger.error("current mode is not real mode: {}".format(self._mode))
                 rospy.sleep(1)
@@ -206,7 +222,6 @@ class ControlSystemServer(object):
             # wait self._isolated_measure_time
             rospy.sleep(self._isolated_measure_time)
 
-
     def _full_experiment_loop(self):
         # one loop
         # all experiment
@@ -214,34 +229,54 @@ class ControlSystemServer(object):
         # every 15 minutes by default
         if t.tm_min % (self._full_experiment_loop_time/60.0) == 0:
             # start it again
-            self._logger.debug("start experiment loop again")
+            self._logger.debug("start full experiment loop again")
+            self._operator_call("start full experiment loop again")
             # set inside ventilation coolers on
             self._set_new_relay_state('set_vent_coolers', 0)
             # start ventilation and calibration
             self._start_ventilation()
+            self._operator_call("ventilation started")
             # get new led light params from exp_node
-            self._get_new_coordinates()
+            self._get_current_point()
+            self._operator_call("we got new exp point: id={} red={} white={}".format(
+                self._current_search_point_id, self._current_red, self._current_white
+            ))
             # stop measuring co2 using threading event
             self._sba5_measure_allowed_event.clear()
             self._logger.debug("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
             # do calibration of sba-5
+            self._operator_call("sba5 calibration started")
             self._perform_sba5_calibration()
+            self._operator_call("sba5 calibration ended")
             # start measuring co2 again
             self._sba5_measure_allowed_event.set()
             self._logger.debug("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
+            #
             self._co2_search_time_start = time.localtime()
+            # send sign to operator
+            self._operator_call("co2_search_time started {}".format(self._co2_search_time_start))
+
             # wait for self._ventilation_time
             rospy.sleep(self._ventilation_time)
             # stop ventilation
             self._stop_ventilation()
+            self._operator_call("stop ventilation")
             # wait self._isolated_measure_time
             rospy.sleep(self._isolated_measure_time)
 
             self._co2_search_time_stop = time.localtime()
+            self._operator_call("co2_search_time stopped {}".format(self._co2_search_time_start))
             # send start and stop times of this search point to exp_node
-            self._send_exp_data()
+            self._send_point_data()
+            self._operator_call("data sent to exp_system")
 
     # =============================== support methods ==============================
+
+    def _operator_call(self, msg):
+        # just sends msg to operator topic
+        _time = datetime.datetime.now()
+        msg = str(_time) + self._logsep + str(self._logname) + self._logsep + msg
+        self._operator_pub.publish(msg)
 
     def _log_callback(self, log_msg):
 
@@ -264,6 +299,7 @@ class ControlSystemServer(object):
         self._logger.warning("trying to kill relay node")
 
         os.system("rosnode kill /relay_device")
+        time.sleep(1.5)
 
         self._logger.warning("trying to kill serial node")
 
@@ -275,7 +311,8 @@ class ControlSystemServer(object):
 
         # then check if it was created again
         serial_node_found = False
-        while not serial_node_found:
+        relay_device_found = False
+        while not serial_node_found and relay_device_found:
             nodes = os.popen("rosnode list").readlines()
             for i in range(len(nodes)):
                 nodes[i] = nodes[i].replace("\n", "")
@@ -284,7 +321,7 @@ class ControlSystemServer(object):
                     self._logger.warning("found serial node in rosnode list")
 
                 if nodes[i] == "/relay_device":
-                    # serial_node_found = True
+                    relay_device_found = True
                     self._logger.warning("found relay_device in rosnode list")
             time.sleep(0.5)
 
@@ -305,38 +342,47 @@ class ControlSystemServer(object):
             self._logger.error("Service call failed: {}".format(err_list))
 
 
-    def _send_exp_data(self):
-        pass
-
-    def _get_new_coordinates(self):
-
+    def _send_point_data(self):
+        self._logger.debug("try to send data about current search point")
         rospy.wait_for_service(self._exp_service_name)
         try:
             exp_device = rospy.ServiceProxy(self._exp_service_name, ExpSystem)
-            
-
-
-            return float(co2_data)
+            resp = exp_device(command="set_point_data",
+                              point_id=self._current_search_point_id,
+                              start_time=rospy.Time.from_sec(self._co2_search_time_start),
+                              end_time=rospy.Time.from_sec(self._co2_search_time_stop)
+                              )
+            # self._current_search_point_id = resp.point_id
+            # self._current_red = resp.red
+            # self._current_white = resp.white
+            self._logger.debug(resp)
+            return resp
 
         except Exception as e:
             exc_info = sys.exc_info()
             err_list = traceback.format_exception(*exc_info)
             self._logger.error("Service call failed: {}".format(err_list))
 
-        pass
+    def _get_current_point(self):
+        self._logger.debug("try to get new search point")
+        rospy.wait_for_service(self._exp_service_name)
+        try:
+            exp_device = rospy.ServiceProxy(self._exp_service_name, ExpSystem)
+            resp = exp_device(command="get_current_point")
+            self._current_search_point_id = resp.point_id
+            self._current_red = resp.red
+            self._current_white = resp.white
+            self._logger.debug(resp)
+            return resp
 
-
+        except Exception as e:
+            exc_info = sys.exc_info()
+            err_list = traceback.format_exception(*exc_info)
+            self._logger.error("Service call failed: {}".format(err_list))
 
     def _update_control_params(self):
         # get new params and set them to corresponding self.xxxx values
-
-        # differentiate all collected on current step data
-        pass
-        # send this data, current params and gotten F to G-calculation method
-        pass
-        # send all data and G to search method, to get new light mode params
-        pass
-        # set them
+        # NOTE: method is DEPRECATED
         self._set_new_light_mode(self._default_red, self._default_white)  # for a time
 
     def _start_ventilation(self):
@@ -457,13 +503,12 @@ class ControlSystemServer(object):
         except Exception as e:
             exc_info = sys.exc_info()
             err_list = traceback.format_exception(*exc_info)
-            self._logger.error("Service call failed: {}".format(err_list))
+            self._logger.warning("Service call failed: {}".format(err_list))
 
             # print("Service call failed: {}".format(e))
             # self._logger.error("Service call failed: {}".format(e))
             #raise ControlSystemException(e)
             #raise
-            # TODO FIX
 
     def _update_sba5_params(self):
         self._logger.debug("Try to reinit sba5")

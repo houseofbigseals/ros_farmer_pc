@@ -27,7 +27,9 @@
         ]
         </rosparam>
 
-        <rosparam param="mysql_data_saver_experiment_description">
+        <!--  put here rosparam  mysql_data_saver_experiment_description
+
+         <rosparam param="mysql_data_saver_experiment_description">
         {
             experiment_type: 'test',
             machine_id: 'undefined',
@@ -36,9 +38,12 @@
             end_datetime: '2020_07_03 23:00:00',
             additional_notes: 'add any notes about experiment errors or smth other important',
             experiment_id: '2020_07_03_TESTTYPE_0001',
-            experiment_number: '1'
+            experiment_number: '2'
         }
         </rosparam>
+
+
+        -->
 
         <rosparam param="mysql_data_saver_exp_topics">
         [
