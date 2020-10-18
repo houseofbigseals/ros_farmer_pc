@@ -69,6 +69,11 @@ class ExpSystemServer(object):
         # service
         self._service = rospy.Service(self._service_name, ExpSystem, self._handle_request)
 
+        self._loop()
+
+    def _loop(self):
+        rospy.spin()
+
     def _handle_request(self, req):
 
         self._logger.debug("+++++++++++++++++++++++++++++++++++++++++++++++")
