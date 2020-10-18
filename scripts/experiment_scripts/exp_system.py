@@ -9,7 +9,7 @@ import traceback
 import sys
 from custom_logger import CustomLogger
 from ros_farmer_pc.srv import ExpSystem, ExpSystemResponse
-import search_config_default
+import special_configs.search_config_default
 
 class TableSearchHandler(object):
     """
