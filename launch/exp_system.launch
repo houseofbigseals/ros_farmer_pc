@@ -1,7 +1,7 @@
 <launch>
     <!-- arguments -->
 
-    <rosparam param="_mysql_data_saver_experiment_description">
+    <rosparam param="mysql_data_saver_experiment_description">
         {
         experiment_type: 'test',
         machine_id: 'undefined',
@@ -13,7 +13,7 @@
         experiment_number: '2'
         }
     </rosparam>
-    
+
     <arg name="control_start_mode" default="full_experiment"/>
 
     <include file="$(find ros_farmer_pc)/launch/control_sba_led_relay_serial_test.launch" >
