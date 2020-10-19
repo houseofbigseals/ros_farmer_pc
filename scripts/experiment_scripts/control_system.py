@@ -83,6 +83,20 @@ class ControlSystemServer(object):
         self._at_work = rospy.get_param('~control_start_at_work', True)
         # start node and loop immediately after launch or
 
+        # rpi_gpio device stub
+        # TODO add this params to .launch file
+        self._gpio_handler = RelayHandler(
+            n2_valve=5,
+            air_pump_1=6,
+            air_pump_2=12,
+            cooler_1=13,
+            air_valve_1=19,
+            air_valve_2=26,
+            ndir_pump=16,
+            empty=20
+        )
+
+
         # params of search experiment
         self._co2_search_time_start = 0
         self._co2_search_time_stop = 0
@@ -445,12 +459,14 @@ class ControlSystemServer(object):
         self._logger.debug("start setting new relay mode '{}' '{}' ".format(command, state))
         rospy.wait_for_service(self._relay_service_name)
         try:
-            relay_wrapper = rospy.ServiceProxy(self._relay_service_name, RelayDevice)
-            resp = relay_wrapper(command, state)
-            self._logger.debug(resp)
-            return resp
+        #     relay_wrapper = rospy.ServiceProxy(self._relay_service_name, RelayDevice)
+        #     resp = relay_wrapper(command, state)
+        #     self._logger.debug(resp)
+        #     return resp
 
-        except rospy.ServiceException, e:
+            self._gpio_handler.parse_old_command(command=command, arg=state)
+
+        except Exception, e:
             exc_info = sys.exc_info()
             err_list = traceback.format_exception(*exc_info)
             self._logger.error("Service call failed: {}".format(err_list))
