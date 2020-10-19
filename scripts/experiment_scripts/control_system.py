@@ -16,6 +16,7 @@ import re
 import os
 from rosgraph_msgs.msg import Log
 import roslaunch
+from rpi_relay_handler import RelayHandler
 # from future import *
 
 # custom errors
@@ -265,7 +266,7 @@ class ControlSystemServer(object):
             rospy.sleep(self._isolated_measure_time)
 
             self._co2_search_time_stop = time.localtime()
-            self._operator_call("co2_search_time stopped {}".format(self._co2_search_time_start))
+            self._operator_call("co2_search_time stopped {}".format(self._co2_search_time_stop))
             # send start and stop times of this search point to exp_node
             self._send_point_data()
             self._operator_call("data sent to exp_system")

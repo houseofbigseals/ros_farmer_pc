@@ -89,7 +89,7 @@ class ExpSystemServer(object):
             # TODO fix
 
             try:
-                # self._put_point_data(req)
+                self._set_point_data(req.point_id, req.start_time, req.stop_time)
                 resp = ExpSystemResponse()
                 resp.response = self._success_response
                 self._logger.info("we got data from control t_start={} t_stop={}".format(
@@ -115,9 +115,7 @@ class ExpSystemServer(object):
                 self._logger.info("we got reqv from control; and p_id={} red={} white={}".format(
                     p_id, red, white
                 ))
-                # resp.response = self._success_response
-                # resp.point_id =
-                #req.
+
                 return resp
             except Exception as e:
                 exc_info = sys.exc_info()
@@ -141,7 +139,7 @@ class ExpSystemServer(object):
     def _get_point_from_db_by_id(self, point_id):
         pass
 
-    def _set_point_data(self, req):
+    def _set_point_data(self, p_id, start_time, stop_time):
         # this command handles incoming msg with data about experiment
         # we want to get from this msg
         # uint32 point_id
