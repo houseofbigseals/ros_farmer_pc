@@ -177,6 +177,7 @@ install(PROGRAMS
    scripts/devices_scripts/led_device.py
    scripts/devices_scripts/K30_device.py
    scripts/devices_scripts/relay_device.py
+   scripts/devices_scripts/rpi_relay_handler.py
    scripts/devices_scripts/sba5_device.py
    scripts/data_scripts/custom_logger.py
    scripts/data_scripts/data_plotter.py
