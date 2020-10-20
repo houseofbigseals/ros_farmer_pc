@@ -80,6 +80,8 @@ class MYSQLDataSaver(object):
                               charset='utf8mb4',
                               cursorclass=pymysql.cursors.DictCursor)
 
+        self.con.close()  # check if db available
+
 
 
         self._raw_topics = rospy.get_param('~mysql_data_saver_raw_topics')
@@ -97,7 +99,6 @@ class MYSQLDataSaver(object):
         # TODO insert into sensors table all sensors from .launch if not exists
 
         #  TODO and insert into experiment table current experiment if not exists
-
         # sub to all topics from parsed string
         self._logger.debug("creating raw subs")
         for topic in self._raw_topics:
@@ -217,7 +218,15 @@ class MYSQLDataSaver(object):
 
     def _create_database(self):
         self._logger.debug("create database")
-        cur = self.con.cursor()
+
+        con = pymysql.connect(host='localhost',
+                              user='admin',
+                              password='admin',
+                              # db='experiment',
+                              charset='utf8mb4',
+                              cursorclass=pymysql.cursors.DictCursor)
+
+        cur = con.cursor()
 
         cur.execute("CREATE DATABASE IF NOT EXISTS experiment")
         cur.execute("use experiment")
@@ -280,36 +289,10 @@ class MYSQLDataSaver(object):
         cur.execute('describe experiments')
         print(cur.fetchall())
 
-        self._logger.debug("create table exp_data")
-
-        # experiment consists of search steps
-        # search step consists of points
-
-        cur.execute('create table if not exists exp_data'
-                    '(point_id bigint unsigned primary key not null auto_increment,'
-                    'step_id int unsigned,'    # id of search step whom this point belongs
-                    'exp_id  SMALLINT unsigned,'
-                    'red int,'
-                    'white int,'
-                    'start_time timestamp,'    # start time of dataset
-                    'end_time timestamp,'     # end time of dataset
-                    'number_of_data_points int unsigned,'   # num of points in set
-                    'point_of_calc double,'   # point X where we calculate value of derivative
-                    'f_val double,'    # value of derivative dCO2/dt(X) on this dataset
-                    'q_val double,'
-                    'is_finished SMALLINT unsigned '  # flag to mark if point was finished correctly and how
-                    ')'
-                    )
-        # finished SMALLINT unsigned'
-        # 0 - finished correctly
-        # 1 - not finished
-        #
-
-        cur.execute('describe exp_data')
-        print(cur.fetchall())
-
         cur.execute('commit')
-        print(cur.fetchall())
+        con.close()
+
+        self._logger.debug("create table exp_data")
 
 
 if __name__ == "__main__":

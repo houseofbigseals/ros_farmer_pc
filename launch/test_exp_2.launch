@@ -1,5 +1,0 @@
-<launch>
-    <include file="$(find ros_farmer_pc)/launch/control_sba_led_relay_serial_test.launch" />
-    <include file="$(find ros_farmer_pc)/launch/mysql_data_saver_test.launch"/>
-    <include file="$(find ros_farmer_pc)/launch/mysql_data_plotter_test.launch"/>
-</launch>
