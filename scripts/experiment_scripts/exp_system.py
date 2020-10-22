@@ -419,7 +419,7 @@ def test_table_search():
     print(sh.calculate_next_point())
 
 if __name__ == "__main__":
-    # ExpSystemServer()
-    t1 = time.time()
-    test_table_search()
-    print(time.time() - t1)
+    ExpSystemServer()
+    # t1 = time.time()
+    # test_table_search()
+    # print(time.time() - t1)
