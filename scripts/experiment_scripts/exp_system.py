@@ -233,7 +233,7 @@ class ExpSystemServer(object):
         # now we have to calculate current search point
         # self._search_handler will calculate and store it
         # until we get reqv from control system
-        
+
         # NOTE for time self._search_handler.calculate_next_point()
 
         # service

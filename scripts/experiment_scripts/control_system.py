@@ -246,6 +246,8 @@ class ControlSystemServer(object):
             # start it again
             self._logger.debug("start full experiment loop again")
             self._operator_call("start full experiment loop again")
+            # self._get_current_point()
+
             # set inside ventilation coolers on
             self._set_new_relay_state('set_vent_coolers', 0)
             # start ventilation and calibration
@@ -256,6 +258,7 @@ class ControlSystemServer(object):
             self._operator_call("we got new exp point: id={} red={} white={}".format(
                 self._current_search_point_id, self._current_red, self._current_white
             ))
+            self._set_new_light_mode(self._current_red, self._current_white)
             # stop measuring co2 using threading event
             self._sba5_measure_allowed_event.clear()
             self._logger.debug("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
@@ -267,7 +270,7 @@ class ControlSystemServer(object):
             self._sba5_measure_allowed_event.set()
             self._logger.debug("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
             #
-            self._co2_search_time_start = time.localtime()
+            self._co2_search_time_start = rospy.Time.now()
             # send sign to operator
             self._operator_call("co2_search_time started {}".format(self._co2_search_time_start))
 
@@ -279,7 +282,7 @@ class ControlSystemServer(object):
             # wait self._isolated_measure_time
             rospy.sleep(self._isolated_measure_time)
 
-            self._co2_search_time_stop = time.localtime()
+            self._co2_search_time_stop = rospy.Time.now()
             self._operator_call("co2_search_time stopped {}".format(self._co2_search_time_stop))
             # send start and stop times of this search point to exp_node
             self._send_point_data()
