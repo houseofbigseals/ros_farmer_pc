@@ -16,10 +16,10 @@
 
      <rosparam param="mysql_db_params">
         {
-        host: 'localhost',
-        user:'admin',
-        db:'experiment',
-         password:'admin'
+        'host': 'localhost',
+        'user':'admin',
+        'db':'experiment',
+         'password':'admin'
 
         }
     </rosparam>
