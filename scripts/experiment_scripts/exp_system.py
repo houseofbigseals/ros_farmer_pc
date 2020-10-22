@@ -43,6 +43,8 @@ class TableSearchHandler(object):
         #                       # db='experiment',
         #                       charset='utf8mb4',
         #                       cursorclass=pymysql.cursors.DictCursor)
+
+
     def _calculate_optimal_point(self):
         # TODO
         pass
@@ -231,7 +233,8 @@ class ExpSystemServer(object):
         # now we have to calculate current search point
         # self._search_handler will calculate and store it
         # until we get reqv from control system
-        self._search_handler.calculate_next_point()
+        
+        # NOTE for time self._search_handler.calculate_next_point()
 
         # service
         self._service = rospy.Service(self._service_name, ExpSystem, self._handle_request)
@@ -333,7 +336,7 @@ class ExpSystemServer(object):
 
 
     def _get_current_point(self):
-        return (random.randint(0,100), 120, 50)
+        return (random.randint(0,100), 120, 55)
 
 
     def _calculate_new_point(self):
