@@ -20,12 +20,14 @@ class TableSearchHandler(object):
 
     """
 
-    def __init__(self, search_table, db_params, exp_params):
+    def __init__(self, search_table, db_params, exp_params, logger):
         self._default_search_table = search_table
         self._db_params = db_params
         self._todays_search_table = deepcopy(self._default_search_table)
         self._current_point_on_calculation = None
         self._exp_id = exp_params["experiment_number"]
+
+        self._logger = logger
 
         self._last_finished_day = None  # datetime.date
         self._last_optimal_point = None  # like {"number": 100, "red": 130, "white": 130, "finished": 10}
@@ -68,7 +70,7 @@ class TableSearchHandler(object):
         cur = con.cursor()
         cur.execute("use {}".format(self._db_params["db"]))
         comm_str = "select point_id from exp_data order by end_time desc limit 1;"
-        print("comm_str: {}".format(comm_str))
+        self._logger.debug("comm_str: {}".format(comm_str))
         cur.execute(comm_str)
         rows = cur.fetchall()
         previous_p_id = rows[0]['point_id']
@@ -80,13 +82,13 @@ class TableSearchHandler(object):
 
     def calculate_next_point(self):
         if self._today != datetime.datetime.now().date():
-            print("lets update search table")
+            self._logger.debug("lets update search table")
             # check if it is time to update self._todays_search_table
             self._update_calculated_points()
             self._today = datetime.datetime.now().date()
 
         if datetime.datetime.now().date() == self._last_finished_day:
-            print("we have already finished today")
+            self._logger.debug("we have already finished today")
             # it means that today`s work finished,
             # just return stored optimal point of red, white, point_id, step_id
             red = self._last_optimal_point['red']
@@ -107,14 +109,14 @@ class TableSearchHandler(object):
             zero_finished = [r for r in self._todays_search_table if r['finished'] == 0]
             one_finished = [r for r in self._todays_search_table if r['finished'] == 1]
             if len(zero_finished) != 0:
-                print("found point with 0 calculations")
+                self._logger.debug("found point with 0 calculations")
                 return self._prepare_random_point(zero_finished)
             elif len(one_finished) != 0:
-                print("not found any points with 0 calculations")
-                print("found point with 1 calculations")
+                self._logger.debug("not found any points with 0 calculations")
+                self._logger.debug("found point with 1 calculations")
                 return self._prepare_random_point(one_finished)
             else:
-                print("not found any points with 0 or 1 calculations")
+                self._logger.debug("not found any points with 0 or 1 calculations")
                 return self._calculate_optimal_point()
 
         #[p for p in self._todays_search_table
@@ -128,7 +130,7 @@ class TableSearchHandler(object):
     def _update_calculated_points(self):
         # get all points from exp_data table which was finished today
         # mark in self._todays_search_table if some point already done
-        print("lets update calculated points")
+        self._logger.info("updating calculated points")
         # clear current table
         self._todays_search_table = deepcopy(self._default_search_table)
 
@@ -148,7 +150,7 @@ class TableSearchHandler(object):
                    'and exp_id={} and is_finished=0'.format(
             self._exp_id)
 
-        print("comm_str: {}".format(comm_str))
+        self._logger.debug("comm_str: {}".format(comm_str))
 
         cur.execute(comm_str)
 
@@ -160,7 +162,7 @@ class TableSearchHandler(object):
             for search_row in self._todays_search_table:
                 if db_row['step_id'] == search_row['number']:
                     search_row['finished'] += 1
-                    print(search_row)
+                    self._logger.debug(search_row)
 
 
         # then lets find new random point from

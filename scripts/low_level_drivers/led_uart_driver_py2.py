@@ -80,7 +80,7 @@ class UartWrapper:
     """
 
     def __init__(self,
-                 devname='/dev/ttyUSB0',
+                 devname='/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0',
                  baudrate=19200,
                  timeout=10
                  ):

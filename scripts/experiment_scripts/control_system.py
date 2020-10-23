@@ -126,12 +126,12 @@ class ControlSystemServer(object):
         rospy.Timer(rospy.Duration(1.0), self._get_sba5_measure)  # 1 Hz
         # create ros timer for main loop
 
-        self._logger.debug("control_server service creation")
+        self._logger.info("control_server service creation")
 
         # service
         self._service = rospy.Service(self._service_name, ControlSystem, self._handle_request)
 
-        self._logger.debug("check if we are in experiment mode")
+        self._logger.info("check if we are in experiment mode")
 
 
         self._serial_error_counter = 0
@@ -144,7 +144,7 @@ class ControlSystemServer(object):
 
         # reinit sba5
         if self._mode == 'experiment' or self._mode == 'full_experiment':
-            self._logger.debug("update sba5 and allow sba5 measures")
+            self._logger.info("update sba5 and allow sba5 measures")
             self._update_sba5_params()
 
             # allow measures of sba5
@@ -156,7 +156,7 @@ class ControlSystemServer(object):
             self._current_red = self._default_red
             self._current_white = self._default_white
 
-        self._logger.debug("go to loop")
+        self._logger.info("go to loop")
         self._loop()
 
     # ===================== loops for different control modes ======================
@@ -215,7 +215,7 @@ class ControlSystemServer(object):
         # every 15 minutes by default
         if t.tm_min % (self._full_experiment_loop_time/60.0) == 0:
             # start it again
-            self._logger.debug("start experiment loop again")
+            self._logger.info("start experiment loop again")
             # get new regime
             self._update_control_params()
             # set inside ventilation coolers on
@@ -224,12 +224,12 @@ class ControlSystemServer(object):
             self._start_ventilation()
             # stop measuring co2 using threading event
             self._sba5_measure_allowed_event.clear()
-            self._logger.debug("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
+            self._logger.info("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
             # do calibration of sba-5
             self._perform_sba5_calibration()
             # start measuring co2 again
             self._sba5_measure_allowed_event.set()
-            self._logger.debug("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
+            self._logger.info("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
             # wait for self._ventilation_time
             rospy.sleep(self._ventilation_time)
             # stop ventilation
@@ -244,7 +244,7 @@ class ControlSystemServer(object):
         # every 15 minutes by default
         if t.tm_min % (self._full_experiment_loop_time/60.0) == 0:
             # start it again
-            self._logger.debug("start full experiment loop again")
+            self._logger.info("start full experiment loop again")
             self._operator_call("start full experiment loop again")
             # self._get_current_point()
 
@@ -261,14 +261,14 @@ class ControlSystemServer(object):
             self._set_new_light_mode(self._current_red, self._current_white)
             # stop measuring co2 using threading event
             self._sba5_measure_allowed_event.clear()
-            self._logger.debug("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
+            self._logger.info("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
             # do calibration of sba-5
             self._operator_call("sba5 calibration started")
             self._perform_sba5_calibration()
             self._operator_call("sba5 calibration ended")
             # start measuring co2 again
             self._sba5_measure_allowed_event.set()
-            self._logger.debug("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
+            self._logger.info("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
             #
             self._co2_search_time_start = rospy.Time.now()
             # send sign to operator
@@ -382,7 +382,7 @@ class ControlSystemServer(object):
             self._logger.error("Service call failed: {}".format(err_list))
 
     def _get_current_point(self):
-        self._logger.debug("try to get new search point")
+        self._logger.info("try to get new search point")
         rospy.wait_for_service(self._exp_service_name)
         try:
             exp_device = rospy.ServiceProxy(self._exp_service_name, ExpSystem)
@@ -390,7 +390,7 @@ class ControlSystemServer(object):
             self._current_search_point_id = resp.point_id
             self._current_red = resp.red
             self._current_white = resp.white
-            self._logger.debug(resp)
+            self._logger.info(resp)
             return resp
 
         except Exception as e:
@@ -459,8 +459,8 @@ class ControlSystemServer(object):
 
     def _set_new_relay_state(self, command, state):
         # command - str, state - 0 or 1
-        self._logger.debug("start setting new relay mode '{}' '{}' ".format(command, state))
-        rospy.wait_for_service(self._relay_service_name)
+        self._logger.info("start setting new relay mode '{}' '{}' ".format(command, state))
+        # rospy.wait_for_service(self._relay_service_name)
         try:
         #     relay_wrapper = rospy.ServiceProxy(self._relay_service_name, RelayDevice)
         #     resp = relay_wrapper(command, state)
@@ -478,13 +478,13 @@ class ControlSystemServer(object):
             # raise ControlSystemException(e)
 
     def _set_new_light_mode(self, red, white):
-        self._logger.debug("start setting new light mode {} {}".format(red, white))
+        self._logger.info("start setting new light mode {} {}".format(red, white))
         rospy.wait_for_service(self._led_service_name)
         try:
             led_wrapper = rospy.ServiceProxy(self._led_service_name, LedDevice)
             command = 'full_reconfigure'
             resp = led_wrapper(command, red, white)
-            self._logger.debug(resp)
+            self._logger.info(resp)
             return resp
 
         except rospy.ServiceException, e:
@@ -512,7 +512,7 @@ class ControlSystemServer(object):
 
             self._logger.debug("measure_co2: We find co2 using re : {}".format(co2_data))
             # add to self array
-            self._add_new_data_to_array(co2_data)
+            # self._add_new_data_to_array(co2_data)
 
             # then publish it
             self._publish_sba5_measure(co2_data)
@@ -531,12 +531,12 @@ class ControlSystemServer(object):
             #raise
 
     def _update_sba5_params(self):
-        self._logger.debug("Try to reinit sba5")
+        self._logger.info("Try to reinit sba5")
         rospy.wait_for_service(self._sba5_service_name)
         try:
             sba_device = rospy.ServiceProxy(self._sba5_service_name, SBA5Device)
             raw_resp = sba_device('init')
-            self._logger.debug("We got raw response from sba5 {}".format(raw_resp))
+            self._logger.info("We got raw response from sba5 {}".format(raw_resp))
             return raw_resp
 
         except Exception as e:
@@ -546,10 +546,6 @@ class ControlSystemServer(object):
             # self._logger.error("Service call failed: {}".format(e))
             raise ControlSystemException(e)
 
-
-
-    def _add_new_data_to_array(self, data):
-        pass
 
     def _shutdown(self):
 
@@ -571,13 +567,13 @@ class ControlSystemServer(object):
 
         # kill led lights to minimum light
 
-        self._logger.debug("start stopping led lamps")
+        self._logger.info("start stopping led lamps")
         rospy.wait_for_service(self._led_service_name)
         try:
             led_wrapper = rospy.ServiceProxy(self._led_service_name, LedDevice)
             command = 'stop'
             resp = led_wrapper(command, 10, 10)
-            self._logger.debug(resp)
+            self._logger.info(resp)
             return resp
 
         except rospy.ServiceException, e:
@@ -590,7 +586,7 @@ class ControlSystemServer(object):
     def _handle_request(self, req):
         self._logger.debug("+++++++++++++++++++++++++++++++++++++++++++++++")
         self._logger.debug("+++++++++++++++++++++++++++++++++++++++++++++++")
-        self._logger.debug("we got request: {}".format(req))
+        self._logger.info("we got request: {}".format(req))
 
         if not req.command:
             # if we got empty string
