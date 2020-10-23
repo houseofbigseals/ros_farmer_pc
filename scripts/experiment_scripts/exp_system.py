@@ -73,9 +73,14 @@ class TableSearchHandler(object):
         self._logger.debug("comm_str: {}".format(comm_str))
         cur.execute(comm_str)
         rows = cur.fetchall()
-        previous_p_id = rows[0]['point_id']
-        # finally
-        self._current_point_id = previous_p_id + 1
+        if len(rows) != 0:
+            previous_p_id = rows[0]['point_id']
+
+            # finally
+            self._current_point_id = previous_p_id + 1
+        else:
+            self._current_point_id = 1
+            
         return self._current_point_id, \
                self._current_point_on_calculation['red'], \
                self._current_point_on_calculation['white']
@@ -216,7 +221,7 @@ class ExpSystemServer(object):
         # logger
         self._logger = CustomLogger(name=self._logname, logpub=self._log_pub)
         self._logger.info("exp_server init")
-        
+
 
 
         # create exp_db if it is not exists now
