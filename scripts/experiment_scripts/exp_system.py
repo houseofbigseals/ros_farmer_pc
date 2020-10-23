@@ -210,6 +210,15 @@ class ExpSystemServer(object):
         # self._exp_config_path = rospy.get_param('~exp_config_path', 'test.xml')
         # todo add here parsing params of gradient search and other smart methods
 
+        # create log topic publisher
+        self._log_pub = rospy.Publisher(self._log_node_name, String, queue_size=10)
+
+        # logger
+        self._logger = CustomLogger(name=self._logname, logpub=self._log_pub)
+        self._logger.info("exp_server init")
+        
+
+
         # create exp_db if it is not exists now
         self._create_exp_db()
 
@@ -223,14 +232,7 @@ class ExpSystemServer(object):
 
         # todo add other search modes
 
-        # create log topic publisher
-        self._log_pub = rospy.Publisher(self._log_node_name, String, queue_size=10)
-        # create data topic publisher
-        # self._co2_pub = rospy.Publisher(self._raw_co2_pub_name, Temperature, queue_size=10)
 
-        # logger
-        self._logger = CustomLogger(name=self._logname, logpub=self._log_pub)
-        self._logger.info("exp_server init")
 
         # now we have to calculate current search point
         # self._search_handler will calculate and store it
