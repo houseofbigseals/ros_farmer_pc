@@ -383,7 +383,7 @@ class ControlSystemServer(object):
 
     def _get_current_point(self):
         self._logger.info("try to get new search point")
-        rospy.wait_for_service(self._exp_service_name)
+        rospy.wait_for_service(self._exp_service_name, 1) # NOTE check this place
         try:
             exp_device = rospy.ServiceProxy(self._exp_service_name, ExpSystem)
             resp = exp_device(command="get_current_point")

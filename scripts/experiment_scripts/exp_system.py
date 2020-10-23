@@ -217,7 +217,7 @@ class ExpSystemServer(object):
         # it must not contain any ros api, because i hate ros
         if self._mode == 'table':
             self._search_handler = TableSearchHandler(
-                self._search_table, self._db_params, self._exp_description)
+                self._search_table, self._db_params, self._exp_description, self._logger)
 
 
 
@@ -236,7 +236,7 @@ class ExpSystemServer(object):
         # self._search_handler will calculate and store it
         # until we get reqv from control system
 
-        # NOTE for time self._search_handler.calculate_next_point()
+        self._search_handler.calculate_next_point()
 
         # service
         self._service = rospy.Service(self._service_name, ExpSystem, self._handle_request)

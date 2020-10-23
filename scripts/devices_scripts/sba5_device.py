@@ -5,7 +5,7 @@
 import rospy
 from std_msgs.msg import String
 import serial
-from data_scripts.custom_logger import CustomLogger
+from custom_logger import CustomLogger
 from ros_farmer_pc.srv import SBA5Device
 import re
 

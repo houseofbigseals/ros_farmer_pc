@@ -122,9 +122,9 @@ class LedDeviceServer(object):
     def handle_request(self, req):
         # check params from request
         # at first find what user wants from us:
+        self._logger.info("+++++++++++++++++++++++++++++++++++++++++++++++")
         self._logger.debug("+++++++++++++++++++++++++++++++++++++++++++++++")
-        self._logger.debug("+++++++++++++++++++++++++++++++++++++++++++++++")
-        self._logger.debug("we got request: {}".format(req))
+        self._logger.info("we got request: {}".format(req))
 
         if not req.command:
             # if we got empty string
@@ -224,7 +224,7 @@ class LedDeviceServer(object):
         ans = None
         self._logger.debug("-------------------------------")
         if (log_comment):
-            self._logger.debug("Sending {}".format(log_comment))
+            self._logger.info("Sending {}".format(log_comment))
 
         else:
             self._logger.debug("We want to send this:")
@@ -233,7 +233,7 @@ class LedDeviceServer(object):
             ser = serial.Serial(port=self._port, baudrate=self._baudrate, timeout=self._timeout)
             ser.write(com)
         except Exception as e:
-            self._logger.debug("Error happened while write: {}".format(e))
+            self._logger.error("Error happened while write: {}".format(e))
             self._logger.debug("-------------------------------")
             raise LedDeviceException("Error happened while write: {}".format(e))
 
@@ -242,16 +242,16 @@ class LedDeviceServer(object):
             self._logger.debug("We  have read {} bytes".format(len(ans)))
 
         except Exception as e:
-            self._logger.debug("Error happened while read: {}".format(e))
+            self._logger.error("Error happened while read: {}".format(e))
             self._logger.debug("-------------------------------")
             raise LedDeviceException("Error happened while read: {}".format(e))
 
         if (not ans or (len(ans) != len(com))):
-            self._logger.debug("Broken answer from GIC: {}".format(ans))
+            self._logger.error("Broken answer from GIC: {}".format(ans))
             self._logger.debug("-------------------------------")
             raise LedDeviceException("Broken answer from GIC: {}".format(ans))
         else:
-            self._logger.debug("Succesfully got answer from GIC:")
+            self._logger.info("Succesfully got answer from GIC:")
 
             # lets try to decode to int
             byte_ans = bytearray()

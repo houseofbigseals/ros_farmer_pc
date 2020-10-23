@@ -4,7 +4,7 @@
 import rospy
 from std_msgs.msg import String
 from std_msgs.msg import Int16MultiArray
-from data_scripts.custom_logger import CustomLogger
+from custom_logger import CustomLogger
 from ros_farmer_pc.srv import RelayDevice
 from future import *
 
