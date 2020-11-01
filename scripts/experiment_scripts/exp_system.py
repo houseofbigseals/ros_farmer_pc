@@ -147,7 +147,16 @@ class TableSearchHandler(object):
         # if we have received this command, it means that one search point done
         # we have to save data about this point to db
         # note mb we have to do it not here, but in future
-        f, q, number_of_points, is_finished = self._differentiate_co2_point(t_start, t_stop)
+
+        start_time_ = datetime.datetime.fromtimestamp(
+            t_start.to_sec()).strftime('%Y_%m_%d %H:%M:%S')
+        self._logger.debug("start_time_: {}".format(start_time_))
+
+        stop_time_ = datetime.datetime.fromtimestamp(
+            t_stop.to_sec()).strftime('%Y_%m_%d %H:%M:%S')
+        self._logger.debug("stop_time_: {}".format(stop_time_))
+
+        f, q, number_of_points, is_finished = self._differentiate_co2_point(start_time_, stop_time_)
 
         con = pymysql.connect(host=self._db_params["host"],
                               user=self._db_params["user"],
@@ -172,8 +181,8 @@ class TableSearchHandler(object):
             self._exp_id,
             self._current_point_on_calculation['red'],
             self._current_point_on_calculation['white'],
-            t_start,
-            t_stop,
+            start_time_,
+            stop_time_,
             number_of_points,
             f,
             q,
@@ -461,6 +470,7 @@ class ExpSystemServer(object):
         # https://oracleplsql.ru/update-mariadb.html
         # update raw_data set data_id=5754714, exp_id=200, time='2020-10-19 23:23:06',
         # data=500 where data_id=5754714;
+        self._logger.debug("type(start_time): {}".format(type(start_time)))
 
         self._search_handler.update_point_data(p_id, start_time, stop_time)
 
