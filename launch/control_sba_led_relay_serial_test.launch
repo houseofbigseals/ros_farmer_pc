@@ -39,15 +39,16 @@
     <param name="sba5_calibration_time" value="$(arg sba5_calibration_time)"/>
   </node>
 
-
+<!--
   <node pkg="ros_farmer_pc" type="relay_device.py" name="relay_device" respawn="true">
     <param name="relay_number_of_channels" value="$(arg relay_number_of_channels)"/>
     <param name="relay_mapping_string" value="$(arg relay_mapping_string)"/>
     <param name="raw_relay_topic_name" value="$(arg raw_relay_topic_name)"/>
   </node>
+  -->
 
 
-  <node pkg="ros_farmer_pc" type="control_system.py" name="control_node">
+  <node pkg="ros_farmer_pc" type="control_system.py" name="control_system">
      <param name="control_relay_service_name" value="$(arg control_relay_service_name)"/>
      <param name="control_led_service_name" value="$(arg control_led_service_name)"/>
      <param name="control_sba5_service_name" value="$(arg control_sba5_service_name)"/>

@@ -54,7 +54,7 @@ class ControlSystemServer(object):
         self._operator_pub_name = rospy.get_param('~control_operator_pub_name', 'operator_pub')
 
         # devices services names
-        self._relay_service_name = rospy.get_param('~control_relay_service_name', 'relay_device')
+        # self._relay_service_name = rospy.get_param('~control_relay_service_name', 'relay_device')
         self._led_service_name = rospy.get_param('~control_led_service_name', 'led_device')
         self._sba5_service_name = rospy.get_param('~control_sba5_service_name', 'sba5_device')  # we are using sba5 by default co2 sensor
         self._exp_service_name = rospy.get_param('~control_exp_service_name', 'exp_system')
@@ -314,10 +314,10 @@ class ControlSystemServer(object):
         # we just need to kill serial node
         # master must rebirth it
 
-        self._logger.warning("trying to kill relay node")
+        # self._logger.warning("trying to kill relay node")
 
-        os.system("rosnode kill /relay_device")
-        time.sleep(1.5)
+        # os.system("rosnode kill /relay_device")
+        # time.sleep(1.5)
 
         self._logger.warning("trying to kill serial node")
 
@@ -329,8 +329,9 @@ class ControlSystemServer(object):
 
         # then check if it was created again
         serial_node_found = False
-        relay_device_found = False
-        while not serial_node_found and relay_device_found:
+        # relay_device_found = False
+        # while not serial_node_found and relay_device_found:
+        while not serial_node_found:
             nodes = os.popen("rosnode list").readlines()
             for i in range(len(nodes)):
                 nodes[i] = nodes[i].replace("\n", "")
@@ -338,26 +339,26 @@ class ControlSystemServer(object):
                     serial_node_found = True
                     self._logger.warning("found serial node in rosnode list")
 
-                if nodes[i] == "/relay_device":
-                    relay_device_found = True
-                    self._logger.warning("found relay_device in rosnode list")
+                # if nodes[i] == "/relay_device":
+                #     relay_device_found = True
+                #     self._logger.warning("found relay_device in rosnode list")
             time.sleep(0.5)
 
-        time.sleep(5)
+        # time.sleep(5)
 
-        # then send respawn signal to relay device to restore relay state on mcu
-        self._logger.warning("send respawn signal to relay")
-        rospy.wait_for_service(self._relay_service_name)
-        try:
-            relay_wrapper = rospy.ServiceProxy(self._relay_service_name, RelayDevice)
-            resp = relay_wrapper("respawn", 1)
-            self._logger.debug(resp)
-            return resp
-
-        except rospy.ServiceException, e:
-            exc_info = sys.exc_info()
-            err_list = traceback.format_exception(*exc_info)
-            self._logger.error("Service call failed: {}".format(err_list))
+        # # then send respawn signal to relay device to restore relay state on mcu
+        # self._logger.warning("send respawn signal to relay")
+        # rospy.wait_for_service(self._relay_service_name)
+        # try:
+        #     relay_wrapper = rospy.ServiceProxy(self._relay_service_name, RelayDevice)
+        #     resp = relay_wrapper("respawn", 1)
+        #     self._logger.debug(resp)
+        #     return resp
+        #
+        # except rospy.ServiceException, e:
+        #     exc_info = sys.exc_info()
+        #     err_list = traceback.format_exception(*exc_info)
+        #     self._logger.error("Service call failed: {}".format(err_list))
 
 
     def _send_point_data(self):

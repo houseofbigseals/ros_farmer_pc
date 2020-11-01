@@ -219,7 +219,9 @@ class TableSearchHandler(object):
         try:
             resp = cur.execute(comm_str)
 
-            self._logger.debug(len(resp))
+            self._logger.debug(resp)
+
+            # self._logger.debug(len(resp))
             co2_array = [x['data'] for x in resp]
             time_array = [x['time'] for x in resp]
 
@@ -246,8 +248,10 @@ class TableSearchHandler(object):
             return f_val, q_val, number_of_points, is_finished
 
         except Exception as e:
-            self._logger.error("Error while requesting co2 data from raw_data:")
-            self._logger.error(e)
+            # self._logger.error("Error while requesting co2 data from raw_data:")
+            exc_info = sys.exc_info()
+            err_list = traceback.format_exception(*exc_info)
+            self._logger.error("Error while requesting co2 data from raw_data: {}".format(err_list))
             con.close()
 
             return 0, 0, 0, 100  # TODO check it
