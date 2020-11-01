@@ -385,7 +385,7 @@ class ExpSystemServer(object):
             # TODO fix
 
             try:
-                self._set_point_data(req.point_id, req.start_time, req.stop_time)
+                self._set_point_data(req.point_id, req.start_time, req.end_time)
                 resp = ExpSystemResponse()
                 resp.response = self._success_response
                 self._logger.info("we got data from control t_start={} t_stop={}".format(
