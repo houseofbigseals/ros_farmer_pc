@@ -146,8 +146,10 @@ class TableSearchHandler(object):
     def update_point_data(self, p_id, t_start, t_stop):
         # if we have received this command, it means that one search point done
         # we have to save data about this point to db
+
         # note mb we have to do it not here, but in future
 
+        # convert times to str
         start_time_ = datetime.datetime.fromtimestamp(
             t_start.to_sec()).strftime('%Y_%m_%d %H:%M:%S')
         self._logger.debug("start_time_: {}".format(start_time_))
@@ -156,6 +158,7 @@ class TableSearchHandler(object):
             t_stop.to_sec()).strftime('%Y_%m_%d %H:%M:%S')
         self._logger.debug("stop_time_: {}".format(stop_time_))
 
+        # lets differentiate points from raw_data db and get f ang q
         f, q, number_of_points, is_finished = self._differentiate_co2_point(start_time_, stop_time_)
 
         con = pymysql.connect(host=self._db_params["host"],
@@ -168,9 +171,6 @@ class TableSearchHandler(object):
         cur = con.cursor()
 
         cur.execute("use experiment")
-        # TODO fix!!!!
-
-        # for now we will handle one point differentiation in this callback
 
         comm_str = 'insert into exp_data' \
                    '( point_id, step_id, exp_id, red, white, start_time, end_time,' \
@@ -193,8 +193,11 @@ class TableSearchHandler(object):
         try:
             cur.execute(comm_str)
         except Exception as e:
-            self._logger.error("Error while saving exp point to exp_data table:")
-            self._logger.error(e)
+            exc_info = sys.exc_info()
+            err_list = traceback.format_exception(*exc_info)
+            # self._logger.error("Error while requesting co2 data from raw_data: {}".format(err_list))
+            self._logger.error("Error while saving exp point to exp_data table: ")
+            self._logger.error(err_list)
 
         cur.execute('commit')
         con.close()
@@ -203,7 +206,6 @@ class TableSearchHandler(object):
         self._update_calculated_points()
 
     def _differentiate_co2_point(self, t1, t2):
-        # TODO do mysql request to raw_data db with param
 
         con = pymysql.connect(host=self._db_params["host"],
                               user=self._db_params["user"],
@@ -228,18 +230,20 @@ class TableSearchHandler(object):
         try:
             resp = cur.execute(comm_str)
 
-            self._logger.debug(resp)
+            rows = cur.fetchall()
+
+            # then lets find which rows correspond to search_table
+            # for db_row in rows:
+
+            self._logger.debug(len(rows))
 
             # self._logger.debug(len(resp))
-            co2_array = [x['data'] for x in resp]
-            time_array = [x['time'] for x in resp]
+            co2_array = [x['data'] for x in rows]
+            time_array = [x['time'] for x in rows]
 
             con.close()
 
-            number_of_points = len(resp)  # todo mb we have to do filtration or smth
-
-
-            self._logger.debug(len(resp))
+            number_of_points = len(rows)  # todo mb we have to do filtration or smth
 
             if number_of_points == 0:
                 is_finished = 10
@@ -250,8 +254,8 @@ class TableSearchHandler(object):
             else:
 
                 # todo do real differentiation here
-                f_val = random.randint(1, 100)
-                q_val = random.randint(1, 100)
+                f_val = random.randint(1000, 10000)
+                q_val = random.randint(1000, 10000)
                 is_finished = 0  # success flag
 
             return f_val, q_val, number_of_points, is_finished
@@ -401,7 +405,7 @@ class ExpSystemServer(object):
                 self._set_point_data(req.point_id, req.start_time, req.end_time)
                 resp = ExpSystemResponse()
                 resp.response = self._success_response
-                self._logger.info("we got data from control t_start={} t_stop={}".format(
+                self._logger.info("we got set_point_data reqv and data from control: t_start={} t_stop={}".format(
                     req.start_time, req.end_time
                 ))
                 return resp
@@ -421,7 +425,7 @@ class ExpSystemServer(object):
                 resp.point_id = p_id
                 resp.red = red
                 resp.white = white
-                self._logger.info("we got reqv from control; and p_id={} red={} white={}".format(
+                self._logger.info("we got get_current_point reqv from control; and p_id={} red={} white={}".format(
                     p_id, red, white
                 ))
 
@@ -470,7 +474,7 @@ class ExpSystemServer(object):
         # https://oracleplsql.ru/update-mariadb.html
         # update raw_data set data_id=5754714, exp_id=200, time='2020-10-19 23:23:06',
         # data=500 where data_id=5754714;
-        self._logger.debug("type(start_time): {}".format(type(start_time)))
+        # self._logger.debug("type(start_time): {}".format(type(start_time)))
 
         self._search_handler.update_point_data(p_id, start_time, stop_time)
 
