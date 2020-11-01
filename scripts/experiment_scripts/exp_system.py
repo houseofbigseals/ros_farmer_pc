@@ -83,7 +83,7 @@ class TableSearchHandler(object):
 
         cur = con.cursor()
         cur.execute("use {}".format(self._db_params["db"]))
-        comm_str = "select point_id from exp_data order by end_time desc limit 1;"
+        comm_str = "select point_id from exp_data order by point_id desc limit 1;"
         self._logger.debug("comm_str: {}".format(comm_str))
         cur.execute(comm_str)
         rows = cur.fetchall()
@@ -219,8 +219,8 @@ class TableSearchHandler(object):
 
         # for now we will handle one point differentiation in this callback
         # select time, data from raw_data where sensor_id = 3 and time
-        comm_str = 'select time, data from raw_data where exp_id = {} and sensor_id = {} ' \
-                   'and time > {} and time < {}'.format(
+        comm_str = "select time, data from raw_data where exp_id = {} and sensor_id = {} " \
+                   "and time > '{}' and time < '{}'".format(
             self._exp_id, self._co2_sensor_id, t1, t2)
 
         self._logger.debug("comm_str: {}".format(comm_str))  # TODO: remove after debug
