@@ -21,11 +21,16 @@ class TableSearchHandler(object):
     """
 
     def __init__(self, search_table, db_params, exp_params, logger):
+        # table with rows like {"number": 100, "red": 130, "white": 130, "finished": 10}
         self._default_search_table = search_table
         self._db_params = db_params
+        # same table with rows like {"number": 100, "red": 130, "white": 130, "finished": 10}
+        # but with marks in "finished" field
         self._todays_search_table = deepcopy(self._default_search_table)
+        self._really_calculaded_today_points = None
         self._current_point_on_calculation = None
         self._exp_id = exp_params["experiment_number"]
+        self._co2_sensor_id = 3
 
         self._logger = logger
 
@@ -48,8 +53,17 @@ class TableSearchHandler(object):
 
 
     def _calculate_optimal_point(self):
-        # TODO
-        pass
+        # TODO fix it in future
+        # if we are here, it means that we have to find point in table with best param Q
+
+        self._last_finished_day = datetime.datetime.now().date()
+        # TODO fix it in future
+        self._last_optimal_point = {"number": 100, "red": 121, "white": 121, "finished": 10}
+        red = self._last_optimal_point['red']
+        white = self._last_optimal_point['white']
+        p_id = 65536
+        # we can set any p_id because that points will not be added to db
+        return (p_id, red, white)
 
     def _prepare_random_point(self, list_of_points):
         """
@@ -80,7 +94,7 @@ class TableSearchHandler(object):
             self._current_point_id = previous_p_id + 1
         else:
             self._current_point_id = 1
-            
+
         return self._current_point_id, \
                self._current_point_on_calculation['red'], \
                self._current_point_on_calculation['white']
@@ -130,7 +144,115 @@ class TableSearchHandler(object):
         pass
 
     def update_point_data(self, p_id, t_start, t_stop):
-        pass
+        # if we have received this command, it means that one search point done
+        # we have to save data about this point to db
+        # note mb we have to do it not here, but in future
+        f, q, number_of_points, is_finished = self._differentiate_co2_point(t_start, t_stop)
+
+        con = pymysql.connect(host=self._db_params["host"],
+                              user=self._db_params["user"],
+                              password=self._db_params["password"],
+                              # db='experiment',
+                              charset='utf8mb4',
+                              cursorclass=pymysql.cursors.DictCursor)
+
+        cur = con.cursor()
+
+        cur.execute("use experiment")
+        # TODO fix!!!!
+
+        # for now we will handle one point differentiation in this callback
+
+        comm_str = 'insert into exp_data' \
+                   '( point_id, step_id, exp_id, red, white, start_time, end_time,' \
+                   'number_of_data_points, f_val, q_val, is_finished)' \
+                   'values("{}", "{}","{}", "{}", "{}", "{}","{}", "{}", "{}", "{}", "{}")'.format(
+            self._current_point_id,
+            self._current_point_on_calculation['number'],
+            self._exp_id,
+            self._current_point_on_calculation['red'],
+            self._current_point_on_calculation['white'],
+            t_start,
+            t_stop,
+            number_of_points,
+            f,
+            q,
+            is_finished
+            )
+
+        self._logger.debug("comm_str: {}".format(comm_str))  # TODO: remove after debug
+        try:
+            cur.execute(comm_str)
+        except Exception as e:
+            self._logger.error("Error while saving exp point to exp_data table:")
+            self._logger.error(e)
+
+        cur.execute('commit')
+        con.close()
+
+        # TODO do we need it really?
+        self._update_calculated_points()
+
+    def _differentiate_co2_point(self, t1, t2):
+        # TODO do mysql request to raw_data db with param
+
+        con = pymysql.connect(host=self._db_params["host"],
+                              user=self._db_params["user"],
+                              password=self._db_params["password"],
+                              # db='experiment',
+                              charset='utf8mb4',
+                              cursorclass=pymysql.cursors.DictCursor)
+
+        cur = con.cursor()
+
+        cur.execute("use experiment")
+        # TODO fix!!!!
+
+        # for now we will handle one point differentiation in this callback
+        # select time, data from raw_data where sensor_id = 3 and time
+        comm_str = 'select time, data from raw_data where exp_id = {} and sensor_id = {} ' \
+                   'and time > {} and time < {}'.format(
+            self._exp_id, self._co2_sensor_id, t1, t2)
+
+        self._logger.debug("comm_str: {}".format(comm_str))  # TODO: remove after debug
+
+        try:
+            resp = cur.execute(comm_str)
+
+            self._logger.debug(len(resp))
+            co2_array = [x['data'] for x in resp]
+            time_array = [x['time'] for x in resp]
+
+            con.close()
+
+            number_of_points = len(resp)  # todo mb we have to do filtration or smth
+
+
+            self._logger.debug(len(resp))
+
+            if number_of_points == 0:
+                is_finished = 10
+
+                f_val = 0
+                q_val = 0
+
+            else:
+
+                # todo do real differentiation here
+                f_val = random.randint(1, 100)
+                q_val = random.randint(1, 100)
+                is_finished = 0  # success flag
+
+            return f_val, q_val, number_of_points, is_finished
+
+        except Exception as e:
+            self._logger.error("Error while requesting co2 data from raw_data:")
+            self._logger.error(e)
+            con.close()
+
+            return 0, 0, 0, 100  # TODO check it
+
+
 
     def _update_calculated_points(self):
         # get all points from exp_data table which was finished today
@@ -163,7 +285,7 @@ class TableSearchHandler(object):
 
         # then lets find which rows correspond to search_table
         for db_row in rows:
-            # print(db_row)
+            # self._logger.debug(db_row)
             for search_row in self._todays_search_table:
                 if db_row['step_id'] == search_row['number']:
                     search_row['finished'] += 1
@@ -176,7 +298,7 @@ class TableSearchHandler(object):
         # if all rows have >= 2
         # then lets set flag: "self._today_is_finished "find row with best q_val ans set it as
 
-            # print(i["f_val"], i["red"], i["white"])
+            # self._logger.debug(i["f_val"], i["red"], i["white"])
 
         # cur.execute('commit')
         con.close()
@@ -233,12 +355,7 @@ class ExpSystemServer(object):
             self._search_handler = TableSearchHandler(
                 self._search_table, self._db_params, self._exp_description, self._logger)
 
-
-
         # todo add other search modes
-
-
-
         # now we have to calculate current search point
         # self._search_handler will calculate and store it
         # until we get reqv from control system
@@ -315,14 +432,17 @@ class ExpSystemServer(object):
     #     """
     #     pass
 
-    def _load_done_points_from_db(self):
-        # search method must do it by itself, because it depends very much
-        # anyway use : to find points calculated today
-        # SELECT * FROM raw_data where dayofmonth(time)=dayofmonth(now());
-        pass
+    # def _load_done_points_from_db(self):
+    #     # search method must do it by itself, because it depends very much
+    #     # anyway use : to find points calculated today
+    #     # SELECT * FROM raw_data where dayofmonth(time)=dayofmonth(now());
+    #
+    #
+    #
+    #     pass
 
-    def _get_point_from_db_by_id(self, point_id):
-        pass
+    # def _get_point_from_db_by_id(self, point_id):
+    #     pass
 
     def _set_point_data(self, p_id, start_time, stop_time):
         # this command handles incoming msg with data about experiment
@@ -337,6 +457,9 @@ class ExpSystemServer(object):
         # https://oracleplsql.ru/update-mariadb.html
         # update raw_data set data_id=5754714, exp_id=200, time='2020-10-19 23:23:06',
         # data=500 where data_id=5754714;
+
+        self._search_handler.update_point_data(p_id, start_time, stop_time)
+
         pass
 
     # def _start_calculating(self, req):
@@ -345,11 +468,14 @@ class ExpSystemServer(object):
 
 
     def _get_current_point(self):
-        return (random.randint(0,100), 120, 55)
+
+        return self._search_handler.calculate_next_point()
+
+        # return (random.randint(0,100), 120, 55)
 
 
-    def _calculate_new_point(self):
-        pass
+    # def _calculate_new_point(self):
+    #     pass
 
     def _create_exp_db(self):
 
@@ -385,10 +511,10 @@ class ExpSystemServer(object):
         #
 
         cur.execute('describe exp_data')
-        print(cur.fetchall())
+        self._logger.debug(cur.fetchall())
 
         cur.execute('commit')
-        print(cur.fetchall())
+        self._logger.debug(cur.fetchall())
 
 
 def test_table_search():
