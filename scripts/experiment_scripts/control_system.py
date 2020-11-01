@@ -367,8 +367,8 @@ class ControlSystemServer(object):
             exp_device = rospy.ServiceProxy(self._exp_service_name, ExpSystem)
             resp = exp_device(command="set_point_data",
                               point_id=self._current_search_point_id,
-                              start_time=rospy.Time.from_sec(self._co2_search_time_start),
-                              end_time=rospy.Time.from_sec(self._co2_search_time_stop)
+                              start_time=self._co2_search_time_start,
+                              end_time=self._co2_search_time_stop
                               )
             # self._current_search_point_id = resp.point_id
             # self._current_red = resp.red
