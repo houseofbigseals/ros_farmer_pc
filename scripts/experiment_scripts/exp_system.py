@@ -389,7 +389,7 @@ class ExpSystemServer(object):
                 resp = ExpSystemResponse()
                 resp.response = self._success_response
                 self._logger.info("we got data from control t_start={} t_stop={}".format(
-                    req.start_time, req.stop_time
+                    req.start_time, req.end_time
                 ))
                 return resp
             except Exception as e:
