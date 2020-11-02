@@ -270,15 +270,20 @@ class ControlSystemServer(object):
             self._sba5_measure_allowed_event.set()
             self._logger.info("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
             #
-            self._co2_search_time_start = rospy.Time.now()
-            # send sign to operator
-            self._operator_call("co2_search_time started {}".format(self._co2_search_time_start))
+            # self._co2_search_time_start = rospy.Time.now()
+            # # send sign to operator
+            # self._operator_call("co2_search_time started {}".format(self._co2_search_time_start))
 
             # wait for self._ventilation_time
             rospy.sleep(self._ventilation_time)
             # stop ventilation
             self._stop_ventilation()
             self._operator_call("stop ventilation")
+
+            self._co2_search_time_start = rospy.Time.now()
+            # send sign to operator
+            self._operator_call("co2_search_time started {}".format(self._co2_search_time_start))
+
             # wait self._isolated_measure_time
             rospy.sleep(self._isolated_measure_time)
 

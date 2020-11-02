@@ -49,7 +49,7 @@
 
 
 
-    <include file="$(find ros_farmer_pc)/launch/control_sba_led_relay_serial_test.launch" >
+    <include file="$(find ros_farmer_pc)/launch/control_sba_led_serial.launch" >
         <arg name="arduino_baudrate" default="115200"/>
         <arg name="control_start_mode" default="full_experiment"/>
     </include>
