@@ -302,10 +302,11 @@ class TableSearchHandler(object):
                 # E - light intencity im mkmoles/m2*sec
                 # dT - time period of measure im sec
 
-                dC = f_exp
+                dC = -1*f_exp
                 E = white_far_by_curr(self._current_point_on_calculation['white'])\
                     + red_far_by_curr(self._current_point_on_calculation['red'])
-                dT = (time_array[len(time_array) - 1] - time_array[0]).total_seconds()
+                # dT = (time_array[len(time_array) - 1] - time_array[0]).total_seconds()
+                dT = 900  # full time of one search step
 
                 dry_q = dry_intQ(dC, E, dT)
 
