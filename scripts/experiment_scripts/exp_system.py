@@ -3,6 +3,8 @@
 
 
 import rospy
+import numpy as np
+from  scipy.optimize import curve_fit
 import random
 import pymysql
 import datetime
@@ -13,6 +15,39 @@ import time
 from copy import deepcopy
 from custom_logger import CustomLogger
 from ros_farmer_pc.srv import ExpSystem, ExpSystemResponse
+from exp_units_conversions import red_far_by_curr, white_far_by_curr, dry_intQ
+
+
+def exp_approximation(co2, times):
+    # approximation
+
+    def exp_func(tt, a, b):
+        return a * np.exp(b * tt)
+
+    def exp_deriv(tt, a, b):
+        return a*b*np.exp(b*tt)
+
+    def lin_func(tt, a, b):
+        return a * tt + b
+
+    y = np.array(co2, dtype=float)
+    x = np.array(times, dtype=float)
+    # x = np.arange(0, len(y))  # ne nu eto srazu ban
+    epopt, epcov = curve_fit(exp_func, x, y, p0=(2, -1)) # p0=(2.5, -1.3)
+    lpopt, lepcov = curve_fit(lin_func, x, y, p0=(-2, 1))
+    # print('fit exp: a={:.4f}, b={:.6f}'.format(epopt[0], epopt[1]))
+    # print('fit lin: a={:.4f}, b={:.6f}'.format(lpopt[0], lpopt[1]))
+    y_eopt = exp_func(x, *epopt)
+    y_lopt = lin_func(x, *lpopt)
+
+    # point for derivative nov is in middle of cutted time interval
+    t_derivative = int(len(x)/2)
+
+    F_lin = lpopt[0]
+    F_exp = exp_deriv(t_derivative, *epopt)
+
+    return F_lin, F_exp
+
 
 
 class TableSearchHandler(object):
@@ -246,16 +281,41 @@ class TableSearchHandler(object):
             number_of_points = len(rows)  # todo mb we have to do filtration or smth
 
             if number_of_points == 0:
-                is_finished = 10
-
+                is_finished = 10 # thats kinda error code
                 f_val = 0
                 q_val = 0
-
             else:
 
+                converted_time = [(t - time_array[0]).total_seconds() for t in time_array]
+
+                # cut ~ first 200 points
+                # why 200? It is "experimental constant"
+                # we have to cut first ~ 200 points because there are transients in co2 measurements
+                # TODO check that parameter
+                cut_time = converted_time[200:]
+                cut_co2 = co2_array[200:]
+                cut_converted_time = [t - cut_time[0] for t in cut_time]
+
+                f_lin, f_exp = exp_approximation(cut_co2, cut_converted_time)
+
+                # dC - first derivative of co2 concentration in ppnmv/sec
+                # E - light intencity im mkmoles/m2*sec
+                # dT - time period of measure im sec
+
+                dC = f_exp
+                E = white_far_by_curr(self._current_point_on_calculation['white'])\
+                    + red_far_by_curr(self._current_point_on_calculation['red'])
+                dT = (time_array[len(time_array) - 1] - time_array[0]).total_seconds()
+
+                dry_q = dry_intQ(dC, E, dT)
+
+
+                # print(len(cut_time))
+                # print(len(cut_co2))
+
                 # todo do real differentiation here
-                f_val = random.randint(1000, 10000)
-                q_val = random.randint(1000, 10000)
+                f_val = f_exp
+                q_val = dry_q
                 is_finished = 0  # success flag
 
             return f_val, q_val, number_of_points, is_finished

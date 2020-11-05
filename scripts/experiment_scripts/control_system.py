@@ -255,6 +255,9 @@ class ControlSystemServer(object):
             self._operator_call("ventilation started")
             # get new led light params from exp_node
             self._get_current_point()
+            self._logger.info("we got new exp point: id={} red={} white={}".format(
+                self._current_search_point_id, self._current_red, self._current_white
+            ))
             self._operator_call("we got new exp point: id={} red={} white={}".format(
                 self._current_search_point_id, self._current_red, self._current_white
             ))
@@ -282,13 +285,21 @@ class ControlSystemServer(object):
 
             self._co2_search_time_start = rospy.Time.now()
             # send sign to operator
-            self._operator_call("co2_search_time started {}".format(self._co2_search_time_start))
 
+            ts = datetime.datetime.fromtimestamp(
+                self._co2_search_time_start.to_sec()).strftime('%Y_%m_%d %H:%M:%S')
+            self._operator_call("co2_search_time started {}".format(ts))
+            self._logger.info("co2_search_time started {}".format(ts))
             # wait self._isolated_measure_time
             rospy.sleep(self._isolated_measure_time)
 
             self._co2_search_time_stop = rospy.Time.now()
-            self._operator_call("co2_search_time stopped {}".format(self._co2_search_time_stop))
+
+            te = datetime.datetime.fromtimestamp(
+                self._co2_search_time_start.to_sec()).strftime('%Y_%m_%d %H:%M:%S')
+
+            self._operator_call("co2_search_time stopped {}".format(te))
+            self._logger.info("co2_search_time stopped {}".format(te))
             # send start and stop times of this search point to exp_node
             self._send_point_data()
             self._operator_call("data sent to exp_system")
@@ -367,7 +378,7 @@ class ControlSystemServer(object):
 
 
     def _send_point_data(self):
-        self._logger.debug("try to send data about current search point")
+        self._logger.info("try to send data about current search point")
         rospy.wait_for_service(self._exp_service_name)
         try:
             exp_device = rospy.ServiceProxy(self._exp_service_name, ExpSystem)
@@ -376,9 +387,6 @@ class ControlSystemServer(object):
                               start_time=self._co2_search_time_start,
                               end_time=self._co2_search_time_stop
                               )
-            # self._current_search_point_id = resp.point_id
-            # self._current_red = resp.red
-            # self._current_white = resp.white
             self._logger.debug(resp)
             return resp
 

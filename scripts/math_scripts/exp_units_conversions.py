@@ -66,7 +66,7 @@ def currents_from_newcoords(A, B):
 
     if B != 0:
 
-        # formula was gotten analitically
+        # formula was gotten analytically
         Ir = ((A*B)/(B+1) - b1)/a1
         Iw = (A/(B+1) - b2)/a2
 
