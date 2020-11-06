@@ -3,9 +3,8 @@ import numpy as np
 import pylab as pl
 import pymysql
 from scipy.optimize import curve_fit
+from exp_units_conversions import red_far_by_curr, white_far_by_curr, dry_intQ
 
-def points_derivative():
-    pass
 
 def load_point(_db_params, point_id, cut_num = 200, show=True):
     # get one point remotely and calculate F
@@ -31,6 +30,8 @@ def load_point(_db_params, point_id, cut_num = 200, show=True):
     # print(rows)
     t_start = rows[0]['start_time']
     t_stop = rows[0]['end_time']
+    red = rows[0]['red']
+    white = rows[0]['white']
 
     # for now we will handle one point differentiation in this callback
     # select time, data from raw_data where sensor_id = 3 and time
@@ -74,9 +75,9 @@ def load_point(_db_params, point_id, cut_num = 200, show=True):
         pl.grid()
         pl.show()
 
-    return cut_converted_time, cut_co2
+    return cut_converted_time, cut_co2, red, white
 
-def exp_approximation(co2, times, show=True):
+def exp_approximation(co2, times,red, white, show=True):
     # approximation
 
     def exp_func(tt, a, b):
@@ -104,6 +105,21 @@ def exp_approximation(co2, times, show=True):
     F_lin = lpopt[0]
     F_exp = exp_deriv(t_derivative, *epopt)
     print("F_lin = {},  F_exp = {}".format(F_lin, F_exp))
+
+    # dC - first derivative of co2 concentration in ppnmv/sec
+    # E - light intencity im mkmoles/m2*sec
+    # dT - time period of measure im sec
+
+    dC = -1 * F_exp
+    E = white_far_by_curr(white) + red_far_by_curr(red)
+    print ("Ired = {}, Iwhite = {}, dC = {},  E = {}".format(red, white, dC, E))
+    # dT = (time_array[len(time_array) - 1] - time_array[0]).total_seconds()
+    dT = 900.0  # full time of one search step
+
+    dry_q = dry_intQ(dC, E, dT)
+
+    print("dry_q = {}".format(dry_q))
+
     # 2D plot
     if show:
         fig = pl.figure()
@@ -127,7 +143,7 @@ def exp_approximation(co2, times, show=True):
         pl.legend()
         pl.grid()
         pl.show()
-    return F_lin, F_exp
+    return F_lin, F_exp, dry_q
 
 if __name__ == "__main__":
     db = {
@@ -136,38 +152,44 @@ if __name__ == "__main__":
         "db": 'experiment',
         "password": "amstraLLa78x[$"
     }
-    l = [25, 50, 75, 100, 125]
-    cut_num = 100
-    res100 = list()
-    for i in l:
-        x, y = load_point(db, i, cut_num=cut_num,show=False)
-        fl, fe = exp_approximation(y, x, show=False)
-        print("cut = {} RESULTS point {} fl = {}, fe = {}".format(cut_num, i, fl, fe))
-        res100.append({'point':i, 'cut_num':cut_num, 'FLin':fl, 'FExp':fe})
 
-    cut_num = 150
-    res150 = list()
-    for i in l:
-        x, y = load_point(db, i, cut_num=cut_num, show=False)
-        fl, fe = exp_approximation(y, x, show=False)
-        print("cut = {} RESULTS point {} fl = {}, fe = {}".format(cut_num, i, fl, fe))
-        res150.append({'point':i, 'cut_num':cut_num, 'FLin':fl, 'FExp':fe})
-
-    cut_num = 200
-    res200 = list()
-    for i in l:
-        x, y = load_point(db, i, cut_num=cut_num, show=False)
-        fl, fe = exp_approximation(y, x, show=False)
-        print("cut = {} RESULTS point {} fl = {}, fe = {}".format(cut_num, i, fl, fe))
-        res200.append({'point':i, 'cut_num':cut_num, 'FLin':fl, 'FExp':fe})
+    x, y, r, w = load_point(db, 119, cut_num=200, show=True)
+    fl, fe, q = exp_approximation(y, x, r, w, show=True)
 
 
-    print("===================================================")
-    print(res100)
-    print("===================================================")
-    print(res150)
-    print("===================================================")
-    print(res200)
+
+    # l = [25, 50, 75, 100, 125]
+    # cut_num = 100
+    # res100 = list()
+    # for i in l:
+    #     x, y, r, w = load_point(db, i, cut_num=cut_num,show=False)
+    #     fl, fe = exp_approximation(y, x, r, w, show=False)
+    #     print("cut = {} RESULTS point {} fl = {}, fe = {}".format(cut_num, i, fl, fe))
+    #     res100.append({'point':i, 'cut_num':cut_num, 'FLin':fl, 'FExp':fe})
+
+    # cut_num = 150
+    # res150 = list()
+    # for i in l:
+    #     x, y = load_point(db, i, cut_num=cut_num, show=False)
+    #     fl, fe = exp_approximation(y, x, show=False)
+    #     print("cut = {} RESULTS point {} fl = {}, fe = {}".format(cut_num, i, fl, fe))
+    #     res150.append({'point':i, 'cut_num':cut_num, 'FLin':fl, 'FExp':fe})
+    #
+    # cut_num = 200
+    # res200 = list()
+    # for i in l:
+    #     x, y = load_point(db, i, cut_num=cut_num, show=False)
+    #     fl, fe = exp_approximation(y, x, show=False)
+    #     print("cut = {} RESULTS point {} fl = {}, fe = {}".format(cut_num, i, fl, fe))
+    #     res200.append({'point':i, 'cut_num':cut_num, 'FLin':fl, 'FExp':fe})
+    #
+    #
+    # print("===================================================")
+    # print(res100)
+    # print("===================================================")
+    # print(res150)
+    # print("===================================================")
+    # print(res200)
     # for i in range(20, 50):
     #     x, y = load_point(db, i, show=False)
     #     print("RESULTS:", exp_approximation(y, x, show=False))

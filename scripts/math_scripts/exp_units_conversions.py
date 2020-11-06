@@ -10,7 +10,7 @@ experimental device, be careful
 
 """
 
-volume = 80  # fitotrone volume in litres
+volume = 80.0  # fitotrone volume in litres
 raw_to_dry = 0.08  # conversion factor from raw plants weight to dry weight
 ppmv_to_mgco2 = 1.8  # conversion factor from ppmv CO2 to mgCO2/m3
 surface = 0.19  # in m2 - surface of lighted crops
@@ -20,7 +20,7 @@ mg_co2_to_kg_raw_mass = 8.5*0.001*0.001 # in kg of dry mass / mg CO2 assimilated
 # when water coefficient is 0.08
 ppfd_to_kw = 0.2*0.001  # kW / (mkmol/m2*sec)
 price_of_volume = 45.2  # kg_of_equiv_mass / m3
-price_of_power = 114  # kg_of_equiv_mass / kW
+price_of_power = 114.0  # kg_of_equiv_mass / kW
 old_price_of_volume = 0.28
 old_price_of_power = 0.72
 a1 = 2.0877467
@@ -159,7 +159,7 @@ def raw_intQ(dC, E, dT):
     # convert from ppmv/sec to mg CO2/(m3*sec)
     dCC = ppmv_to_mgco2 * dC
     # then convert from 1m3 to our volume
-    dCC = (volume/1000) * dCC
+    dCC = (volume/1000.0) * dCC
     # now dCC is mgCO2/sec in our volume
     V = (surface_to_volume * surface)  # effective volume of crop in m3
     Prod = mg_co2_to_kg_raw_mass*dCC*dT  # productivity of crops in kg
@@ -179,7 +179,7 @@ def dry_intQ(dC, E, dT):
     # convert from ppmv/sec to mg CO2/(m3*sec)
     dCC = ppmv_to_mgco2 * dC
     # then convert from 1m3 to our volume
-    dCC = (volume/1000) * dCC
+    dCC = (volume/1000.0) * dCC
     # now dCC is mgCO2/sec in our volume
     V = (surface_to_volume * surface)  # effective volume of crop in m3
     Prod = mg_co2_to_kg_dry_mass*dCC*dT  # productivity of crops in kg

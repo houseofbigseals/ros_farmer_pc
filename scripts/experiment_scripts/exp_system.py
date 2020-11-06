@@ -306,7 +306,7 @@ class TableSearchHandler(object):
                 E = white_far_by_curr(self._current_point_on_calculation['white'])\
                     + red_far_by_curr(self._current_point_on_calculation['red'])
                 # dT = (time_array[len(time_array) - 1] - time_array[0]).total_seconds()
-                dT = 900  # full time of one search step
+                dT = 900.0  # full time of one search step
 
                 dry_q = dry_intQ(dC, E, dT)
 
