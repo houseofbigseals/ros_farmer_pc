@@ -88,17 +88,63 @@ class TableSearchHandler(object):
 
 
     def _calculate_optimal_point(self):
-        # TODO fix it in future
         # if we are here, it means that we have to find point in table with best param Q
 
+        # set flag that we are finished
         self._last_finished_day = datetime.datetime.now().date()
-        # TODO fix it in future
-        self._last_optimal_point = {"number": 100, "red": 121, "white": 121, "finished": 10}
+
+        con = pymysql.connect(host=self._db_params["host"],
+                              user=self._db_params["user"],
+                              password=self._db_params["password"],
+                              # db='experiment',
+                              charset='utf8mb4',
+                              cursorclass=pymysql.cursors.DictCursor)
+
+        cur = con.cursor()
+        cur.execute("use {}".format(self._db_params["db"]))
+
+        # in db we store at least two rows with same step_id
+        # lets load them for every point in _todays_search_table and find mean Q value
+        # also we will bubble search point with maximum of mean Q-value
+        max_point = None
+        for point in self._todays_search_table:
+
+            comm_str = "select * from exp_data where date(end_time) = date(now())" \
+                       " and exp_id={} and step_id={};".format(
+                self._exp_id, point['number']
+            )
+            cur.execute(comm_str)
+            rows = cur.fetchall()
+
+            # lets get mean sum of q_val for that two rows
+            q1 = rows[0]['q_val']
+            q2 = rows[1]['q_val']
+
+            mean_q = (q1+q2)/2
+
+            # add that value to point as new key-value pair
+            point.update({'mean_q' : mean_q})
+
+            if not max_point:
+                # if it is first iteration - set first point as max
+                max_point = point
+            else:
+                # compare values of current point and max point
+                if point['mean_q'] > max_point['mean_q']:
+                    max_point = point
+
+        self._last_optimal_point = max_point
         red = self._last_optimal_point['red']
         white = self._last_optimal_point['white']
+
+        self._logger.info("we found optimal point, it is:\n {}".format(self._last_optimal_point))
+
+        # self._last_optimal_point = {"number": 100, "red": 121, "white": 121, "finished": 10}
+        # red = self._last_optimal_point['red']
+        # white = self._last_optimal_point['white']
         p_id = 65536
         # we can set any p_id because that points will not be added to db
-        return (p_id, red, white)
+        return p_id, red, white
 
     def _prepare_random_point(self, list_of_points):
         """
@@ -292,8 +338,8 @@ class TableSearchHandler(object):
                 # why 200? It is "experimental constant"
                 # we have to cut first ~ 200 points because there are transients in co2 measurements
                 # TODO check that parameter
-                cut_time = converted_time[200:]
-                cut_co2 = co2_array[200:]
+                cut_time = converted_time[80:]
+                cut_co2 = co2_array[80:]
                 cut_converted_time = [t - cut_time[0] for t in cut_time]
 
                 f_lin, f_exp = exp_approximation(cut_co2, cut_converted_time)
@@ -315,7 +361,7 @@ class TableSearchHandler(object):
                 # print(len(cut_co2))
 
                 # todo do real differentiation here
-                f_val = f_exp
+                f_val = -1*f_exp
                 q_val = dry_q
                 is_finished = 0  # success flag
 

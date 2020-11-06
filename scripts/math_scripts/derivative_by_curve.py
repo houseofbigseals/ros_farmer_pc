@@ -6,7 +6,7 @@ from scipy.optimize import curve_fit
 from exp_units_conversions import red_far_by_curr, white_far_by_curr, dry_intQ
 
 
-def load_point(_db_params, point_id, cut_num = 200, show=True):
+def load_point(_db_params, point_id, exp_id, cut_num = 200,  show=True):
     # get one point remotely and calculate F
     con = pymysql.connect(host=_db_params["host"],
                           user=_db_params["user"],
@@ -37,7 +37,7 @@ def load_point(_db_params, point_id, cut_num = 200, show=True):
     # select time, data from raw_data where sensor_id = 3 and time
     comm_str = "select time, data from raw_data where exp_id = {} and sensor_id = {} " \
                "and time > '{}' and time < '{}'".format(
-        2, 3, t_start, t_stop)
+        exp_id, 3, t_start, t_stop)
 
     # print("comm_str: {}".format(comm_str))  # TODO: remove after debug
 
@@ -153,7 +153,11 @@ if __name__ == "__main__":
         "password": "amstraLLa78x[$"
     }
 
-    x, y, r, w = load_point(db, 119, cut_num=200, show=True)
+    x, y, r, w = load_point(db, 167, exp_id=3, cut_num=1, show=True)
+    fl, fe, q = exp_approximation(y, x, r, w, show=True)
+    x, y, r, w = load_point(db, 167, exp_id=3, cut_num=100, show=True)
+    fl, fe, q = exp_approximation(y, x, r, w, show=True)
+    x, y, r, w = load_point(db, 167, exp_id=3, cut_num=200, show=True)
     fl, fe, q = exp_approximation(y, x, r, w, show=True)
 
 

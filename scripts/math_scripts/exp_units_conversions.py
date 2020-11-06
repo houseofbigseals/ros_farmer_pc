@@ -207,12 +207,12 @@ def final_intQ(E, Prod):
 
 
 if __name__ == "__main__":
-    print(currents_from_newcoords(0, 0))
-    print(currents_from_newcoords(500, 0.125))
-    print(currents_from_newcoords(500, 0.25))
-    print(currents_from_newcoords(500, 0.5))
-    print(currents_from_newcoords(500, 0.75))
-    print(currents_from_newcoords(500, 1))
+    # print(currents_from_newcoords(0, 0))
+    # print(currents_from_newcoords(500, 0.125))
+    # print(currents_from_newcoords(500, 0.25))
+    # print(currents_from_newcoords(500, 0.5))
+    # print(currents_from_newcoords(500, 0.75))
+    # print(currents_from_newcoords(500, 1))
     print(currents_from_newcoords(500, 1.5))
     # print(currents_from_newcoords(500, 1.75))
     # print(currents_from_newcoords(500, 2))
