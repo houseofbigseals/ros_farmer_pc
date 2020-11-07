@@ -521,8 +521,13 @@ class ExpSystemServer(object):
                 self._set_point_data(req.point_id, req.start_time, req.end_time)
                 resp = ExpSystemResponse()
                 resp.response = self._success_response
-                self._logger.info("we got set_point_data reqv and data from control: t_start={} t_stop={}".format(
-                    req.start_time, req.end_time
+                self._logger.info("we got set_point_data reqv. data from control:")
+                start_time_ = datetime.datetime.fromtimestamp(
+                    req.start_time.to_sec()).strftime('%Y_%m_%d %H:%M:%S')
+                end_time_ = datetime.datetime.fromtimestamp(
+                    req.end_time.to_sec()).strftime('%Y_%m_%d %H:%M:%S')
+                self._logger.info("t_start={} t_stop={}".format(
+                    start_time_, end_time_
                 ))
                 return resp
             except Exception as e:
