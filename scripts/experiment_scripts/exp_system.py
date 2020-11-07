@@ -182,13 +182,13 @@ class TableSearchHandler(object):
 
     def calculate_next_point(self):
         if self._today != datetime.datetime.now().date():
-            self._logger.debug("lets update search table")
+            self._logger.info("there is new day, lets update search table")
             # check if it is time to update self._todays_search_table
             self._update_calculated_points()
             self._today = datetime.datetime.now().date()
 
         if datetime.datetime.now().date() == self._last_finished_day:
-            self._logger.debug("we have already finished today")
+            self._logger.info("we have already finished today")
             # it means that today`s work finished,
             # just return stored optimal point of red, white, point_id, step_id
             red = self._last_optimal_point['red']
@@ -246,6 +246,7 @@ class TableSearchHandler(object):
         if q < 0:
             # set status of exp point as error
             # in normal situation q everytime > 0
+            self._logger.warning("calculated Q < 0, it is bad")
             is_finished = 11
 
         con = pymysql.connect(host=self._db_params["host"],
@@ -283,7 +284,7 @@ class TableSearchHandler(object):
             exc_info = sys.exc_info()
             err_list = traceback.format_exception(*exc_info)
             # self._logger.error("Error while requesting co2 data from raw_data: {}".format(err_list))
-            self._logger.error("Error while saving exp point to exp_data table: ")
+            self._logger.error("Error while saving exp point to exp_data table: {}".format(e))
             self._logger.error(err_list)
 
         cur.execute('commit')
@@ -322,7 +323,7 @@ class TableSearchHandler(object):
             # then lets find which rows correspond to search_table
             # for db_row in rows:
 
-            self._logger.debug(len(rows))
+            self._logger.info(len(rows))
 
             # self._logger.debug(len(resp))
             co2_array = [x['data'] for x in rows]
@@ -349,6 +350,7 @@ class TableSearchHandler(object):
                 cut_converted_time = [t - cut_time[0] for t in cut_time]
 
                 f_lin, f_exp = exp_approximation(cut_co2, cut_converted_time)
+                self._logger.info("f_lin = {}, f_exp = {}".format(f_lin, f_exp))
 
                 # dC - first derivative of co2 concentration in ppnmv/sec
                 # E - light intencity im mkmoles/m2*sec
@@ -362,6 +364,7 @@ class TableSearchHandler(object):
 
                 dry_q = dry_intQ(dC, E, dT)
 
+                self._logger.info("dry_Q = {}".format(dry_q))
 
                 # print(len(cut_time))
                 # print(len(cut_co2))

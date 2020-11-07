@@ -684,7 +684,8 @@ class ControlSystemServer(object):
         elif req.command == 'get_mode':
             try:
                 # self._update_sba5_params()
-                resp = self._success_response + "current mode is " + self._mode
+                resp = self._success_response + " current mode is " + self._mode + " current red is " +\
+                       str(self._current_red) + ' current white is ' + str(self._current_white)
                 return resp
             except ControlSystemException as e:
                 resp = self._error_response + e.args[0]
