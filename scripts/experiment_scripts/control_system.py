@@ -667,7 +667,10 @@ class ControlSystemServer(object):
                 return resp
 
         elif req.command == 'set_mode':
-            if req.argument == 'experiment':
+            if req.argument == 'full_experiment':
+                self._mode = 'full_experiment'
+                resp = self._success_response + "mode was set to " + self._mode
+            elif req.argument == 'experiment':
                 self._mode = 'experiment'
                 resp = self._success_response + "mode was set to " + self._mode
             elif req.argument == 'life_support':
