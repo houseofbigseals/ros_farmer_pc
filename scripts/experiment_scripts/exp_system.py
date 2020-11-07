@@ -65,7 +65,7 @@ class TableSearchHandler(object):
         self._really_calculaded_today_points = None
         self._current_point_on_calculation = None
         self._exp_id = exp_params["experiment_number"]
-        self._co2_sensor_id = 3
+        self._co2_sensor_id = 3  # todo fix it
 
         self._logger = logger
 
@@ -106,7 +106,7 @@ class TableSearchHandler(object):
         # in db we store at least two rows with same step_id
         # lets load them for every point in _todays_search_table and find mean Q value
         # also we will bubble search point with maximum of mean Q-value
-        max_point = None
+        min_point = None
         for point in self._todays_search_table:
 
             comm_str = "select * from exp_data where date(end_time) = date(now())" \
@@ -125,15 +125,15 @@ class TableSearchHandler(object):
             # add that value to point as new key-value pair
             point.update({'mean_q' : mean_q})
 
-            if not max_point:
-                # if it is first iteration - set first point as max
-                max_point = point
+            if not min_point:
+                # if it is first iteration - set first point as min
+                min_point = point
             else:
                 # compare values of current point and max point
-                if point['mean_q'] > max_point['mean_q']:
-                    max_point = point
+                if point['mean_q'] < min_point['mean_q']:
+                    min_point = point
 
-        self._last_optimal_point = max_point
+        self._last_optimal_point = min_point
         red = self._last_optimal_point['red']
         white = self._last_optimal_point['white']
 
@@ -241,6 +241,12 @@ class TableSearchHandler(object):
 
         # lets differentiate points from raw_data db and get f ang q
         f, q, number_of_points, is_finished = self._differentiate_co2_point(start_time_, stop_time_)
+
+        # todo: do we really need it?
+        if q < 0:
+            # set status of exp point as error
+            # in normal situation q everytime > 0
+            is_finished = 11
 
         con = pymysql.connect(host=self._db_params["host"],
                               user=self._db_params["user"],
