@@ -12,6 +12,7 @@ import time
 import numpy as np
 import pymysql
 
+
 class MYSQLDataSaver(object):
 
     def generate_experiment_id(self, date_=None, type_=None, number_=None):
@@ -35,7 +36,6 @@ class MYSQLDataSaver(object):
 
         return id_str
 
-
     def __init__(self):
         # hardcoded constants
         self._success_response = "success: "
@@ -50,7 +50,7 @@ class MYSQLDataSaver(object):
         self._logname = rospy.get_param('~mysql_data_saver_log_name', 'mysql_data_saver')
         self._log_node_name = rospy.get_param('~mysql_data_saver_log_node_name', 'mysql_data_saver_log')
         # self._service_name = rospy.get_param('~mysql_data_saver_service_name', 'mysql_data_saver')
-
+        self._db_params = rospy.get_param('mysql_db_params')
         self._system_log_sub = rospy.Subscriber(
             name='/rosout_agg', data_class=Log,
             callback=self._log_callback,
@@ -73,9 +73,9 @@ class MYSQLDataSaver(object):
 
         # TODO really get
 
-        self.con = pymysql.connect(host='localhost',
-                              user='admin',
-                              password='admin',
+        self.con = pymysql.connect(host=self._db_params["host"],
+                              user=self._db_params["user"],
+                              password=self._db_params["password"],
                               # db='experiment',
                               charset='utf8mb4',
                               cursorclass=pymysql.cursors.DictCursor)
@@ -138,9 +138,9 @@ class MYSQLDataSaver(object):
 
         msg_ = log_msg.msg
 
-        con = pymysql.connect(host='localhost',
-                              user='admin',
-                              password='admin',
+        con = pymysql.connect(host=self._db_params["host"],
+                              user=self._db_params["user"],
+                              password=self._db_params["password"],
                               # db='experiment',
                               charset='utf8mb4',
                               cursorclass=pymysql.cursors.DictCursor)
@@ -174,11 +174,6 @@ class MYSQLDataSaver(object):
         # example how to convert rospy time to datetime
         # (datetime.datetime.fromtimestamp(rospy.Time.now().to_sec())).strftime('%Y_%m_%d,%H:%M:%S')
 
-
-
-
-
-
         data_ = data_message.temperature
         self._logger.debug("data: {}".format(data_))
 
@@ -192,9 +187,9 @@ class MYSQLDataSaver(object):
         exp_id_ = self._description["experiment_number"]
         self._logger.debug("exp_id: {}".format(exp_id_))
 
-        con = pymysql.connect(host='localhost',
-                              user='admin',
-                              password='admin',
+        con = pymysql.connect(host=self._db_params["host"],
+                              user=self._db_params["user"],
+                              password=self._db_params["password"],
                               # db='experiment',
                               charset='utf8mb4',
                               cursorclass=pymysql.cursors.DictCursor)
@@ -219,9 +214,9 @@ class MYSQLDataSaver(object):
     def _create_database(self):
         self._logger.debug("create database")
 
-        con = pymysql.connect(host='localhost',
-                              user='admin',
-                              password='admin',
+        con = pymysql.connect(host=self._db_params["host"],
+                              user=self._db_params["user"],
+                              password=self._db_params["password"],
                               # db='experiment',
                               charset='utf8mb4',
                               cursorclass=pymysql.cursors.DictCursor)
@@ -271,12 +266,16 @@ class MYSQLDataSaver(object):
                     'status varchar(100)'
                     ')')
 
+        # put default data from launch file to sensors table
+        self._logger.debug("creating sensors table")
+        for topic in self._raw_topics:
+            # TODO add data from dict to table
+            pass
+
         cur.execute('describe sensors')
         print(cur.fetchall())
 
         self._logger.debug("create table experiments")
-
-
 
         cur.execute('create table if not exists experiments'
                     '( exp_id SMALLINT unsigned primary key not null,'

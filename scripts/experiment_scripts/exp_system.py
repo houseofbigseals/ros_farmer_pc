@@ -385,8 +385,6 @@ class TableSearchHandler(object):
 
             return 0, 0, 0, 100  # TODO check it
 
-
-
     def _update_calculated_points(self):
         # get all points from exp_data table which was finished today
         # mark in self._todays_search_table if some point already done
@@ -599,22 +597,11 @@ class ExpSystemServer(object):
 
         self._search_handler.update_point_data(p_id, start_time, stop_time)
 
-        pass
-
-    # def _start_calculating(self, req):
-    #     # when we got this command, we have to start calculate new search point
-    #     pass
-
-
     def _get_current_point(self):
 
         return self._search_handler.calculate_next_point()
 
         # return (random.randint(0,100), 120, 55)
-
-
-    # def _calculate_new_point(self):
-    #     pass
 
     def _create_exp_db(self):
 
