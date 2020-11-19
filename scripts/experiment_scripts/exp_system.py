@@ -144,7 +144,7 @@ class TableSearchHandler(object):
         # white = self._last_optimal_point['white']
         p_id = 65536
         # we can set any p_id because that points will not be added to db
-        return p_id, red, white
+        return [p_id, red, white]
 
     def _prepare_random_point(self, list_of_points):
         """
@@ -176,9 +176,9 @@ class TableSearchHandler(object):
         else:
             self._current_point_id = 1
 
-        return self._current_point_id, \
-               self._current_point_on_calculation['red'], \
-               self._current_point_on_calculation['white']
+        return [ self._current_point_id,
+               self._current_point_on_calculation['red'],
+               self._current_point_on_calculation['white'] ]  # returns list
 
     def calculate_next_point(self):
         if self._today != datetime.datetime.now().date():
@@ -194,12 +194,14 @@ class TableSearchHandler(object):
             red = self._last_optimal_point['red']
             white = self._last_optimal_point['white']
             p_id = 65536
+            mode = 'no_co2'
             # we can set any p_id because that points will not be added to db
-            return (p_id, red, white)
+            return (mode, p_id, red, white)
 
         else:
             # we have to work a little bit more today
-
+            # so mode is 'co2'
+            mode = 'co2'
             #  lets find new random point from
             # search_rows, which have 0 in finished field
             # if there are no such rows, then lets search in search_rows, which have 1
@@ -210,14 +212,16 @@ class TableSearchHandler(object):
             one_finished = [r for r in self._todays_search_table if r['finished'] == 1]
             if len(zero_finished) != 0:
                 self._logger.debug("found point with 0 calculations")
-                return self._prepare_random_point(zero_finished)
+                return tuple([mode] + self._prepare_random_point(zero_finished))
             elif len(one_finished) != 0:
                 self._logger.debug("not found any points with 0 calculations")
                 self._logger.debug("found point with 1 calculations")
-                return self._prepare_random_point(one_finished)
+                return tuple([mode] + self._prepare_random_point(one_finished))
             else:
                 self._logger.debug("not found any points with 0 or 1 calculations")
-                return self._calculate_optimal_point()
+                # it means that we just now finished, so we dont need to calculate co2 again
+                mode = 'no_co2'
+                return tuple([mode] + self._calculate_optimal_point())
 
         #[p for p in self._todays_search_table
                  #   if p['number'] == self._last_optimal_value_id][0]
@@ -538,14 +542,14 @@ class ExpSystemServer(object):
         elif req.command == 'get_current_point':
             # request from control_node to get current point_id
             try:
-                p_id, red, white = self._get_current_point()
+                mode, p_id, red, white = self._get_current_point()
                 resp = ExpSystemResponse()
-                resp.response = self._success_response
+                resp.response = mode
                 resp.point_id = p_id
                 resp.red = red
                 resp.white = white
-                self._logger.info("we got get_current_point reqv from control; and p_id={} red={} white={}".format(
-                    p_id, red, white
+                self._logger.info("we got get_current_point reqv from control:mode={} p_id={} red={} white={}".format(
+                    mode, p_id, red, white
                 ))
 
                 return resp

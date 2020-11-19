@@ -73,6 +73,7 @@ class ControlSystemServer(object):
         # flags of current control regime
         #self._mode = rospy.get_param('~control_start_mode', 'life_support')
         self._mode = rospy.get_param('~control_start_mode', 'experiment')
+        self._mode_flag = 'co2'
         # mode can be :
         # experiment
         # life_support
@@ -255,23 +256,26 @@ class ControlSystemServer(object):
             self._operator_call("ventilation started")
             # get new led light params from exp_node
             self._get_current_point()
-            self._logger.info("we got new exp point: id={} red={} white={}".format(
-                self._current_search_point_id, self._current_red, self._current_white
+
+            self._logger.info("we got new exp point: mode={} id={} red={} white={}".format(
+                self._mode_flag, self._current_search_point_id, self._current_red, self._current_white
             ))
-            self._operator_call("we got new exp point: id={} red={} white={}".format(
-                self._current_search_point_id, self._current_red, self._current_white
+            self._operator_call("we got new exp point: mode={}  id={} red={} white={}".format(
+                self._mode_flag, self._current_search_point_id, self._current_red, self._current_white
             ))
             self._set_new_light_mode(self._current_red, self._current_white)
-            # stop measuring co2 using threading event
-            self._sba5_measure_allowed_event.clear()
-            self._logger.info("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
-            # do calibration of sba-5
-            self._operator_call("sba5 calibration started")
-            self._perform_sba5_calibration()
-            self._operator_call("sba5 calibration ended")
-            # start measuring co2 again
-            self._sba5_measure_allowed_event.set()
-            self._logger.info("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
+            # check new mode flag
+            if self._mode_flag == 'co2':  # TODO FIX
+                # stop measuring co2 using threading event
+                self._sba5_measure_allowed_event.clear()
+                self._logger.info("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
+                # do calibration of sba-5
+                self._operator_call("sba5 calibration started")
+                self._perform_sba5_calibration()
+                self._operator_call("sba5 calibration ended")
+                # start measuring co2 again
+                self._sba5_measure_allowed_event.set()
+                self._logger.info("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
             #
             # self._co2_search_time_start = rospy.Time.now()
             # # send sign to operator
@@ -397,10 +401,11 @@ class ControlSystemServer(object):
 
     def _get_current_point(self):
         self._logger.info("try to get new search point")
-        rospy.wait_for_service(self._exp_service_name, 1) # NOTE check this place
+        rospy.wait_for_service(self._exp_service_name, 1)  # NOTE check this place
         try:
             exp_device = rospy.ServiceProxy(self._exp_service_name, ExpSystem)
             resp = exp_device(command="get_current_point")
+            self._mode_flag = resp.response
             self._current_search_point_id = resp.point_id
             self._current_red = resp.red
             self._current_white = resp.white
@@ -512,37 +517,38 @@ class ControlSystemServer(object):
 
         # if self._sba5_measure_allowed:
         # event is rospy.TimerEvent
-        self._sba5_measure_allowed_event.wait()
-        rospy.wait_for_service(self._sba5_service_name)
-        try:
-            sba_device = rospy.ServiceProxy(self._sba5_service_name, SBA5Device)
-            raw_resp = sba_device("measure_co2")
-            #self._logger.debug("We got raw response from sba5 : {}".format(raw_resp.response))
-            #self._logger.debug("Type of raw response : {}".format(type(raw_resp.response)))
-            #self._logger.debug("Size of raw response : {}".format(len(raw_resp.response)))
-            # lets get co2 measure from that string
-            pattern = re.compile(r'\w+: (\d+.\d+)')  # for answers like "success: 55.21"
-            co2_data = float(pattern.findall(raw_resp.response)[0])
+        if self._mode_flag == 'co2':  # TODO FIX
+            self._sba5_measure_allowed_event.wait()
+            rospy.wait_for_service(self._sba5_service_name)
+            try:
+                sba_device = rospy.ServiceProxy(self._sba5_service_name, SBA5Device)
+                raw_resp = sba_device("measure_co2")
+                #self._logger.debug("We got raw response from sba5 : {}".format(raw_resp.response))
+                #self._logger.debug("Type of raw response : {}".format(type(raw_resp.response)))
+                #self._logger.debug("Size of raw response : {}".format(len(raw_resp.response)))
+                # lets get co2 measure from that string
+                pattern = re.compile(r'\w+: (\d+.\d+)')  # for answers like "success: 55.21"
+                co2_data = float(pattern.findall(raw_resp.response)[0])
 
-            self._logger.debug("measure_co2: We find co2 using re : {}".format(co2_data))
-            # add to self array
-            # self._add_new_data_to_array(co2_data)
+                self._logger.debug("measure_co2: We find co2 using re : {}".format(co2_data))
+                # add to self array
+                # self._add_new_data_to_array(co2_data)
 
-            # then publish it
-            self._publish_sba5_measure(co2_data)
-            #self._logger.debug("We published it")
+                # then publish it
+                self._publish_sba5_measure(co2_data)
+                #self._logger.debug("We published it")
 
-            return float(co2_data)
+                return float(co2_data)
 
-        except Exception as e:
-            exc_info = sys.exc_info()
-            err_list = traceback.format_exception(*exc_info)
-            self._logger.warning("Service call failed: {}".format(err_list))
+            except Exception as e:
+                exc_info = sys.exc_info()
+                err_list = traceback.format_exception(*exc_info)
+                self._logger.warning("Service call failed: {}".format(err_list))
 
-            # print("Service call failed: {}".format(e))
-            # self._logger.error("Service call failed: {}".format(e))
-            #raise ControlSystemException(e)
-            #raise
+                # print("Service call failed: {}".format(e))
+                # self._logger.error("Service call failed: {}".format(e))
+                #raise ControlSystemException(e)
+                #raise
 
     def _update_sba5_params(self):
         self._logger.info("Try to reinit sba5")
