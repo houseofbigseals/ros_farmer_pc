@@ -188,7 +188,7 @@ class TableSearchHandler(object):
             self._today = datetime.datetime.now().date()
 
         if datetime.datetime.now().date() == self._last_finished_day:
-            self._logger.info("we have already finished today")
+            self._logger.info("calc_next_point : we have already finished today")
             # it means that today`s work finished,
             # just return stored optimal point of red, white, point_id, step_id
             red = self._last_optimal_point['red']
@@ -232,70 +232,75 @@ class TableSearchHandler(object):
         # if we have received this command, it means that one search point done
         # we have to save data about this point to db
 
-        # note mb we have to do it not here, but in future
+        # but first lets check if we already finished
+        if datetime.datetime.now().date() == self._last_finished_day:
+            self._logger.info("update_point_data : we have already finished today")
+        else:
 
-        # convert times to str
-        start_time_ = datetime.datetime.fromtimestamp(
-            t_start.to_sec()).strftime('%Y_%m_%d %H:%M:%S')
-        self._logger.debug("start_time_: {}".format(start_time_))
+            # note mb we have to do it not here, but in future
 
-        stop_time_ = datetime.datetime.fromtimestamp(
-            t_stop.to_sec()).strftime('%Y_%m_%d %H:%M:%S')
-        self._logger.debug("stop_time_: {}".format(stop_time_))
+            # convert times to str
+            start_time_ = datetime.datetime.fromtimestamp(
+                t_start.to_sec()).strftime('%Y_%m_%d %H:%M:%S')
+            self._logger.debug("start_time_: {}".format(start_time_))
 
-        # lets differentiate points from raw_data db and get f ang q
-        f, q, number_of_points, is_finished = self._differentiate_co2_point(start_time_, stop_time_)
+            stop_time_ = datetime.datetime.fromtimestamp(
+                t_stop.to_sec()).strftime('%Y_%m_%d %H:%M:%S')
+            self._logger.debug("stop_time_: {}".format(stop_time_))
 
-        # todo: do we really need it?
-        if q < 0:
-            # set status of exp point as error
-            # in normal situation q everytime > 0
-            self._logger.warning("calculated Q < 0, it is bad")
-            is_finished = 11
+            # lets differentiate points from raw_data db and get f ang q
+            f, q, number_of_points, is_finished = self._differentiate_co2_point(start_time_, stop_time_)
 
-        con = pymysql.connect(host=self._db_params["host"],
-                              user=self._db_params["user"],
-                              password=self._db_params["password"],
-                              # db='experiment',
-                              charset='utf8mb4',
-                              cursorclass=pymysql.cursors.DictCursor)
+            # todo: do we really need it?
+            if q < 0:
+                # set status of exp point as error
+                # in normal situation q everytime > 0
+                self._logger.warning("calculated Q < 0, it is bad")
+                is_finished = 11
 
-        cur = con.cursor()
+            con = pymysql.connect(host=self._db_params["host"],
+                                  user=self._db_params["user"],
+                                  password=self._db_params["password"],
+                                  # db='experiment',
+                                  charset='utf8mb4',
+                                  cursorclass=pymysql.cursors.DictCursor)
 
-        cur.execute("use experiment")
+            cur = con.cursor()
 
-        comm_str = 'insert into exp_data' \
-                   '( point_id, step_id, exp_id, red, white, start_time, end_time,' \
-                   'number_of_data_points, f_val, q_val, is_finished)' \
-                   'values("{}", "{}","{}", "{}", "{}", "{}","{}", "{}", "{}", "{}", "{}")'.format(
-            self._current_point_id,
-            self._current_point_on_calculation['number'],
-            self._exp_id,
-            self._current_point_on_calculation['red'],
-            self._current_point_on_calculation['white'],
-            start_time_,
-            stop_time_,
-            number_of_points,
-            f,
-            q,
-            is_finished
-            )
+            cur.execute("use experiment")
 
-        self._logger.debug("comm_str: {}".format(comm_str))  # TODO: remove after debug
-        try:
-            cur.execute(comm_str)
-        except Exception as e:
-            exc_info = sys.exc_info()
-            err_list = traceback.format_exception(*exc_info)
-            # self._logger.error("Error while requesting co2 data from raw_data: {}".format(err_list))
-            self._logger.error("Error while saving exp point to exp_data table: {}".format(e))
-            self._logger.error(err_list)
+            comm_str = 'insert into exp_data' \
+                       '( point_id, step_id, exp_id, red, white, start_time, end_time,' \
+                       'number_of_data_points, f_val, q_val, is_finished)' \
+                       'values("{}", "{}","{}", "{}", "{}", "{}","{}", "{}", "{}", "{}", "{}")'.format(
+                self._current_point_id,
+                self._current_point_on_calculation['number'],
+                self._exp_id,
+                self._current_point_on_calculation['red'],
+                self._current_point_on_calculation['white'],
+                start_time_,
+                stop_time_,
+                number_of_points,
+                f,
+                q,
+                is_finished
+                )
 
-        cur.execute('commit')
-        con.close()
+            self._logger.debug("comm_str: {}".format(comm_str))  # TODO: remove after debug
+            try:
+                cur.execute(comm_str)
+            except Exception as e:
+                exc_info = sys.exc_info()
+                err_list = traceback.format_exception(*exc_info)
+                # self._logger.error("Error while requesting co2 data from raw_data: {}".format(err_list))
+                self._logger.error("Error while saving exp point to exp_data table: {}".format(e))
+                self._logger.error(err_list)
 
-        # TODO do we need it really?
-        self._update_calculated_points()
+            cur.execute('commit')
+            con.close()
+
+            # TODO do we need it really?
+            self._update_calculated_points()
 
     def _differentiate_co2_point(self, t1, t2):
 
@@ -536,7 +541,8 @@ class ExpSystemServer(object):
                 exc_info = sys.exc_info()
                 err_list = traceback.format_exception(*exc_info)
                 self._logger.error("Service call failed: {}".format(err_list))
-                resp = self._error_response + e.args[0]
+                resp = ExpSystemResponse()
+                resp.response = self._error_response + e.args[0]
                 return resp
 
         elif req.command == 'get_current_point':
@@ -557,11 +563,14 @@ class ExpSystemServer(object):
                 exc_info = sys.exc_info()
                 err_list = traceback.format_exception(*exc_info)
                 self._logger.error("Service call failed: {}".format(err_list))
-                resp = self._error_response + e.args[0]
+                resp = ExpSystemResponse()
+                resp.response = self._error_response + e.args[0]
+                # resp = self._error_response + e.args[0]
                 return resp
 
         else:
-            resp = self._error_response + 'unknown command'
+            resp = ExpSystemResponse()
+            resp.response = self._error_response + 'unknown command'
             return resp
 
     # def _get_last_search_point_from_db(self):

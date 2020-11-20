@@ -694,7 +694,8 @@ class ControlSystemServer(object):
             try:
                 # self._update_sba5_params()
                 resp = self._success_response + " current mode is " + self._mode + " current red is " +\
-                       str(self._current_red) + ' current white is ' + str(self._current_white)
+                       str(self._current_red) + ' current white is ' + str(self._current_white) + \
+                       'current measure co2 status is' + self._mode_flag
                 return resp
             except ControlSystemException as e:
                 resp = self._error_response + e.args[0]
