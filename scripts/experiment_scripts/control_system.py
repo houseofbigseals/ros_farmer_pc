@@ -151,8 +151,8 @@ class ControlSystemServer(object):
             # allow measures of sba5
             self._sba5_measure_allowed_event.set()
 
-            self._default_red = 120
-            self._default_white = 120
+            self._default_red = 142
+            self._default_white = 76
 
             self._current_red = self._default_red
             self._current_white = self._default_white

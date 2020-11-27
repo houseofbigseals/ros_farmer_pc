@@ -153,7 +153,7 @@ if __name__ == "__main__":
         "password": "amstraLLa78x[$"
     }
 
-    x, y, r, w = load_point(db, 467, exp_id=5, cut_num=1, show=True)
+    x, y, r, w = load_point(db, 700, exp_id=5, cut_num=1, show=True)
     fl, fe, q = exp_approximation(y, x, r, w, show=True)
     # x, y, r, w = load_point(db, 167, exp_id=3, cut_num=100, show=True)
     # fl, fe, q = exp_approximation(y, x, r, w, show=True)
