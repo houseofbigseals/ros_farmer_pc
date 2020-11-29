@@ -47,8 +47,8 @@
      <param name="control_sba5_service_name" value="$(arg control_sba5_service_name)"/>
      <param name="control_n2_calibration_time" value="$(arg sba5_calibration_time)"/>
      <param name="control_start_mode" value="$(arg control_start_mode)"/>
-      <param name="control_default_red" value="$(arg control_default_red"/>
-      <param name="control_default_white" value="$(arg control_default_white"/>
+      <param name="control_default_red" value="$(arg control_default_red)"/>
+      <param name="control_default_white" value="$(arg control_default_white)"/>
   </node>
 
   <node pkg="ros_farmer_pc" type="watchdog.py" name="watchdog" required="true"/>
