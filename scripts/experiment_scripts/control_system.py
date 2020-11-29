@@ -60,8 +60,8 @@ class ControlSystemServer(object):
         self._exp_service_name = rospy.get_param('~control_exp_service_name', 'exp_system')
 
         # experiment params
-        self._default_red = rospy.get_param('~control_default_red', 50)  # mA
-        self._default_white = rospy.get_param('~control_default_white', 50)  # mA
+        self._default_red = rospy.get_param('~control_default_red', 142)  # mA
+        self._default_white = rospy.get_param('~control_default_white', 76)  # mA
         self._full_experiment_loop_time = rospy.get_param('~control_full_experiment_loop_time', 900.0) # sec
         self._isolated_measure_time = rospy.get_param('~control_isolated_measure_time', 480.0)  # sec
         self._n2_calibration_time = rospy.get_param('~control_n2_calibration_time', 90.0)  # depends on
@@ -195,6 +195,8 @@ class ControlSystemServer(object):
             self._logger.debug("start life support loop again")
             # start it again
             # reset light parameters to default
+            self._logger.info('red = {} white = {} type = {}'.format(
+                self._default_red, self._default_white, type(self._default_red)))
             self._set_new_light_mode(self._default_red, self._default_white)
             # set inside ventilation coolers on
             self._set_new_relay_state('set_vent_coolers', 0)
