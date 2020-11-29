@@ -46,6 +46,8 @@
     <include file="$(find ros_farmer_pc)/launch/LSM_led_serial.launch" >
         <arg name="arduino_baudrate" default="115200"/>
         <arg name="control_start_mode" default="life_support"/>
+        <arg name="control_default_red" default="142"/>
+        <arg name="control_default_white" default="76"/>
     </include>
     <include file="$(find ros_farmer_pc)/launch/mysql_data_saver_test.launch"/>
 </launch>
