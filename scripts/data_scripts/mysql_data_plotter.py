@@ -13,7 +13,7 @@ import datetime
 import os
 import rospy
 from std_msgs.msg import String
-from data_scripts.custom_logger import CustomLogger
+from custom_logger import CustomLogger
 import pymysql
 
 

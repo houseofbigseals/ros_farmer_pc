@@ -122,6 +122,10 @@ class ControlSystemServer(object):
         # create Locks
         self._sba5_measure_allowed_event = Event()
 
+        # serial errors handling
+        self._last_serial_error_time = 0
+        self._delay_after_serial_error = 300
+
         # create timers for async periodic tasks using internal ros mechanics
         # Create a ROS Timer for reading data
         rospy.Timer(rospy.Duration(1.0), self._get_sba5_measure)  # 1 Hz
@@ -321,15 +325,18 @@ class ControlSystemServer(object):
     def _log_callback(self, log_msg):
 
         # hardcoded thing just to handle serial errors
+        if not time.time() - self._last_serial_error_time >= self._delay_after_serial_error:
+            self._logger.error("we got serial error {}, but we will ignore it for a time".format(log_msg))
+        else:
+            if log_msg.name == '/serial_node' and log_msg.level == 8:
+                self._logger.error("we got serial error {}".format(log_msg))
+                self._serial_error_counter += 1
+                if self._serial_error_counter >= self._serial_error_max:
+                    self._logger.error("max number of serial error counted: {}".format(self._serial_error_counter))
+                    self._restart_serial_node()
 
-        if log_msg.name == '/serial_node' and log_msg.level == 8:
-            self._logger.error("we got serial error {}".format(log_msg))
-            self._serial_error_counter += 1
-            if self._serial_error_counter >= self._serial_error_max:
-                self._logger.error("max number of serial error counted: {}".format(self._serial_error_counter))
-                self._restart_serial_node()
-
-                self._serial_error_counter = 0
+                    self._serial_error_counter = 0
+                self._last_serial_error_time = time.time()
 
 
     def _restart_serial_node(self):
