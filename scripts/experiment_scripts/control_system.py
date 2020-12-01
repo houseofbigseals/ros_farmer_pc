@@ -326,7 +326,8 @@ class ControlSystemServer(object):
 
         # hardcoded thing just to handle serial errors
         if not time.time() - self._last_serial_error_time >= self._delay_after_serial_error:
-            self._logger.error("we got serial error {}, but we will ignore it for a time".format(log_msg))
+            if log_msg.name == '/serial_node' and log_msg.level == 8:
+                self._logger.warning("we got serial error {}, but we will ignore it for a time".format(log_msg))
         else:
             if log_msg.name == '/serial_node' and log_msg.level == 8:
                 self._logger.error("we got serial error {}".format(log_msg))
