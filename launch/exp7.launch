@@ -1,0 +1,60 @@
+<launch>
+    <!-- arguments -->
+    <!-- mb different for different experiments -->
+    <rosparam param="mysql_data_saver_experiment_description">
+        {
+        experiment_type: 'table',
+        machine_id: 'farmer4',
+        experiment_legend: ' table-search experiment with IRGA',
+        start_datetime: '2020_12_10 00:00:00',
+        end_datetime: '2020_12_20 23:59:00',
+        additional_notes: 'real table-search experiment for Q-calc adjustment',
+        experiment_id: '2020_12_10_TABLE_0007',
+        experiment_number: '7'
+        }
+    </rosparam>
+
+     <rosparam param="mysql_db_params">{
+         'host': 'localhost',
+         'user':'admin',
+         'db':'experiment',
+         'password':'admin' }
+    </rosparam>
+
+
+    <!-- mb different for different experiments -->
+     <rosparam param="exp_search_table">
+         [
+    {"number": 1, "red": 130, "white": 130, "finished": 0},
+    {"number": 2, "red": 70, "white": 190, "finished": 0},
+    {"number": 3, "red": 190, "white": 70, "finished": 0},
+    {"number": 4, "red": 40, "white": 160, "finished": 0},
+    {"number": 5, "red": 160, "white": 40, "finished": 0},
+    {"number": 6, "red": 100, "white": 100, "finished": 0},
+    {"number": 7, "red": 220, "white": 220, "finished": 0},
+    {"number": 8, "red": 25, "white": 235, "finished": 0},
+    {"number": 9, "red": 145, "white": 115, "finished": 0},
+    {"number": 10, "red": 85, "white": 55, "finished": 0},
+    {"number": 11, "red": 205, "white": 175, "finished": 0},
+    {"number": 12, "red": 55, "white": 85, "finished": 0},
+    {"number": 13, "red": 175, "white": 205, "finished": 0},
+    {"number": 14, "red": 115, "white": 145, "finished": 0},
+    {"number": 15, "red": 235, "white": 25, "finished": 0},
+    {"number": 16, "red": 17, "white": 138, "finished": 0}
+    ]
+    </rosparam>
+
+
+
+    <include file="$(find ros_farmer_pc)/launch/control_sba_led_serial.launch" >
+        <arg name="arduino_baudrate" default="115200"/>
+        <arg name="control_start_mode" default="full_experiment"/>
+    </include>
+    <include file="$(find ros_farmer_pc)/launch/mysql_data_saver_test.launch"/>
+
+    <node pkg="ros_farmer_pc" type="exp_system.py" name="exp_system">
+
+    </node>
+
+
+</launch>
