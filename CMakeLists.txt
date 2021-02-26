@@ -174,9 +174,11 @@ install(PROGRAMS
    scripts/test_scripts/one_channel_relay_test.py
    scripts/low_level_drivers/led_uart_driver_py2.py
    scripts/low_level_drivers/sba_5_driver_py2.py
+   scripts/low_level_drivers/scales_driver_py2.py
    scripts/devices_scripts/led_device.py
    scripts/devices_scripts/K30_device.py
    scripts/devices_scripts/relay_device.py
+   scripts/devices_scripts/scales_device.py
    scripts/devices_scripts/rpi_relay_handler.py
    scripts/devices_scripts/sba5_device.py
    scripts/data_scripts/custom_logger.py
