@@ -55,7 +55,7 @@
     <node pkg="ros_farmer_pc" type="exp_system.py" name="exp_system">
     </node>
 
-    
+
     <arg name="led_baudrate2" default="19200"/>
     <arg name="led_device_port2" default="/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0002-if00-port0"/>
 

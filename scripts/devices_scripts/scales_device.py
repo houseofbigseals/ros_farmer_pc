@@ -38,6 +38,7 @@ class ScalesDeviceServer(object):
         # logger
         self._logger = CustomLogger(name=self._logname, logpub=self._log_pub)
         self._logger.debug("scales_device_server init")
+        print("we here init")
 
         # and go to infinite loop
         # self._service = rospy.Service(self._service_name, SBA5Device, self.handle_request)
@@ -48,6 +49,7 @@ class ScalesDeviceServer(object):
         while not rospy.is_shutdown():
             res = self.get_mean_data(self._measure_interval)
             self._data_pub.publish(Float64(data=res))
+            print("we alive")
 
     def get_mean_data(self, dtime):
         w_datas = []

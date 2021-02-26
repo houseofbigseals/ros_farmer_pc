@@ -56,7 +56,7 @@
 
     </node>
 
-    <node pkg="ros_farmer_pc" type="scales_device.py" name="scales_device">
+    <node pkg="ros_farmer_pc" type="scales_device.py" name="scales_device" respawn="true">
     </node>
 
     <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch"/>
