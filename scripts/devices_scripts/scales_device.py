@@ -81,3 +81,7 @@ class ScalesDeviceServer(object):
                 self._logger.error("scales serial error: {}".format(err_list))
                 return -66536.65
 
+
+if __name__ == "__main__":
+    ScalesDeviceServer()
+
