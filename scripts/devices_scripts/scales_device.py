@@ -4,6 +4,7 @@
 
 import rospy
 from std_msgs.msg import String, Float64
+from sensor_msgs.msg import Temperature
 import serial
 from custom_logger import CustomLogger
 # from ros_farmer_pc.srv import SBA5Device
@@ -33,7 +34,7 @@ class ScalesDeviceServer(object):
         # create log topic publisher
         self._log_pub = rospy.Publisher(self._log_node_name, String, queue_size=10)
 
-        self._data_pub = rospy.Publisher(self._data_pub_name, Float64, queue_size=10)
+        self._data_pub = rospy.Publisher(self._data_pub_name, Temperature, queue_size=10)
 
         # logger
         self._logger = CustomLogger(name=self._logname, logpub=self._log_pub)
@@ -48,7 +49,10 @@ class ScalesDeviceServer(object):
         # rospy.sleep(1)
         while not rospy.is_shutdown():
             res = self.get_mean_data(self._measure_interval)
-            self._data_pub.publish(Float64(data=res))
+            msg = Temperature()
+            msg.temperature = res
+            msg.header.stamp.secs = rospy.get_time()
+            self._data_pub.publish(msg)
             # print("we alive")
 
     def get_mean_data(self, dtime):
