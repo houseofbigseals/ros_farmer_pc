@@ -84,7 +84,7 @@ class MYSQLDataSaver(object):
 
 
 
-        self._raw_topics = rospy.get_param('~mysql_data_saver_raw_topics')
+        self._raw_topics = rospy.get_param('mysql_data_saver_raw_topics')
         # self._exp_topics = rospy.get_param('~mysql_data_saver_exp_topics')
 
         self._description = rospy.get_param('mysql_data_saver_experiment_description')  # do not add ~ !!
