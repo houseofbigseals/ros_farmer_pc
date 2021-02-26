@@ -50,10 +50,21 @@
         <arg name="arduino_baudrate" default="115200"/>
         <arg name="control_start_mode" default="life_support"/>
     </include>
+
+    <rosparam param="mysql_data_saver_raw_topics">
+        [
+        { name: '/bmp180_1_temp_pub', id: '1', type: 'temperature', dtype: 'float64', units: 'C', status: 'raw_data' },
+        { name: '/bmp180_1_pressure_pub', id: '2', type: 'pressure', dtype: 'float64', units: 'kPa', status: 'raw_data' },
+        { name: '/raw_co2_pub',  type: 'co2', id: '3', dtype: 'float64', units: 'ppmv', status: 'raw_data' },
+        { name: '/si7021_1_hum_pub', id: '4', type: 'humidity', dtype: 'float64', units: 'percents', status: 'raw_data' },
+        { name: '/si7021_1_temp_pub', id: '5', type: 'temperature', dtype: 'float64', units: 'C', status: 'raw_data'},
+        { name: '/scales_data_pub', id: '6', type: 'weight', dtype: 'float64', units: 'g', status: 'raw_data'}
+        ]
+    </rosparam>
+
     <include file="$(find ros_farmer_pc)/launch/mysql_data_saver_test.launch"/>
 
     <node pkg="ros_farmer_pc" type="exp_system.py" name="exp_system">
-
     </node>
 
     <node pkg="ros_farmer_pc" type="scales_device.py" name="scales_device" respawn="true">

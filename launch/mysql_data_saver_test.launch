@@ -17,6 +17,8 @@
         <!--http://wiki.ros.org/roslaunch/XML/rosparam-->
         <!-- IMPORTANT! The <rosparam> tag can be put inside of a <node> tag,
         in which case the parameter is treated like a private name. -->
+
+        <!--
         <rosparam param="mysql_data_saver_raw_topics">
         [
         { name: '/bmp180_1_temp_pub', id: '1', type: 'temperature', dtype: 'float64', units: 'C', status: 'raw_data' },
@@ -26,6 +28,7 @@
         { name: '/si7021_1_temp_pub', id: '5', type: 'temperature', dtype: 'float64', units: 'C', status: 'raw_data'}
         ]
         </rosparam>
+        -->
 
         <!--  put here rosparam  mysql_data_saver_experiment_description
 
