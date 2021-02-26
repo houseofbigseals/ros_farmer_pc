@@ -16,7 +16,7 @@ class ScalesDeviceServer(object):
     """
 
     """
-    def __init__(self, dev, baud, timeout):
+    def __init__(self):
 
         # start node
         rospy.init_node('scales_device_server', log_level=rospy.DEBUG)
