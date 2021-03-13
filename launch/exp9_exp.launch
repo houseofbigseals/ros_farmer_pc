@@ -6,7 +6,7 @@
         experiment_type: 'table',
         machine_id: 'farmer4',
         experiment_legend: ' table-search experiment with IRGA',
-        start_datetime: '2021_03_13 23:59:00,
+        start_datetime: '2021_03_13 23:59:00',
         end_datetime: '2021_03_21 23:59:00',
         additional_notes: 'real table-search experiment for Q-calc adjustment with scales and new FAR coeff',
         experiment_id: '2021_03_13_TABLE_0009_EXP',
