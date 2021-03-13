@@ -2,6 +2,6 @@
     <!-- arguments -->
     <!-- <include file="$(find ros_farmer_pc)/launch/sba_mysql_115200.launch" />-->
     <!-- <include file="$(find ros_farmer_pc)/launch/exp_system.launch" />-->
-    <include file="exp10_control.launch" />
+    <include file="$(find ros_farmer_pc)/launch/exp10_control.launch" />
 
 </launch>
