@@ -55,13 +55,13 @@ class ControlSystemServer(object):
 
         # devices services names
         # self._relay_service_name = rospy.get_param('~control_relay_service_name', 'relay_device')
-        self._led_service_name = rospy.get_param('~control_led_service_name', 'led_device')
-        self._sba5_service_name = rospy.get_param('~control_sba5_service_name', 'sba5_device')  # we are using sba5 by default co2 sensor
-        self._exp_service_name = rospy.get_param('~control_exp_service_name', 'exp_system')
+        self._led_service_name = rospy.get_param('control_led_service_name', 'led_device')
+        self._sba5_service_name = rospy.get_param('control_sba5_service_name', 'sba5_device')  # we are using sba5 by default co2 sensor
+        self._exp_service_name = rospy.get_param('control_exp_service_name', 'exp_system')
 
         # experiment params
-        self._default_red = rospy.get_param('~control_default_red', 142)  # mA
-        self._default_white = rospy.get_param('~control_default_white', 76)  # mA
+        self._default_red = rospy.get_param('control_default_red', 142)  # mA
+        self._default_white = rospy.get_param('control_default_white', 76)  # mA
         self._full_experiment_loop_time = rospy.get_param('~control_full_experiment_loop_time', 900.0) # sec
         self._isolated_measure_time = rospy.get_param('~control_isolated_measure_time', 480.0)  # sec
         self._n2_calibration_time = rospy.get_param('~control_n2_calibration_time', 90.0)  # depends on
@@ -81,7 +81,7 @@ class ControlSystemServer(object):
         # search_experiment
         # ...
         #self._sba5_measure_allowed = False  # by default
-        self._at_work = rospy.get_param('~control_start_at_work', True)
+        # self._at_work = rospy.get_param('~control_start_at_work', True)
         # start node and loop immediately after launch or
 
         # rpi_gpio device stub
@@ -161,6 +161,10 @@ class ControlSystemServer(object):
             self._current_red = self._default_red
             self._current_white = self._default_white
 
+        if self._mode == 'life_support_dual':
+            self._dual_led_service_name = rospy.get_param('control_dual_led_service_name', 'led_device2')
+
+
         self._logger.info("go to loop")
         self._loop()
 
@@ -173,6 +177,8 @@ class ControlSystemServer(object):
                 self._experiment_loop()
             elif self._mode == 'life_support':
                 self._life_support_loop()
+            elif self._mode == 'life_support_dual':
+                self._life_support_dual_loop()
             elif self._mode == 'test':
                 self._test_loop()
             elif self._mode == 'full_experiment':
@@ -202,6 +208,32 @@ class ControlSystemServer(object):
             self._logger.info('red = {} white = {} type = {}'.format(
                 self._default_red, self._default_white, type(self._default_red)))
             self._set_new_light_mode(self._default_red, self._default_white)
+            # set inside ventilation coolers on
+            self._set_new_relay_state('set_vent_coolers', 0)
+            # start ventilation
+            self._start_ventilation()
+            # self._set_new_relay_state('set_ndir_pump', 0)  # for test only
+            # wait for self._ventilation_time
+            rospy.sleep(self._ventilation_time)  # its not bad because service calls works in parallel threads
+            # then stop it
+            self._stop_ventilation()
+            # self._set_new_relay_state('set_ndir_pump', 1)  # for test only
+            # then wait and do nothing
+
+    def _life_support_dual_loop(self):
+        # one loop
+
+        t = time.localtime()
+        # every 15 minutes by default
+        if t.tm_min % (self._full_experiment_loop_time / 60.0) == 0:
+            self._logger.debug("start life support dual loop again")
+            # start it again
+            # reset light parameters to default
+            self._logger.info('red = {} white = {} type = {}'.format(
+                self._default_red, self._default_white, type(self._default_red)))
+            self._set_new_light_mode(self._default_red, self._default_white)
+            self._set_new_light_mode(self._default_red, self._default_white, led_service_name=
+                                     self._dual_led_service_name)
             # set inside ventilation coolers on
             self._set_new_relay_state('set_vent_coolers', 0)
             # start ventilation
@@ -506,11 +538,11 @@ class ControlSystemServer(object):
             # self._logger.error("Service call failed: {}".format(e))
             # raise ControlSystemException(e)
 
-    def _set_new_light_mode(self, red, white):
+    def _set_new_light_mode(self, red, white, led_service_name="led_device"):
         self._logger.info("start setting new light mode {} {}".format(red, white))
-        rospy.wait_for_service(self._led_service_name)
+        rospy.wait_for_service(led_service_name)
         try:
-            led_wrapper = rospy.ServiceProxy(self._led_service_name, LedDevice)
+            led_wrapper = rospy.ServiceProxy(led_service_name, LedDevice)
             command = 'full_reconfigure'
             resp = led_wrapper(command, red, white)
             self._logger.info(resp)
