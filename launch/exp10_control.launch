@@ -44,6 +44,16 @@
     ]
     </rosparam>
 
+    <rosparam param="mysql_data_saver_raw_topics">
+        [
+        { name: '/bmp180_1_temp_pub', id: '1', type: 'temperature', dtype: 'float64', units: 'C', status: 'raw_data' },
+        { name: '/bmp180_1_pressure_pub', id: '2', type: 'pressure', dtype: 'float64', units: 'kPa', status: 'raw_data' },
+        { name: '/raw_co2_pub',  type: 'co2', id: '3', dtype: 'float64', units: 'ppmv', status: 'raw_data' },
+        { name: '/si7021_1_hum_pub', id: '4', type: 'humidity', dtype: 'float64', units: 'percents', status: 'raw_data' },
+        { name: '/si7021_1_temp_pub', id: '5', type: 'temperature', dtype: 'float64', units: 'C', status: 'raw_data'},
+        { name: '/scales_data_pub', id: '6', type: 'weight', dtype: 'float64', units: 'g', status: 'raw_data'}
+        ]
+    </rosparam>
 
 
     <include file="$(find ros_farmer_pc)/launch/control_sba_led_serial.launch" >
@@ -51,8 +61,11 @@
         <arg name="control_start_mode" default="life_support_dual"/>
         <arg name="control_dual_led_service_name" default="led_device2"/>
     </include>
-    <include file="$(find ros_farmer_pc)/launch/mysql_data_saver_test.launch"/>
 
+    <!-- mysql node-->
+    <include file="$(find ros_farmer_pc)/launch/mysql_data_saver_test.launch"/>
+    
+    <!-- exp node-->
     <node pkg="ros_farmer_pc" type="exp_system.py" name="exp_system">
     </node>
 
@@ -66,6 +79,8 @@
         <param name="led_baudrate" value="$(arg led_baudrate2)"/>
         <param name="led_service_name" value="$(arg led_service_name2)"/>
     </node>
+
+
 
     <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch"/>
 
