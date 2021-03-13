@@ -3,14 +3,14 @@
     <!-- mb different for different experiments -->
     <rosparam param="mysql_data_saver_experiment_description">
         {
-        experiment_type: 'table',
-        machine_id: 'farmer4',
-        experiment_legend: ' table-search experiment with IRGA',
-        start_datetime: '2020_12_19 00:00:00',
-        end_datetime: '2020_12_29 23:59:00',
-        additional_notes: 'real table-search experiment for Q-calc adjustment',
-        experiment_id: '2020_12_19_TABLE_0008',
-        experiment_number: '8'
+        experiment_type: 'static',
+        machine_id: 'farmer2',
+        experiment_legend: ' static control experiment',
+        start_datetime: '2021_03_13 00:00:00',
+        end_datetime: '2021_03_21 23:59:00',
+        additional_notes: 'real static experiment for control with dual LEDs',
+        experiment_id: '2021_03_13_TABLE_0010_CONTROL',
+        experiment_number: '10'
         }
     </rosparam>
 
