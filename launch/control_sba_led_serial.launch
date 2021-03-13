@@ -5,6 +5,7 @@
     <arg name="led_baudrate" default="19200"/>
     <arg name="led_device_port" default="/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0"/>
 
+
     <arg name="sba5_baudrate" default="19200"/>
     <arg name="sba5_device_port" default='/dev/serial/by-id/usb-FTDI_FT230X_Basic_UART_DN03WQZS-if00-port0'/>
     <arg name="sba5_timeout" default="0.2"/>
@@ -18,7 +19,7 @@
     <arg name="control_led_service_name" default="led_device"/>
     <arg name="control_sba5_service_name" default="sba5_device"/>
     <arg name="control_start_mode" default="experiment"/>
-
+    <arg name="control_dual_led_service_name" default="led_device2"/>
 
     <node pkg="rosserial_python" type="serial_node.py" name="serial_node" respawn="true">
         <param name="port" value="$(arg arduino_port)"/>
@@ -45,6 +46,7 @@
      <param name="control_sba5_service_name" value="$(arg control_sba5_service_name)"/>
      <param name="control_n2_calibration_time" value="$(arg sba5_calibration_time)"/>
      <param name="control_start_mode" value="$(arg control_start_mode)"/>
+      <param name="control_dual_led_service_name" value="$(arg control_dual_led_service_name)"/>
   </node>
 
   <node pkg="ros_farmer_pc" type="watchdog.py" name="watchdog" required="true"/>
