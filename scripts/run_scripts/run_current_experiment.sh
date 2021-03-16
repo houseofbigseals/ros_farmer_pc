@@ -12,7 +12,7 @@ echo "$(printenv | grep ROS)"
 
 today=$(date +"%d_%m_%Y_%H_%M_%S")
 outfile_name="$HOME/${today}_exp_log.out"
-nohup roslaunch ros_farmer_pc current_control.launch > $outfile_name 2>&1 &
+nohup roslaunch ros_farmer_pc current_experiment.launch > $outfile_name 2>&1 &
 echo "we have set nohup log path as $outfile_name"
 PID=$!
 echo "ros control launched with pid: $PID"
