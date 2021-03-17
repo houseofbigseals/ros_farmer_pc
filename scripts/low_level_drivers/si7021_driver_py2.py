@@ -1,6 +1,7 @@
 import smbus
 import time
 
+
 def get_si7021_data():
     # Get I2C bus
     bus = smbus.SMBus(1)
@@ -27,8 +28,11 @@ def get_si7021_data():
     celsTemp = ((data0 * 256 + data1) * 175.72 / 65536.0) - 46.85
     fahrTemp = celsTemp * 1.8 + 32
 
-    print("Relative Humidity is : %.2f %%" % humidity)
-    print("Temperature in Celsius is : %.2f C" % celsTemp)
-    print("Temperature in Fahrenheit is : %.2f F" % fahrTemp)
+    # print("Relative Humidity is : %.2f %%" % humidity)
+    # print("Temperature in Celsius is : %.2f C" % celsTemp)
+    # print("Temperature in Fahrenheit is : %.2f F" % fahrTemp)
 
     return celsTemp, humidity
+
+if __name__ == "__main__":
+    print(get_si7021_data())
