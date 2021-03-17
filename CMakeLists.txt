@@ -177,6 +177,7 @@ install(PROGRAMS
    scripts/low_level_drivers/si7021_driver_py2.py
    scripts/low_level_drivers/scales_driver_py2.py
    scripts/devices_scripts/led_device.py
+   scripts/devices_scripts/si7021_device.py
    scripts/devices_scripts/K30_device.py
    scripts/devices_scripts/relay_device.py
    scripts/devices_scripts/scales_device.py
