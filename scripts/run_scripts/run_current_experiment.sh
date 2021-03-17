@@ -15,4 +15,4 @@ outfile_name="$HOME/${today}_exp_log.out"
 nohup roslaunch ros_farmer_pc current_experiment.launch > $outfile_name 2>&1 &
 echo "we have set nohup log path as $outfile_name"
 PID=$!
-echo "ros control launched with pid: $PID"
+echo "ros experiment launched with pid: $PID"
