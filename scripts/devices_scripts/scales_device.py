@@ -23,6 +23,7 @@ class ScalesDeviceServer(object):
         rospy.init_node('scales_device_server', log_level=rospy.DEBUG)
         # get roslaunch params and reinit part of params
         self._logname = rospy.get_param('scales_log_name', 'scales')
+        self._lost_data_marker = rospy.get_param('scales_lost_data_marker', -65536)
         self._log_node_name = rospy.get_param('scales_log_node_name', 'scales_log_node')
         self._data_pub_name = rospy.get_param('scales_data_pub_name', 'scales_data_pub')
         self._port = rospy.get_param('scales_port',
@@ -65,11 +66,12 @@ class ScalesDeviceServer(object):
                     pattern = re.compile(r'\w\w,\w\w,\s*(\d+.\d+)\s*\w')  # for answers like "ST, GS, 55.210 g"
                     w_data = float(pattern.findall(raw_data)[0])
                     w_datas.append(w_data)
+                    res = numpy.mean(w_datas)
                 except Exception as e:
                     exc_info = sys.exc_info()
                     err_list = traceback.format_exception(*exc_info)
                     self._logger.error("scales serial error: {}".format(err_list))
-        res = numpy.mean(w_datas)
+                    res = self._lost_data_marker
         return res
 
     def get_data(self):
@@ -83,7 +85,7 @@ class ScalesDeviceServer(object):
                 exc_info = sys.exc_info()
                 err_list = traceback.format_exception(*exc_info)
                 self._logger.error("scales serial error: {}".format(err_list))
-                return -66536.65
+                return self._lost_data_marker
 
 
 if __name__ == "__main__":

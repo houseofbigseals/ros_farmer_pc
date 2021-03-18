@@ -48,6 +48,8 @@ class MYSQLDataSaver(object):
 
         # names for self topics
         self._logname = rospy.get_param('~mysql_data_saver_log_name', 'mysql_data_saver')
+        self._lost_data_marker = rospy.get_param('~mysql_data_saver_lost_data_marker',
+                                        -65536)
         self._log_node_name = rospy.get_param('~mysql_data_saver_log_node_name', 'mysql_data_saver_log')
         # self._service_name = rospy.get_param('~mysql_data_saver_service_name', 'mysql_data_saver')
         self._db_params = rospy.get_param('mysql_db_params')
@@ -177,38 +179,42 @@ class MYSQLDataSaver(object):
         data_ = data_message.temperature
         self._logger.debug("data: {}".format(data_))
 
-        time_ = datetime.datetime.fromtimestamp(
-            data_message.header.stamp.to_sec()).strftime('%Y_%m_%d %H:%M:%S')
-        self._logger.debug("time: {}".format(time_))
+        if data_ != self._lost_data_marker:
 
-        sensor_ = topic_info["id"]
-        self._logger.debug("sensor: {}".format(sensor_))
+            time_ = datetime.datetime.fromtimestamp(
+                data_message.header.stamp.to_sec()).strftime('%Y_%m_%d %H:%M:%S')
+            self._logger.debug("time: {}".format(time_))
 
-        exp_id_ = self._description["experiment_number"]
-        self._logger.debug("exp_id: {}".format(exp_id_))
+            sensor_ = topic_info["id"]
+            self._logger.debug("sensor: {}".format(sensor_))
 
-        con = pymysql.connect(host=self._db_params["host"],
-                              user=self._db_params["user"],
-                              password=self._db_params["password"],
-                              # db='experiment',
-                              charset='utf8mb4',
-                              cursorclass=pymysql.cursors.DictCursor)
+            exp_id_ = self._description["experiment_number"]
+            self._logger.debug("exp_id: {}".format(exp_id_))
 
-        cur = con.cursor()
+            con = pymysql.connect(host=self._db_params["host"],
+                                  user=self._db_params["user"],
+                                  password=self._db_params["password"],
+                                  # db='experiment',
+                                  charset='utf8mb4',
+                                  cursorclass=pymysql.cursors.DictCursor)
 
-        cur.execute("use experiment")
+            cur = con.cursor()
 
-        comm_str = 'insert into raw_data'\
-                   '(exp_id, time, sensor_id, data)'\
-                   'values("{}", "{}","{}", "{}" )'.format(
-            exp_id_, time_, sensor_, data_)
+            cur.execute("use experiment")
 
-        self._logger.debug("comm_str: {}".format(comm_str))
+            comm_str = 'insert into raw_data'\
+                       '(exp_id, time, sensor_id, data)'\
+                       'values("{}", "{}","{}", "{}" )'.format(
+                exp_id_, time_, sensor_, data_)
 
-        cur.execute(comm_str)
+            self._logger.debug("comm_str: {}".format(comm_str))
 
-        cur.execute('commit')
-        con.close()
+            cur.execute(comm_str)
+
+            cur.execute('commit')
+            con.close()
+        else:
+            self._logger.debug("we got lost data marker and we wont save it to db")
 
 
     def _create_database(self):
