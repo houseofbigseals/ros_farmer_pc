@@ -177,7 +177,7 @@ install(PROGRAMS
    scripts/devices_scripts/led_device.py
    scripts/devices_scripts/si7021_device.py
    scripts/devices_scripts/bmp180_device.py
-   scripts/devices_scripts/bmp180_driver_py2.py
+   scripts/low_level_drivers/bmp180_driver_py2.py
    scripts/devices_scripts/K30_device.py
    scripts/devices_scripts/relay_device.py
    scripts/devices_scripts/scales_device.py
