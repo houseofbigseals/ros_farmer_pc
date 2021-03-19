@@ -68,7 +68,7 @@
      -->
     <arg name="led_baudrate" default="19200"/>
     <arg name="led_device_port" default="/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0"/>
-
+    <arg name="led_service_name" default="led_device"/>
 
     <arg name="sba5_baudrate" default="19200"/>
     <arg name="sba5_device_port" default='/dev/serial/by-id/usb-FTDI_FT230X_Basic_UART_DN03WQZS-if00-port0'/>
@@ -95,6 +95,7 @@
   <node pkg="ros_farmer_pc" type="led_device.py" name="led_device" respawn="true">
     <param name="led_port" value="$(arg led_device_port)"/>
     <param name="led_baudrate" value="$(arg led_baudrate)"/>
+    <param name="led_service_name" value="$(arg led_service_name)"/>
   </node>
 
 <!--
