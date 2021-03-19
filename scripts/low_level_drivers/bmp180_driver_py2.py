@@ -81,7 +81,7 @@ def get_bmp180_data():
     X1 = (pressure / 256.0) * (pressure / 256.0)
     X1 = (X1 * 3038.0) / 65536.0
     X2 = ((-7357) * pressure) / 65536.0
-    pressure = (pressure + (X1 + X2 + 3791) / 16.0) / 100
+    pressure = (pressure + (X1 + X2 + 3791) / 16.0)
 
     # Calculate Altitude
     altitude = 44330 * (1 - ((pressure / 1013.25) ** 0.1903))
@@ -89,8 +89,15 @@ def get_bmp180_data():
     # Output data to screen
 
     # print "Altitude : %.2f m" % altitude
-    # print "Pressure : %.2f hPa " % pressure
+    # print "Pressure : %.2f Pa " % pressure
     # print "Temperature in Celsius : %.2f C" % cTemp
     # print "Temperature in Fahrenheit : %.2f F" % fTemp
 
     return cTemp, pressure, altitude
+
+
+if __name__ == "__main__":
+    cTemp, pressure, altitude = get_bmp180_data()
+    print("Temp = {} C, pressure = {} Pa, altitude = {} m".format(
+        cTemp, pressure, altitude
+    ))
