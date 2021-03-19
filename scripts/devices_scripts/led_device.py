@@ -94,14 +94,14 @@ class LedDeviceServer(object):
         # get roslaunch params and reinit part of params
         self._logname = rospy.get_param('~led_log_name', 'LED')
         self._log_node_name = rospy.get_param('~led_log_node_name', 'led_log_node')
-        self._port = rospy.get_param('led_port', '/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0')
-        self._baudrate = rospy.get_param('led_baudrate', 19200)
-        self._timeout = rospy.get_param('led_timeout', 10)
-        self._service_name = rospy.get_param('led_service_name')
-        self._max_red_current = rospy.get_param('led_max_red_current', 250)
-        self._min_red_current = rospy.get_param('led_min_red_current', 10)
-        self._max_white_current = rospy.get_param('led_max_white_current', 250)
-        self._min_white_current = rospy.get_param('led_min_white_current', 10)
+        self._port = rospy.get_param('~led_port', '/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0')
+        self._baudrate = rospy.get_param('~led_baudrate', 19200)
+        self._timeout = rospy.get_param('~led_timeout', 10)
+        self._service_name = rospy.get_param('~led_service_name')
+        self._max_red_current = rospy.get_param('~led_max_red_current', 250)
+        self._min_red_current = rospy.get_param('~led_min_red_current', 10)
+        self._max_white_current = rospy.get_param('~led_max_white_current', 250)
+        self._min_white_current = rospy.get_param('~led_min_white_current', 10)
 
         # create log topic publisher
         self._log_pub = rospy.Publisher(self._log_node_name, String, queue_size=10)

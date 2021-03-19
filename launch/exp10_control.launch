@@ -128,6 +128,8 @@
     <!--<arg name="led_service_name2" default="led_device2"/> -->
     <arg name="led_device_port2" default="/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0002-if00-port0"/>
 
+
+
     <node pkg="ros_farmer_pc" type="led_device.py" name="led_device22" respawn="true">
         <param name="led_port" value="$(arg led_device_port2)"/>
         <param name="led_baudrate" value="$(arg led_baudrate2)"/>
