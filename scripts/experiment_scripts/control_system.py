@@ -55,13 +55,13 @@ class ControlSystemServer(object):
 
         # devices services names
         # self._relay_service_name = rospy.get_param('~control_relay_service_name', 'relay_device')
-        self._led_service_name = rospy.get_param('control_led_service_name', 'led_device')
-        self._sba5_service_name = rospy.get_param('control_sba5_service_name', 'sba5_device')  # we are using sba5 by default co2 sensor
-        self._exp_service_name = rospy.get_param('control_exp_service_name', 'exp_system')
+        self._led_service_name = rospy.get_param('~control_led_service_name', 'led_device')
+        self._sba5_service_name = rospy.get_param('~control_sba5_service_name', 'sba5_device')  # we are using sba5 by default co2 sensor
+        self._exp_service_name = rospy.get_param('~control_exp_service_name', 'exp_system')
 
         # experiment params
-        self._default_red = rospy.get_param('control_default_red', 142)  # mA
-        self._default_white = rospy.get_param('control_default_white', 76)  # mA
+        self._default_red = rospy.get_param('~control_default_red', 142)  # mA
+        self._default_white = rospy.get_param('~control_default_white', 76)  # mA
         self._full_experiment_loop_time = rospy.get_param('~control_full_experiment_loop_time', 900.0) # sec
         self._isolated_measure_time = rospy.get_param('~control_isolated_measure_time', 480.0)  # sec
         self._n2_calibration_time = rospy.get_param('~control_n2_calibration_time', 90.0)  # depends on
@@ -162,7 +162,7 @@ class ControlSystemServer(object):
             self._current_white = self._default_white
 
         if self._mode == 'life_support_dual':
-            self._dual_led_service_name = rospy.get_param('control_dual_led_service_name', 'led_device2')
+            self._dual_led_service_name = rospy.get_param('~control_dual_led_service_name')
 
 
         self._logger.info("go to loop")
