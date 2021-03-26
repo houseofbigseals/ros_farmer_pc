@@ -105,8 +105,9 @@ class ControlSystemServer(object):
         self._co2_search_time_start = 0
         self._co2_search_time_stop = 0
         self._current_search_point_id = 0
-        self._current_red = self._default_red
-        self._current_white = self._default_white
+        # by default:
+        self._current_red = self._LSM_exp_red
+        self._current_white = self._LSM_exp_white
         self._current_search_is_finished = 1  # by default it is not finished
 
 
@@ -150,9 +151,7 @@ class ControlSystemServer(object):
             callback=self._log_callback,
             queue_size=5)
 
-        # by default:
-        self._current_red = self._LSM_exp_red
-        self._current_white = self._LSM_exp_white
+
 
         # reinit sba5
         if self._mode == 'experiment' or self._mode == 'full_experiment':
