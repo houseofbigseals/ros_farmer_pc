@@ -6,11 +6,11 @@
         experiment_type: 'static',
         machine_id: 'farmer2',
         experiment_legend: ' static control experiment',
-        start_datetime: '2021_03_13 00:00:00',
-        end_datetime: '2021_03_21 23:59:00',
-        additional_notes: 'real static experiment for control with dual LEDs',
-        experiment_id: '2021_03_13_TABLE_0010_CONTROL',
-        experiment_number: '10'
+        start_datetime: '2021_03_26 00:00:00',
+        end_datetime: '2021_04_08 23:59:00',
+        additional_notes: 'real static experiment for control with dual LEDs with new FAR(R, W)',
+        experiment_id: '2021_03_26_TABLE_0013_CONTROL',
+        experiment_number: '13'
         }
     </rosparam>
 
