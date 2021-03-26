@@ -47,8 +47,8 @@ class SI7021DeviceServer(object):
         self._loop()
 
     def _loop(self):
-        rospy.sleep(self._measure_interval)
         while not rospy.is_shutdown():
+            rospy.sleep(self._measure_interval)
             try:
                 temp, hum = get_si7021_data()
 
