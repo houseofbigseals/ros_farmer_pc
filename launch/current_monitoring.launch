@@ -1,0 +1,135 @@
+<launch>
+    <!-- arguments -->
+    <!-- mb different for different experiments -->
+    <rosparam param="mysql_data_saver_experiment_description">
+        {
+        experiment_type: 'table',
+        machine_id: 'farmer4',
+        experiment_legend: 'passive monitoring and data storing',
+        start_datetime: '2021_03_26 23:59:00',
+        end_datetime: '2021_04_09 23:59:00',
+        additional_notes: 'passive monitoring and data storing',
+        experiment_id: '2021_03_26_TABLE_65536_MONITOR',
+        experiment_number: '65536'
+        }
+    </rosparam>
+
+     <rosparam param="mysql_db_params">{
+         'host': 'localhost',
+         'user':'admin',
+         'db':'experiment',
+         'password':'admin' }
+    </rosparam>
+
+
+     <rosparam param="exp_search_table">
+         [
+    {"number": 1, "red": 130, "white": 130, "finished": 0},
+    {"number": 2, "red": 70, "white": 190, "finished": 0},
+    {"number": 3, "red": 190, "white": 70, "finished": 0},
+    {"number": 4, "red": 40, "white": 160, "finished": 0},
+    {"number": 5, "red": 160, "white": 40, "finished": 0},
+    {"number": 6, "red": 100, "white": 100, "finished": 0},
+    {"number": 7, "red": 220, "white": 220, "finished": 0},
+    {"number": 8, "red": 25, "white": 235, "finished": 0},
+    {"number": 9, "red": 145, "white": 115, "finished": 0},
+    {"number": 10, "red": 85, "white": 55, "finished": 0},
+    {"number": 11, "red": 205, "white": 175, "finished": 0},
+    {"number": 12, "red": 55, "white": 85, "finished": 0},
+    {"number": 13, "red": 175, "white": 205, "finished": 0},
+    {"number": 14, "red": 115, "white": 145, "finished": 0},
+    {"number": 15, "red": 235, "white": 25, "finished": 0},
+    {"number": 16, "red": 17, "white": 138, "finished": 0}
+    ]
+    </rosparam>
+
+
+    <rosparam param="mysql_data_saver_raw_topics">
+        [
+       <!-- { name: '/bmp180_1_temp_pub', id: '1', type: 'temperature', dtype: 'float64', units: 'C', status: 'raw_data' },
+        { name: '/bmp180_1_pressure_pub', id: '2', type: 'pressure', dtype: 'float64', units: 'kPa', status: 'raw_data' },
+        { name: '/raw_co2_pub',  type: 'co2', id: '3', dtype: 'float64', units: 'ppmv', status: 'raw_data' },
+        -->
+        { name: '/si7021_1_hum_pub', id: '4', type: 'humidity', dtype: 'float64', units: 'percents', status: 'raw_data' },
+        { name: '/si7021_1_temp_pub', id: '5', type: 'temperature', dtype: 'float64', units: 'C', status: 'raw_data'},
+        <!--{ name: '/scales_data_pub', id: '6', type: 'weight', dtype: 'float64', units: 'g', status: 'raw_data'}
+        -->
+        ]
+    </rosparam>
+
+    <!--
+    <arg name="led_baudrate" default="19200"/>
+    <arg name="led_device_port" default="/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0"/>
+    <arg name="led_service_name" default="led_device"/>
+
+    <arg name="sba5_baudrate" default="19200"/>
+    <arg name="sba5_device_port" default='/dev/serial/by-id/usb-FTDI_FT230X_Basic_UART_DN03WQZS-if00-port0'/>
+    <arg name="sba5_timeout" default="0.2"/>
+    <arg name="sba5_calibration_time" default="90"/>
+    -->
+
+    <arg name="relay_number_of_channels" default="8"/>
+    <arg name="relay_mapping_string" default="N2_VALVE,AIR_PUMP_1,AIR_PUMP_2,COOLER_1,AIR_VALVE_1,AIR_VALVE_2,NDIR_PUMP,EMPTY"/>
+
+    <arg name="control_relay_service_name" default="relay_device" />
+    <arg name="control_led_service_name" default="led_device"/>
+    <arg name="control_sba5_service_name" default="sba5_device"/>
+    <arg name="control_start_mode" default="full_experiment"/>
+
+    <!-- LED device node
+    <node pkg="ros_farmer_pc" type="led_device.py" name="led_device" respawn="true">
+        <param name="led_port" value="$(arg led_device_port)"/>
+        <param name="led_baudrate" value="$(arg led_baudrate)"/>
+        <param name="led_service_name" value="$(arg led_service_name)"/>
+    </node>
+    -->
+
+    <!-- IRGA device node
+  <node pkg="ros_farmer_pc" type="sba5_device.py" name="sba5_device" respawn="true">
+    <param name="sba5_port" value="$(arg sba5_device_port)"/>
+    <param name="sba5_baudrate" value="$(arg sba5_baudrate)"/>
+    <param name="sba5_timeout" value="$(arg sba5_timeout)"/>
+    <param name="sba5_calibration_time" value="$(arg sba5_calibration_time)"/>
+  </node>
+  -->
+
+    <!-- main control system node-->
+  <node pkg="ros_farmer_pc" type="control_system.py" name="control_system">
+     <param name="control_relay_service_name" value="$(arg control_relay_service_name)"/>
+     <param name="control_led_service_name" value="$(arg control_led_service_name)"/>
+     <param name="control_sba5_service_name" value="$(arg control_sba5_service_name)"/>
+     <param name="control_n2_calibration_time" value="$(arg sba5_calibration_time)"/>
+     <param name="control_start_mode" value="$(arg control_start_mode)"/>
+  </node>
+
+    <!-- watchdog node-->
+  <node pkg="ros_farmer_pc" type="watchdog.py" name="watchdog" required="true"/>
+
+    <!-- exp node
+    <node pkg="ros_farmer_pc" type="exp_system.py" name="exp_system">
+    </node>
+    -->
+
+    <!-- si7021 node -->
+    <node pkg="ros_farmer_pc" type="si7021_device.py" name="si7021_device">
+        <param name="si7021_measure_interval" value="60"/>
+    </node>
+
+
+    <!-- bmp180 node
+        <node pkg="ros_farmer_pc" type="bmp180_device.py" name="bmp180_device">
+    </node>
+    -->
+
+    <!-- mysql node-->
+    <include file="$(find ros_farmer_pc)/launch/mysql_data_saver_test.launch"/>
+
+    <!-- scales device node
+    <node pkg="ros_farmer_pc" type="scales_device.py" name="scales_device" respawn="true">
+    </node>
+    -->
+
+    <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch"/>
+
+</launch>
+

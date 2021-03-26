@@ -60,8 +60,11 @@ class ControlSystemServer(object):
         self._exp_service_name = rospy.get_param('~control_exp_service_name', 'exp_system')
 
         # experiment params
-        self._default_red = rospy.get_param('~control_default_red', 142)  # mA
-        self._default_white = rospy.get_param('~control_default_white', 76)  # mA
+        self._LSM_exp_red = rospy.get_param('~control_LSM_exp_red', 250)  # mA old = 142
+        # here we need 306 mA, but our devices can work only with Ir < 250 mA
+        self._LSM_exp_white = rospy.get_param('~control_LSM_exp_white', 114)  # mA  old = 76
+        self._LSM_control_red = rospy.get_param('~control_LSM_control_red', 237)  # mA
+        self._LSM_control_white = rospy.get_param('~control_LSM_control_white', 122)  # mA
         self._full_experiment_loop_time = rospy.get_param('~control_full_experiment_loop_time', 900.0) # sec
         self._isolated_measure_time = rospy.get_param('~control_isolated_measure_time', 480.0)  # sec
         self._n2_calibration_time = rospy.get_param('~control_n2_calibration_time', 90.0)  # depends on
@@ -147,6 +150,10 @@ class ControlSystemServer(object):
             callback=self._log_callback,
             queue_size=5)
 
+        # by default:
+        self._current_red = self._LSM_exp_red
+        self._current_white = self._LSM_exp_white
+
         # reinit sba5
         if self._mode == 'experiment' or self._mode == 'full_experiment':
             self._logger.info("update sba5 and allow sba5 measures")
@@ -155,14 +162,17 @@ class ControlSystemServer(object):
             # allow measures of sba5
             self._sba5_measure_allowed_event.set()
 
-            self._default_red = 142
-            self._default_white = 76
+            # self._default_red = 142
+            # self._default_white = 76
 
-            self._current_red = self._default_red
-            self._current_white = self._default_white
+            self._current_red = self._LSM_exp_red
+            self._current_white = self._LSM_exp_white
 
         if self._mode == 'life_support_dual':
             self._dual_led_service_name = rospy.get_param('~control_dual_led_service_name')
+            self._current_red = self._LSM_control_red
+            self._current_white = self._LSM_control_white
+
 
 
         self._logger.info("go to loop")
@@ -173,9 +183,9 @@ class ControlSystemServer(object):
     def _loop(self):
         while not rospy.is_shutdown():
             # check if mode was changed
-            if self._mode == 'experiment':
-                self._experiment_loop()
-            elif self._mode == 'life_support':
+            # if self._mode == 'experiment':
+            #     self._experiment_loop()
+            if self._mode == 'life_support':
                 self._life_support_loop()
             elif self._mode == 'life_support_dual':
                 self._life_support_dual_loop()
@@ -206,8 +216,8 @@ class ControlSystemServer(object):
             # start it again
             # reset light parameters to default
             self._logger.info('red = {} white = {} type = {}'.format(
-                self._default_red, self._default_white, type(self._default_red)))
-            self._set_new_light_mode(self._default_red, self._default_white)
+                self._current_red, self._current_white, type(self._current_red)))
+            self._set_new_light_mode(self._current_red, self._current_white)
             # set inside ventilation coolers on
             self._set_new_relay_state('set_vent_coolers', 0)
             # start ventilation
@@ -230,9 +240,9 @@ class ControlSystemServer(object):
             # start it again
             # reset light parameters to default
             self._logger.info('red = {} white = {} type = {}'.format(
-                self._default_red, self._default_white, type(self._default_red)))
-            self._set_new_light_mode(self._default_red, self._default_white)
-            self._set_new_light_mode(self._default_red, self._default_white, led_service_name=
+                self._current_red, self._current_white, type(self._current_red)))
+            self._set_new_light_mode(self._current_red, self._current_white)
+            self._set_new_light_mode(self._current_red, self._current_white, led_service_name=
                                      self._dual_led_service_name)
             # set inside ventilation coolers on
             self._set_new_relay_state('set_vent_coolers', 0)
@@ -247,34 +257,35 @@ class ControlSystemServer(object):
             # then wait and do nothing
 
 
-    def _experiment_loop(self):
-        # one loop
-        # all experiment
-        t = time.localtime()
-        # every 15 minutes by default
-        if t.tm_min % (self._full_experiment_loop_time/60.0) == 0:
-            # start it again
-            self._logger.info("start experiment loop again")
-            # get new regime
-            self._update_control_params()
-            # set inside ventilation coolers on
-            self._set_new_relay_state('set_vent_coolers', 0)
-            # start ventilation and calibration
-            self._start_ventilation()
-            # stop measuring co2 using threading event
-            self._sba5_measure_allowed_event.clear()
-            self._logger.info("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
-            # do calibration of sba-5
-            self._perform_sba5_calibration()
-            # start measuring co2 again
-            self._sba5_measure_allowed_event.set()
-            self._logger.info("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
-            # wait for self._ventilation_time
-            rospy.sleep(self._ventilation_time)
-            # stop ventilation
-            self._stop_ventilation()
-            # wait self._isolated_measure_time
-            rospy.sleep(self._isolated_measure_time)
+    # def _experiment_loop(self):
+    #     # one loop
+    #     # NOTE: method is DEPRECATED
+    #     # all experiment
+    #     t = time.localtime()
+    #     # every 15 minutes by default
+    #     if t.tm_min % (self._full_experiment_loop_time/60.0) == 0:
+    #         # start it again
+    #         self._logger.info("start experiment loop again")
+    #         # get new regime
+    #         self._update_control_params()
+    #         # set inside ventilation coolers on
+    #         self._set_new_relay_state('set_vent_coolers', 0)
+    #         # start ventilation and calibration
+    #         self._start_ventilation()
+    #         # stop measuring co2 using threading event
+    #         self._sba5_measure_allowed_event.clear()
+    #         self._logger.info("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
+    #         # do calibration of sba-5
+    #         self._perform_sba5_calibration()
+    #         # start measuring co2 again
+    #         self._sba5_measure_allowed_event.set()
+    #         self._logger.info("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
+    #         # wait for self._ventilation_time
+    #         rospy.sleep(self._ventilation_time)
+    #         # stop ventilation
+    #         self._stop_ventilation()
+    #         # wait self._isolated_measure_time
+    #         rospy.sleep(self._isolated_measure_time)
 
     def _full_experiment_loop(self):
         # one loop
@@ -459,10 +470,10 @@ class ControlSystemServer(object):
             err_list = traceback.format_exception(*exc_info)
             self._logger.error("Service call failed: {}".format(err_list))
 
-    def _update_control_params(self):
-        # get new params and set them to corresponding self.xxxx values
-        # NOTE: method is DEPRECATED
-        self._set_new_light_mode(self._default_red, self._default_white)  # for a time
+    # def _update_control_params(self):
+    #     # get new params and set them to corresponding self.xxxx values
+    #     # NOTE: method is DEPRECATED
+    #     self._set_new_light_mode(self._current_red, self._current_white)  # for a time
 
     def _start_ventilation(self):
         # open drain valves  'set_air_valves'

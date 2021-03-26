@@ -22,14 +22,14 @@ class SI7021DeviceServer(object):
         # start node
         rospy.init_node('si7021_device_server', log_level=rospy.DEBUG)
         # get roslaunch params and reinit part of params
-        self._logname = rospy.get_param('si7021_log_name', 'si7021')
-        self._lost_data_marker = rospy.get_param('si7021_lost_data_marker', -65536)
-        self._log_node_name = rospy.get_param('si7021_log_node_name', 'si7021_log_node')
-        self._hum_pub_name = rospy.get_param('si7021_hum_pub_name', 'si7021_1_hum_pub')
-        self._temp_pub_name = rospy.get_param('si7021_temp_pub_name', 'si7021_1_temp_pub')
+        self._logname = rospy.get_param('~si7021_log_name', 'si7021')
+        self._lost_data_marker = rospy.get_param('~si7021_lost_data_marker', -65536)
+        self._log_node_name = rospy.get_param('~si7021_log_node_name', 'si7021_log_node')
+        self._hum_pub_name = rospy.get_param('~si7021_hum_pub_name', 'si7021_1_hum_pub')
+        self._temp_pub_name = rospy.get_param('~si7021_temp_pub_name', 'si7021_1_temp_pub')
 
-        self._timeout = rospy.get_param('si7021_timeout', 1)
-        self._measure_interval = rospy.get_param('si7021_measure_interval', 2)
+        self._timeout = rospy.get_param('~si7021_timeout', 1)
+        self._measure_interval = rospy.get_param('~si7021_measure_interval', 2)
 
         # create log topic publisher
         self._log_pub = rospy.Publisher(self._log_node_name, String, queue_size=10)

@@ -21,28 +21,73 @@ mg_co2_to_kg_raw_mass = 8.5*0.001*0.001 # in kg of dry mass / mg CO2 assimilated
 ppfd_to_kw = 0.2*0.001  # kW / (mkmol/m2*sec)
 price_of_volume = 45.2  # kg_of_equiv_mass / m3
 price_of_power = 114.0  # kg_of_equiv_mass / kW
-old_price_of_volume = 0.28
-old_price_of_power = 0.72
-a1 = 2.0877467
-b1 = 3.6243109
-a2 = 2.64379709
-b2 = -0.53008089
+# old_price_of_volume = 0.28
+# old_price_of_power = 0.72
 
-def red_far_by_curr(Ir):
+# 2019 year calibration
+# a1 = 2.0877467
+# b1 = 3.6243109
+# a2 = 2.64379709
+# b2 = -0.53008089
+
+# 2021 year calibration
+# exp 25
+# red = 0.950087877299274*Ired + 9.33951749358661
+# white = 1.7303673380274003*Iwhite + 2.9776103924458526
+#
+# exp 15
+# red = 1.2737492494951148*Ired + 9.878958572130315
+# white = 2.308885977839637*Iwhite + 3.2971726434146125
+#
+# control 25
+# red = 1.2603209431799576*Ired + 1.7617160635336375
+# white = 1.6456328803012934*Iwhite + -0.9623983407019429
+
+# global constatnts fo 2021 year
+a_red_exp_15 = 1.2737492494951148
+b_red_exp_15 = 9.33951749358661
+
+a_red_exp_25 = 0.950087877299274
+b_red_exp_25 = 9.33951749358661
+
+a_red_control_25 = 1.2603209431799576
+b_red_control_25 = 1.7617160635336375
+
+a_white_exp_15 = 2.308885977839637
+b_white_exp_15 = 3.2971726434146125
+
+a_white_exp_25 = 1.7303673380274003
+b_white_exp_25 = 2.9776103924458526
+
+a_white_control_25 = 1.6456328803012934
+b_white_control_25 = -0.9623983407019429
+
+
+def red_far_by_curr(Ir, stand, h):
     # this constants are determined from experiment
-    a1 = 2.0877467
-    b1 = 3.6243109
-    return a1*Ir + b1
+    if stand == "exp" and h == 15:
+        return a_red_exp_15 * Ir + b_red_exp_15
+
+    if stand == "exp" and h == 25:
+        return a_red_exp_25 * Ir + b_red_exp_25
+
+    if stand == "control" and h == 25:
+        return a_red_control_25 *Ir + b_red_control_25
 
 
-def white_far_by_curr(Iw):
+def white_far_by_curr(Iw, stand, h):
     # this constants are determined from experiment
-    a2 = 2.64379709
-    b2 = -0.53008089
-    return a2*Iw + b2
+    if stand == "exp" and h == 15:
+        return a_white_exp_15 * Iw + b_white_exp_15
+
+    if stand == "exp" and h == 25:
+        return a_white_exp_25 * Iw + b_white_exp_25
+
+    if stand == "control" and h == 25:
+        return a_white_control_25 * Iw + b_white_control_25
 
 
-def currents_from_newcoords(A, B):
+def currents_from_newcoords(A, B, a_red, a_white, b_red, b_white):
     """
     :param A: A is FAR = FAR_red + FAR_white in mkmoles
     :param B: B is FAR_red / FAR_white
@@ -59,10 +104,15 @@ def currents_from_newcoords(A, B):
     # for near lamp position
     # [2.0877467  3.6243109]
     # [2.64379709 - 0.53008089]
-    a1 = 2.0877467
-    b1 = 3.6243109
-    a2 = 2.64379709
-    b2 = -0.53008089
+    # a1 = 2.0877467
+    # b1 = 3.6243109
+    # a2 = 2.64379709
+    # b2 = -0.53008089
+
+    a1 = a_red
+    b1 = b_red
+    a2 = a_white
+    b2 = b_white
 
     if B != 0:
 
@@ -89,34 +139,34 @@ def currents_from_newcoords(A, B):
 
 # functions to calculate different Q for moon from raw -dCO2/dt
 
-def Q(dC, E, weight):
-    global volume
-    global raw_to_dry
-    global ppmv_to_mgco2
-    # convert from ppmv/sec to mg CO2/(m3*sec)
-    dCC = ppmv_to_mgco2 * dC
-    # then convert from 1m3=1000litres to our volume
-    dCC = (volume/1000) * dCC
-    # convert weight from raw to dry
-    dry_weight = weight*raw_to_dry
-    # then calculate Q and divide it to mean weight
-    # return ((0.28/1.9) * dCC + (0.72/0.0038) * (dCC / E)) / dry_weight
-    return ((0.28 / 1.9) * dCC + (0.72 / 0.0038) * (dCC / E))
+# def Q(dC, E, weight):
+#     global volume
+#     global raw_to_dry
+#     global ppmv_to_mgco2
+#     # convert from ppmv/sec to mg CO2/(m3*sec)
+#     dCC = ppmv_to_mgco2 * dC
+#     # then convert from 1m3=1000litres to our volume
+#     dCC = (volume/1000) * dCC
+#     # convert weight from raw to dry
+#     dry_weight = weight*raw_to_dry
+#     # then calculate Q and divide it to mean weight
+#     # return ((0.28/1.9) * dCC + (0.72/0.0038) * (dCC / E)) / dry_weight
+#     return ((0.28 / 1.9) * dCC + (0.72 / 0.0038) * (dCC / E))
 
 
-def rQ(dC, E, weight):
-    global volume
-    global raw_to_dry
-    global ppmv_to_mgco2
-    # convert from ppmv/sec to mg CO2/(m3*sec)
-    dCC = ppmv_to_mgco2 * dC
-    # then convert from 1m3=1000litres to our volume
-    dCC = (volume/1000) * dCC
-    # convert weight from raw to dry
-    # dry_weight = weight*raw_to_dry
-    # then calculate Q and divide it to mean weight
-    # return ((0.28/1.9) * dCC + (0.72/0.0038) * (dCC / E)) / dry_weight
-    return (0.28 / dCC) + (0.72 * (E / dCC))
+# def rQ(dC, E, weight):
+#     global volume
+#     global raw_to_dry
+#     global ppmv_to_mgco2
+#     # convert from ppmv/sec to mg CO2/(m3*sec)
+#     dCC = ppmv_to_mgco2 * dC
+#     # then convert from 1m3=1000litres to our volume
+#     dCC = (volume/1000) * dCC
+#     # convert weight from raw to dry
+#     # dry_weight = weight*raw_to_dry
+#     # then calculate Q and divide it to mean weight
+#     # return ((0.28/1.9) * dCC + (0.72/0.0038) * (dCC / E)) / dry_weight
+#     return (0.28 / dCC) + (0.72 * (E / dCC))
 
 
 def FE(dC, E, weight):
@@ -213,7 +263,19 @@ if __name__ == "__main__":
     # print(currents_from_newcoords(500, 0.5))
     # print(currents_from_newcoords(500, 0.75))
     # print(currents_from_newcoords(500, 1))
-    print(currents_from_newcoords(500, 1.5))
+    print("currents for exp stand and 500, 1.5")
+    print(currents_from_newcoords(500, 1.5, a_red_exp_25, a_white_exp_25,
+                                  b_red_exp_25, b_white_exp_25))
+    print("for check :")
+    print("500 = ", red_far_by_curr(306, "exp", 25) + white_far_by_curr(113.86, "exp", 25),
+          "1.5 = ", red_far_by_curr(306, "exp", 25)/white_far_by_curr(113.86, "exp", 25))
+
+    print("currents for control stand and 500, 1.5")
+    print(currents_from_newcoords(500, 1.5, a_red_control_25, a_white_control_25,
+                                  b_red_control_25, b_white_control_25))
+    print("for check :")
+    print("500 = ", red_far_by_curr(236.63, "control", 25) + white_far_by_curr(122.11, "control", 25),
+          "1.5 = ", red_far_by_curr(236.63, "control", 25)/white_far_by_curr(122.11, "control", 25))
     # print(currents_from_newcoords(500, 1.75))
     # print(currents_from_newcoords(500, 2))
     # print(currents_from_newcoords(500, 2.25))
