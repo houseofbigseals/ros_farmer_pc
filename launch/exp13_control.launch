@@ -3,14 +3,14 @@
     <!-- mb different for different experiments -->
     <rosparam param="mysql_data_saver_experiment_description">
         {
-        experiment_type: 'table',
-        machine_id: 'farmer4',
-        experiment_legend: ' table-search experiment with IRGA',
-        start_datetime: '2021_03_26 23:59:00',
-        end_datetime: '2021_04_09 23:59:00',
-        additional_notes: 'real table-search experiment for Q-calc adjustment with scales and new FAR coeff',
-        experiment_id: '2021_03_26_TABLE_0012_EXP',
-        experiment_number: '12'
+        experiment_type: 'static',
+        machine_id: 'farmer2',
+        experiment_legend: ' static control experiment',
+        start_datetime: '2021_03_13 00:00:00',
+        end_datetime: '2021_03_21 23:59:00',
+        additional_notes: 'real static experiment for control with dual LEDs',
+        experiment_id: '2021_03_13_TABLE_0010_CONTROL',
+        experiment_number: '10'
         }
     </rosparam>
 
@@ -22,6 +22,7 @@
     </rosparam>
 
 
+    <!-- mb different for different experiments -->
      <rosparam param="exp_search_table">
          [
     {"number": 1, "red": 130, "white": 130, "finished": 0},
@@ -43,7 +44,6 @@
     ]
     </rosparam>
 
-
     <rosparam param="mysql_data_saver_raw_topics">
         [
         { name: '/bmp180_1_temp_pub', id: '1', type: 'temperature', dtype: 'float64', units: 'C', status: 'raw_data' },
@@ -55,6 +55,17 @@
         ]
     </rosparam>
 
+    <!-- mysql node
+    <include file="$(find ros_farmer_pc)/launch/control_sba_led_serial.launch" >
+        <arg name="arduino_baudrate" default="115200"/>
+        <arg name="control_start_mode" default="life_support_dual"/>
+        <arg name="control_dual_led_service_name" default="led_device2"/>
+    </include>
+
+
+    <arg name="arduino_baudrate" default="57600"/>
+    <arg name="arduino_port" default="/dev/serial/by-id/usb-1a86_USB2.0-Serial-if00-port0"/>
+     -->
     <arg name="led_baudrate" default="19200"/>
     <arg name="led_device_port" default="/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0"/>
     <arg name="led_service_name" default="led_device"/>
@@ -67,56 +78,68 @@
     <arg name="relay_number_of_channels" default="8"/>
     <arg name="relay_mapping_string" default="N2_VALVE,AIR_PUMP_1,AIR_PUMP_2,COOLER_1,AIR_VALVE_1,AIR_VALVE_2,NDIR_PUMP,EMPTY"/>
 
+
     <arg name="control_relay_service_name" default="relay_device" />
     <arg name="control_led_service_name" default="led_device"/>
     <arg name="control_sba5_service_name" default="sba5_device"/>
-    <arg name="control_start_mode" default="full_experiment"/>
+    <arg name="control_start_mode" default="life_support_dual"/>
+    <arg name="control_dual_led_service_name" default="led_device_2"/>
 
-    <!-- LED device node-->
-    <node pkg="ros_farmer_pc" type="led_device.py" name="led_device" respawn="true">
-        <param name="led_port" value="$(arg led_device_port)"/>
-        <param name="led_baudrate" value="$(arg led_baudrate)"/>
-        <param name="led_service_name" value="$(arg led_service_name)"/>
+    <!--
+    <node pkg="rosserial_python" type="serial_node.py" name="serial_node" respawn="true">
+        <param name="port" value="$(arg arduino_port)"/>
+        <param name="baud" value="$(arg arduino_baudrate)"/>
     </node>
+    -->
 
-    <!-- IRGA device node-->
+  <node pkg="ros_farmer_pc" type="led_device.py" name="led_device" respawn="true">
+    <param name="led_port" value="$(arg led_device_port)"/>
+    <param name="led_baudrate" value="$(arg led_baudrate)"/>
+    <param name="led_service_name" value="$(arg led_service_name)"/>
+  </node>
+
+<!--
   <node pkg="ros_farmer_pc" type="sba5_device.py" name="sba5_device" respawn="true">
     <param name="sba5_port" value="$(arg sba5_device_port)"/>
     <param name="sba5_baudrate" value="$(arg sba5_baudrate)"/>
     <param name="sba5_timeout" value="$(arg sba5_timeout)"/>
     <param name="sba5_calibration_time" value="$(arg sba5_calibration_time)"/>
   </node>
-
-    <!-- main control system node-->
+-->
   <node pkg="ros_farmer_pc" type="control_system.py" name="control_system">
      <param name="control_relay_service_name" value="$(arg control_relay_service_name)"/>
      <param name="control_led_service_name" value="$(arg control_led_service_name)"/>
      <param name="control_sba5_service_name" value="$(arg control_sba5_service_name)"/>
      <param name="control_n2_calibration_time" value="$(arg sba5_calibration_time)"/>
      <param name="control_start_mode" value="$(arg control_start_mode)"/>
+     <param name="control_dual_led_service_name" value="$(arg control_dual_led_service_name)"/>
   </node>
 
-    <!-- watchdog node-->
   <node pkg="ros_farmer_pc" type="watchdog.py" name="watchdog" required="true"/>
+
+    <!-- mysql node-->
+    <include file="$(find ros_farmer_pc)/launch/mysql_data_saver_test.launch"/>
 
     <!-- exp node-->
     <node pkg="ros_farmer_pc" type="exp_system.py" name="exp_system">
     </node>
 
+    <!-- additional led device node with another params-->
+    <arg name="led_baudrate2" default="19200"/>
+    <!--<arg name="led_service_name2" default="led_device2"/> -->
+    <arg name="led_device_port2" default="/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0002-if00-port0"/>
+
+
+
+    <node pkg="ros_farmer_pc" type="led_device.py" name="led_device22" respawn="true">
+        <param name="led_port" value="$(arg led_device_port2)"/>
+        <param name="led_baudrate" value="$(arg led_baudrate2)"/>
+        <param name="led_service_name" value="$(arg control_dual_led_service_name)"/>
+    </node>
+
     <!-- si7021 node -->
     <node pkg="ros_farmer_pc" type="si7021_device.py" name="si7021_device">
         <param name="si7021_measure_interval" value="3"/>
-    </node>
-
-    <!-- bmp180 node -->
-        <node pkg="ros_farmer_pc" type="bmp180_device.py" name="bmp180_device">
-    </node>
-
-    <!-- mysql node-->
-    <include file="$(find ros_farmer_pc)/launch/mysql_data_saver_test.launch"/>
-
-    <!-- scales device node-->
-    <node pkg="ros_farmer_pc" type="scales_device.py" name="scales_device" respawn="true">
     </node>
 
     <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch"/>

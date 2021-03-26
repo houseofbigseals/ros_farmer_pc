@@ -29,7 +29,7 @@ class SI7021DeviceServer(object):
         self._temp_pub_name = rospy.get_param('~si7021_temp_pub_name', 'si7021_1_temp_pub')
 
         self._timeout = rospy.get_param('~si7021_timeout', 1)
-        self._measure_interval = rospy.get_param('~si7021_measure_interval', 2)
+        self._measure_interval = rospy.get_param('~si7021_measure_interval')
 
         # create log topic publisher
         self._log_pub = rospy.Publisher(self._log_node_name, String, queue_size=10)
