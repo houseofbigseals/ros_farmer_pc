@@ -66,6 +66,8 @@ class TableSearchHandler(object):
         self._current_point_on_calculation = None
         self._exp_id = exp_params["experiment_number"]
         self._co2_sensor_id = 3  # todo fix it
+        self._lamp_h = exp_params["lamp_h"]
+        self._lamp_type = exp_params["lamp_type"]
 
         self._logger = logger
 
@@ -366,8 +368,9 @@ class TableSearchHandler(object):
                 # dT - time period of measure im sec
 
                 dC = -1*f_exp
-                E = white_far_by_curr(self._current_point_on_calculation['white'])\
-                    + red_far_by_curr(self._current_point_on_calculation['red'])
+                E = white_far_by_curr(self._current_point_on_calculation['white'],
+                    self._lamp_type, self._lamp_h) + red_far_by_curr(
+                    self._current_point_on_calculation['red'], self._lamp_type, self._lamp_h)
                 # dT = (time_array[len(time_array) - 1] - time_array[0]).total_seconds()
                 dT = 900.0  # full time of one search step
 
@@ -470,6 +473,9 @@ class ExpSystemServer(object):
         # mode of work
         # no matter which method is chosen we will parse params for all of them from .launch file
         self._mode = rospy.get_param('~exp_mode_name', 'table')
+        # self._stand_type = rospy.get_param('~exp_lamp_type', 'exp')
+        # self._height_of_lamps = rospy.get_param('~exp_lamp_h', 25)
+
         self._search_table = rospy.get_param('exp_search_table')
         self._exp_description = rospy.get_param('mysql_data_saver_experiment_description')
         self._exp_id = self._exp_description["experiment_number"]
@@ -483,8 +489,6 @@ class ExpSystemServer(object):
         # logger
         self._logger = CustomLogger(name=self._logname, logpub=self._log_pub)
         self._logger.info("exp_server init")
-
-
 
         # create exp_db if it is not exists now
         self._create_exp_db()
