@@ -66,8 +66,8 @@ class TableSearchHandler(object):
         self._current_point_on_calculation = None
         self._exp_id = exp_params["experiment_number"]
         self._co2_sensor_id = 3  # todo fix it
-        self._lamp_h = exp_params["lamp_h"]
-        self._lamp_type = exp_params["lamp_type"]
+        self._lamp_h = int(exp_params["lamp_h"])
+        self._lamp_type = str(exp_params["lamp_type"])
 
         self._logger = logger
 
