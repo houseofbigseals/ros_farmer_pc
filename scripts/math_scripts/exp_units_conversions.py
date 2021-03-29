@@ -14,6 +14,7 @@ volume = 80.0  # fitotrone volume in litres
 raw_to_dry = 0.08  # conversion factor from raw plants weight to dry weight
 ppmv_to_mgco2 = 1.8  # conversion factor from ppmv CO2 to mgCO2/m3
 surface = 0.19  # in m2 - surface of lighted crops
+control_surface = 0.31  # m2 - surface of control stand
 surface_to_volume = 0.45  # in m3/m2
 mg_co2_to_kg_dry_mass = 0.68*0.001*0.001 # in kg of dry mass / mg CO2 assimilated
 mg_co2_to_kg_raw_mass = 8.5*0.001*0.001 # in kg of dry mass / mg CO2 assimilated
@@ -239,17 +240,20 @@ def dry_intQ(dC, E, dT):
     return Qi
 
 
-def final_intQ(E, Prod):
+def final_intQ(E, Prod, mode):
     # Prod  - is dM in grams
     # E - light intencity im mkmoles/m2*sec
     global volume
     global surface
+    global control_surface
     global ppmv_to_mgco2
     global surface_to_volume
     global ppfd_to_kw
     Prod = Prod*0.001  # translate to kg
-    # now dCC is mgCO2/sec in our volume
-    V = (surface_to_volume * surface)  # effective volume of crop in m3
+    if mode == "exp":
+        V = (surface_to_volume * surface)  # effective volume of crop in m3
+    if mode == "control":
+        V = (surface_to_volume * control_surface)  # effective volume of crop in m3
 
     I = E * ppfd_to_kw  # light power converted to kW / m2
     Qf = price_of_volume * V / Prod + price_of_power * I * surface / Prod
