@@ -18,11 +18,11 @@ class DS18B20DeviceServer(object):
         rospy.init_node('ds18b20_device_server', log_level=rospy.DEBUG, anonymous=True)
         # get roslaunch params and reinit part of params
         self._device_name = rospy.get_param('~ds18b20_device_name')
-        self._logname = 'ds18b20_' + self._device_name #rospy.get_param('~ds18b20_log_name', 'ds18b20')
+        self._logname = 'ds18b20_' + self._device_name[3:] #rospy.get_param('~ds18b20_log_name', 'ds18b20')
         self._lost_data_marker = rospy.get_param('~ds18b20_lost_data_marker', -65536)
         # self._log_node_name = rospy.get_param('~ds18b20_log_node_name', 'ds18b20_log_node')
         # self._temp_pub_name = rospy.get_param('~ds18b20_temp_pub_name', 'ds18b20_1_temp_pub')
-        self._temp_pub_name = 'ds18b20_' + self._device_name + '_data_pub'
+        self._temp_pub_name = 'ds18b20_' + self._device_name[3:] + '_data_pub'
 
         self._timeout = rospy.get_param('~ds18b20_timeout', 1)
         self._measure_interval = rospy.get_param('~ds18b20_measure_interval')

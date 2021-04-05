@@ -140,8 +140,8 @@
         { name: '/si7021_1_hum_pub', id: '4', type: 'humidity', dtype: 'float64', units: 'percents', status: 'raw_data' },
         { name: '/si7021_1_temp_pub', id: '5', type: 'temperature', dtype: 'float64', units: 'C', status: 'raw_data'},
         { name: '/scales_data_pub', id: '6', type: 'weight', dtype: 'float64', units: 'g', status: 'raw_data'},
-        { name: '/ds18b20_28-0301a279ab3b_data_pub', id: '7', type: 'temp', dtype: 'float64', units: 'C', status: 'raw_data'},
-        { name: '/ds18b20_28-0301a279e54f_data_pub', id: '8', type: 'temp', dtype: 'float64', units: 'C', status: 'raw_data'}
+        { name: '/ds18b20_0301a279ab3b_data_pub', id: '7', type: 'temp', dtype: 'float64', units: 'C', status: 'raw_data'},
+        { name: '/ds18b20_0301a279e54f_data_pub', id: '8', type: 'temp', dtype: 'float64', units: 'C', status: 'raw_data'}
 
         ]
     </rosparam>
@@ -222,13 +222,13 @@
     <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch"/>
 
     <!-- ds18b20 node 1 -->
-    <node pkg="ros_farmer_pc" type="ds18b20_device.py" name="ds18b20_28-0301a279ab3b_device">
+    <node pkg="ros_farmer_pc" type="ds18b20_device.py" name="ds18b20_0301a279ab3b_device">
         <param name="ds18b20_measure_interval" value="3"/>
         <param name="ds18b20_device_name" value="28-0301a279ab3b"/>
     </node>
 
     <!-- ds18b20 node 2 -->
-    <node pkg="ros_farmer_pc" type="ds18b20_device.py" name="ds18b20_28-0301a279e54f_device">
+    <node pkg="ros_farmer_pc" type="ds18b20_device.py" name="ds18b20_0301a279e54f_device">
         <param name="ds18b20_measure_interval" value="3"/>
         <param name="ds18b20_device_name" value="28-0301a279e54f"/>
     </node>
