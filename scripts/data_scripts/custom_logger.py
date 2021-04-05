@@ -13,7 +13,7 @@ class CustomLogger(object):
     def __init__(
             self,
             name,
-            logpub,
+            logpub=None,
             logdebug="debug",
             loginfo="info",
             logwarning="warning",

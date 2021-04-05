@@ -13,7 +13,7 @@ import time
 #     return lines
 
 
-def read_temp(devname):
+def ds18b20_read_temp(devname):
 
     device_file = '/sys/bus/w1/devices/{}/w1_slave'.format(devname)
     f = open(device_file, 'r')
@@ -38,5 +38,5 @@ def read_temp(devname):
 
 
 while True:
-    print(read_temp(devname='28-0301a279ab3b'))
+    print(ds18b20_read_temp(devname='28-0301a279ab3b'))
     time.sleep(1)

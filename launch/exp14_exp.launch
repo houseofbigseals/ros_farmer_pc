@@ -10,7 +10,9 @@
         end_datetime: '2021_04_08 01:00:00',
         additional_notes: 'real table-search experiment with only one point, for check how stand really works',
         experiment_id: '2021_04_06_TABLE_0014_TEST',
-        experiment_number: '14'
+        experiment_number: '14',
+        lamp_type: 'exp',
+        lamp_h: '25'
         }
     </rosparam>
 
@@ -129,6 +131,7 @@
     </rosparam>
 
 
+
     <rosparam param="mysql_data_saver_raw_topics">
         [
         { name: '/bmp180_1_temp_pub', id: '1', type: 'temperature', dtype: 'float64', units: 'C', status: 'raw_data' },
@@ -136,7 +139,10 @@
         { name: '/raw_co2_pub',  type: 'co2', id: '3', dtype: 'float64', units: 'ppmv', status: 'raw_data' },
         { name: '/si7021_1_hum_pub', id: '4', type: 'humidity', dtype: 'float64', units: 'percents', status: 'raw_data' },
         { name: '/si7021_1_temp_pub', id: '5', type: 'temperature', dtype: 'float64', units: 'C', status: 'raw_data'},
-        { name: '/scales_data_pub', id: '6', type: 'weight', dtype: 'float64', units: 'g', status: 'raw_data'}
+        { name: '/scales_data_pub', id: '6', type: 'weight', dtype: 'float64', units: 'g', status: 'raw_data'},
+        { name: '/ds18b20_28-0301a279ab3b_data_pub', id: '7', type: 'temp', dtype: 'float64', units: 'C', status: 'raw_data'},
+        { name: '/ds18b20_28-0301a279e54f_data_pub', id: '8', type: 'temp', dtype: 'float64', units: 'C', status: 'raw_data'}
+
         ]
     </rosparam>
 
@@ -152,18 +158,21 @@
     <arg name="relay_number_of_channels" default="8"/>
     <arg name="relay_mapping_string" default="N2_VALVE,AIR_PUMP_1,AIR_PUMP_2,COOLER_1,AIR_VALVE_1,AIR_VALVE_2,NDIR_PUMP,EMPTY"/>
 
-
     <arg name="control_relay_service_name" default="relay_device" />
     <arg name="control_led_service_name" default="led_device"/>
     <arg name="control_sba5_service_name" default="sba5_device"/>
     <arg name="control_start_mode" default="full_experiment"/>
+    <!--
+    <arg name="exp_lamp_type" default="exp"/>
+    <arg name="exp_lamp_h" default="25"/>
+    -->
 
-<!-- LED device node-->
-  <node pkg="ros_farmer_pc" type="led_device.py" name="led_device" respawn="true">
-    <param name="led_port" value="$(arg led_device_port)"/>
-    <param name="led_baudrate" value="$(arg led_baudrate)"/>
-    <param name="led_service_name" value="$(arg led_service_name)"/>
-  </node>
+    <!-- LED device node-->
+    <node pkg="ros_farmer_pc" type="led_device.py" name="led_device" respawn="true">
+        <param name="led_port" value="$(arg led_device_port)"/>
+        <param name="led_baudrate" value="$(arg led_baudrate)"/>
+        <param name="led_service_name" value="$(arg led_service_name)"/>
+    </node>
 
     <!-- IRGA device node-->
   <node pkg="ros_farmer_pc" type="sba5_device.py" name="sba5_device" respawn="true">
@@ -185,14 +194,17 @@
     <!-- watchdog node-->
   <node pkg="ros_farmer_pc" type="watchdog.py" name="watchdog" required="true"/>
 
-
     <!-- exp node-->
     <node pkg="ros_farmer_pc" type="exp_system.py" name="exp_system">
+        <!--
+        <param name="exp_lamp_type" value="$(arg exp_lamp_type)"/>
+        <param name="exp_lamp_h" value="$(arg exp_lamp_h)"/>
+        -->
     </node>
-
 
     <!-- si7021 node -->
     <node pkg="ros_farmer_pc" type="si7021_device.py" name="si7021_device">
+        <param name="si7021_measure_interval" value="3"/>
     </node>
 
     <!-- bmp180 node -->
@@ -203,10 +215,22 @@
     <include file="$(find ros_farmer_pc)/launch/mysql_data_saver_test.launch"/>
 
     <!-- scales device node-->
-    <node pkg="ros_farmer_pc" type="scales_device.py" name="scales_device" respawn="true">
+    <node pkg="ros_farmer_pc" type="scales_device.py" name="scales_device" >
+        <!--  respawn="true"> -->
     </node>
 
     <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch"/>
 
-</launch>
+    <!-- ds18b20 node 1 -->
+    <node pkg="ros_farmer_pc" type="ds18b20_device.py" name="ds18b20_28-0301a279ab3b_device.py">
+        <param name="ds18b20_measure_interval" value="3"/>
+        <param name="ds18b20_device_name" value="28-0301a279ab3b"/>
+    </node>
 
+    <!-- ds18b20 node 2 -->
+    <node pkg="ros_farmer_pc" type="ds18b20_device.py" name="ds18b20_28-0301a279e54f_device.py">
+        <param name="ds18b20_measure_interval" value="3"/>
+        <param name="ds18b20_device_name" value="28-0301a279e54f"/>
+    </node>
+
+</launch>
