@@ -222,13 +222,13 @@
     <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch"/>
 
     <!-- ds18b20 node 1 -->
-    <node pkg="ros_farmer_pc" type="ds18b20_device.py" name="ds18b20_28-0301a279ab3b_device.py">
+    <node pkg="ros_farmer_pc" type="ds18b20_device.py" name="ds18b20_28-0301a279ab3b_device">
         <param name="ds18b20_measure_interval" value="3"/>
         <param name="ds18b20_device_name" value="28-0301a279ab3b"/>
     </node>
 
     <!-- ds18b20 node 2 -->
-    <node pkg="ros_farmer_pc" type="ds18b20_device.py" name="ds18b20_28-0301a279e54f_device.py">
+    <node pkg="ros_farmer_pc" type="ds18b20_device.py" name="ds18b20_28-0301a279e54f_device">
         <param name="ds18b20_measure_interval" value="3"/>
         <param name="ds18b20_device_name" value="28-0301a279e54f"/>
     </node>
