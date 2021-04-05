@@ -16,8 +16,8 @@ ppmv_to_mgco2 = 1.8  # conversion factor from ppmv CO2 to mgCO2/m3
 surface = 0.19  # in m2 - surface of lighted crops
 control_surface = 0.31  # m2 - surface of control stand
 surface_to_volume = 0.45  # in m3/m2
-mg_co2_to_kg_dry_mass = 0.68*0.001*0.001 # in kg of dry mass / mg CO2 assimilated
-mg_co2_to_kg_raw_mass = 8.5*0.001*0.001 # in kg of dry mass / mg CO2 assimilated
+mg_co2_to_kg_dry_mass = 0.68*0.001*0.001  # in kg of dry mass / mg CO2 assimilated
+mg_co2_to_kg_raw_mass = 8.5*0.001*0.001  # in kg of raw mass / mg CO2 assimilated
 # when water coefficient is 0.08
 ppfd_to_kw = 0.2*0.001  # kW / (mkmol/m2*sec)
 price_of_volume = 45.2  # kg_of_equiv_mass / m3
@@ -240,6 +240,26 @@ def dry_intQ(dC, E, dT):
     return Qi
 
 
+def co2_to_mass(dC, dT):
+    # dC - first derivative of co2 concentration in ppnmv/sec
+    # E - light intencity im mkmoles/m2*sec
+    # dT - time period of measure im sec
+    global volume
+    global surface
+    global ppmv_to_mgco2
+    global surface_to_volume
+    # convert from ppmv/sec to mg CO2/(m3*sec)
+    dCC = ppmv_to_mgco2 * dC
+    # then convert from 1m3 to our volume
+    dCC = (volume/1000.0) * dCC
+    # now dCC is mgCO2/sec in our volume
+    V = (surface_to_volume * surface)  # effective volume of crop in m3
+    Prod = mg_co2_to_kg_dry_mass*dCC*dT  # productivity of crops in kg
+    # dT must be in sec
+    # I = E * ppfd_to_kw  # light power converted to kW
+    # Qi = price_of_volume * V / Prod + price_of_power * I * surface / Prod
+    return Prod
+
 def final_intQ(E, Prod, mode):
     # Prod  - is dM in grams
     # E - light intencity im mkmoles/m2*sec
@@ -285,3 +305,11 @@ if __name__ == "__main__":
     # print(currents_from_newcoords(500, 2.25))
     # print(currents_from_newcoords(500, 6))
     # print(currents_from_newcoords(500, 40))
+
+    print(co2_to_mass(0.15, 900))
+
+    print(dry_intQ(0.15, 400, 900))
+    print(final_intQ(400, 1.32192e-02, "exp"))
+    print(final_intQ(400, 1.32192e-02, "exp"))
+    print(final_intQ(400, 700, "exp"))
+
