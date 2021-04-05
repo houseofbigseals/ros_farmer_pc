@@ -31,7 +31,7 @@ class DS18B20DeviceServer(object):
 
         # logger
         self._logger = CustomLogger(name=self._logname)
-        self._logger.info("ds18b20_device_server init")
+        self._logger.info("ds18b20_device_server init : {}".format(self._device_name))
         # print("we here init")
 
         # and go to infinite loop
@@ -51,6 +51,7 @@ class DS18B20DeviceServer(object):
             except Exception as e:
                 msg = Temperature()
                 msg.temperature = self._lost_data_marker
+                self._logger.info("ds18b20_device_server init : {}".format(self._device_name))
                 msg.header.stamp.secs = rospy.get_time()
                 self._temp_pub.publish(msg)
 
