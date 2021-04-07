@@ -37,8 +37,8 @@ def exp_approximation(co2, times):
     lpopt, lepcov = curve_fit(lin_func, x, y, p0=(-2, 1))
     # print('fit exp: a={:.4f}, b={:.6f}'.format(epopt[0], epopt[1]))
     # print('fit lin: a={:.4f}, b={:.6f}'.format(lpopt[0], lpopt[1]))
-    y_eopt = exp_func(x, *epopt)
-    y_lopt = lin_func(x, *lpopt)
+    # y_eopt = exp_func(x, *epopt)
+    # y_lopt = lin_func(x, *lpopt)
 
     # point for derivative nov is in middle of cutted time interval
     t_derivative = int(len(x)/2)
@@ -198,7 +198,7 @@ class TableSearchHandler(object):
             p_id = 65536
             mode = 'no_co2'
             # we can set any p_id because that points will not be added to db
-            return (mode, p_id, red, white)
+            return mode, p_id, red, white
 
         else:
             # we have to work a little bit more today
@@ -345,46 +345,57 @@ class TableSearchHandler(object):
             number_of_points = len(rows)  # todo mb we have to do filtration or smth
 
             if number_of_points == 0:
-                is_finished = 10 # thats kinda error code
+                is_finished = 10  # thats kinda error code: no co2 data
                 f_val = 0
                 q_val = 0
             else:
 
                 converted_time = [(t - time_array[0]).total_seconds() for t in time_array]
 
-                # cut ~ first 200 points
-                # why 200? It is "experimental constant"
-                # we have to cut first ~ 200 points because there are transients in co2 measurements
+                # cut ~ first x points before local maximum of y
+                # we have to cut first x points because there are transients in co2 measurements
                 # TODO check that parameter
-                cut_time = converted_time[80:]
-                cut_co2 = co2_array[80:]
-                cut_converted_time = [t - cut_time[0] for t in cut_time]
 
-                f_lin, f_exp = exp_approximation(cut_co2, cut_converted_time)
-                self._logger.info("f_lin = {}, f_exp = {}".format(f_lin, f_exp))
+                # lets find x in co2 array with max y value
+                max_co2_position = np.argmax(co2_array)
+                cut_co2 = co2_array[max_co2_position:]
+                cut_time = converted_time[max_co2_position:]
+                if len(cut_co2) <= 10:  # less than 10 points sucks
+                    # there are too few points
+                    is_finished = 12  # thats kinda error code: too few points after max value
+                    f_val = 0
+                    q_val = 0
 
-                # dC - first derivative of co2 concentration in ppnmv/sec
-                # E - light intencity im mkmoles/m2*sec
-                # dT - time period of measure im sec
+                else:
+                    # cut_time = converted_time[80:]
+                    # cut_co2 = co2_array[80:]
+                    cut_converted_time = [t - cut_time[0] for t in cut_time]
 
-                dC = -1*f_exp
-                E = white_far_by_curr(self._current_point_on_calculation['white'],
-                    self._lamp_type, self._lamp_h) + red_far_by_curr(
-                    self._current_point_on_calculation['red'], self._lamp_type, self._lamp_h)
-                # dT = (time_array[len(time_array) - 1] - time_array[0]).total_seconds()
-                dT = 900.0  # full time of one search step
+                    f_lin, f_exp = exp_approximation(cut_co2, cut_converted_time)
+                    self._logger.info("f_lin = {}, f_exp = {}".format(f_lin, f_exp))
 
-                dry_q = dry_intQ(dC, E, dT)
+                    # dC - first derivative of co2 concentration in ppnmv/sec
+                    # E - light intencity im mkmoles/m2*sec
+                    # dT - time period of measure im sec
 
-                self._logger.info("dry_Q = {}".format(dry_q))
+                    dC = -1*f_lin  # we prefer linear because it is more stable
+                    E = white_far_by_curr(self._current_point_on_calculation['white'],
+                        self._lamp_type, self._lamp_h) + red_far_by_curr(
+                        self._current_point_on_calculation['red'], self._lamp_type, self._lamp_h)
+                    # dT = (time_array[len(time_array) - 1] - time_array[0]).total_seconds()
+                    dT = 900.0  # full time of one search step
 
-                # print(len(cut_time))
-                # print(len(cut_co2))
+                    dry_q = dry_intQ(dC, E, dT)
 
-                # todo do real differentiation here
-                f_val = -1*f_exp
-                q_val = dry_q
-                is_finished = 0  # success flag
+                    self._logger.info("dry_Q = {}".format(dry_q))
+
+                    # print(len(cut_time))
+                    # print(len(cut_co2))
+
+                    # todo do real differentiation here
+                    f_val = -1*f_lin
+                    q_val = dry_q
+                    is_finished = 0  # success flag
 
             return f_val, q_val, number_of_points, is_finished
 

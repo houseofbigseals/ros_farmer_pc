@@ -91,8 +91,14 @@ def exp_approximation(co2, times,red, white, show=True):
 
     y = np.array(co2, dtype=float)
     x = np.array(times, dtype=float)
+
+    # more optimal idea to find dCO2/dt
+
+
+
+
     # x = np.arange(0, len(y))  # ne nu eto srazu ban
-    epopt, epcov = curve_fit(exp_func, x, y, p0=(2, -1)) # p0=(2.5, -1.3)
+    epopt, epcov = curve_fit(exp_func, x, y, p0=(10, -10)) # p0=(2.5, -1.3)
     lpopt, lepcov = curve_fit(lin_func, x, y, p0=(-2, 1))
     print('fit exp: a={:.4f}, b={:.6f}'.format(epopt[0], epopt[1]))
     print('fit lin: a={:.4f}, b={:.6f}'.format(lpopt[0], lpopt[1]))
@@ -111,7 +117,7 @@ def exp_approximation(co2, times,red, white, show=True):
     # dT - time period of measure im sec
 
     dC = -1 * F_exp
-    E = white_far_by_curr(white) + red_far_by_curr(red)
+    E = white_far_by_curr(white, "exp", 25) + red_far_by_curr(red, "exp", 25)
     print ("Ired = {}, Iwhite = {}, dC = {},  E = {}".format(red, white, dC, E))
     # dT = (time_array[len(time_array) - 1] - time_array[0]).total_seconds()
     dT = 900.0  # full time of one search step
@@ -146,15 +152,22 @@ def exp_approximation(co2, times,red, white, show=True):
     return F_lin, F_exp, dry_q
 
 if __name__ == "__main__":
-    db = {
-        "host": '10.9.0.23',
-        "user": 'remote_admin',
-        "db": 'experiment',
-        "password": "amstraLLa78x[$"
-    }
+    # db = {
+    #     "host": '10.9.0.',
+    #     "user": '',
+    #     "db": 'experiment',
+    #     "password": ""
+    # }
 
-    x, y, r, w = load_point(db, 270, exp_id=7, cut_num=180, show=True)
+    x, y, r, w = load_point(db, 1432, exp_id=14, cut_num=1, show=True)
+
+    # lets find x in co2 array with max y value
+    max_co2_position = np.argmax(y)
+    cut_co2 = y[max_co2_position:]
+    cut_times = x[max_co2_position:]
+
     fl, fe, q = exp_approximation(y, x, r, w, show=True)
+    fl, fe, q = exp_approximation(cut_co2, cut_times, r, w, show=True)
     # x, y, r, w = load_point(db, 167, exp_id=3, cut_num=100, show=True)
     # fl, fe, q = exp_approximation(y, x, r, w, show=True)
     # x, y, r, w = load_point(db, 167, exp_id=3, cut_num=200, show=True)
