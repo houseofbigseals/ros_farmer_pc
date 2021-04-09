@@ -152,14 +152,14 @@ def exp_approximation(co2, times,red, white, show=True):
     return F_lin, F_exp, dry_q
 
 if __name__ == "__main__":
-    # db = {
-    #     "host": '10.9.0.',
-    #     "user": '',
-    #     "db": 'experiment',
-    #     "password": ""
-    # }
+    db = {
+        "host": '10.9.0.23',
+        "user": 'remote_admin',
+        "db": 'experiment',
+        "password": "amstraLLa78x[$"
+    }
 
-    x, y, r, w = load_point(db, 1432, exp_id=14, cut_num=1, show=True)
+    x, y, r, w = load_point(db, 1517, exp_id=14, cut_num=1, show=True)
 
     # lets find x in co2 array with max y value
     max_co2_position = np.argmax(y)
