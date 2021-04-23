@@ -8,7 +8,7 @@ import traceback
 import datetime
 import sys
 from custom_logger import CustomLogger
-from ros_farmer_pc.srv import ControlSystem, LedDevice, RelayDevice, SBA5Device, ExpSystem, ExpSystemResponse
+from ros_farmer_pc.srv import ControlSystem, LedDevice, K30Device, SBA5Device, ExpSystem, ExpSystemResponse
 from sensor_msgs.msg import Temperature
 from threading import Lock, Event
 import time
@@ -124,16 +124,13 @@ class ControlSystemServer(object):
         self._logger.info("control_server init")
 
         # create Locks
-        self._sba5_measure_allowed_event = Event()
+        self._co2_measure_allowed_event = Event()
 
         # serial errors handling
         self._last_serial_error_time = 0
         self._delay_after_serial_error = 300
 
-        # create timers for async periodic tasks using internal ros mechanics
-        # Create a ROS Timer for reading data
-        rospy.Timer(rospy.Duration(1.0), self._get_sba5_measure)  # 1 Hz
-        # create ros timer for main loop
+
 
         self._logger.info("control_server service creation")
 
@@ -154,12 +151,12 @@ class ControlSystemServer(object):
 
 
         # reinit sba5
-        if self._mode == 'experiment' or self._mode == 'full_experiment':
+        if self._mode == 'full_experiment' or self._mode == 'full_experiment':
             self._logger.info("update sba5 and allow sba5 measures")
             self._update_sba5_params()
 
             # allow measures of sba5
-            self._sba5_measure_allowed_event.set()
+            self._co2_measure_allowed_event.set()
 
             # self._default_red = 142
             # self._default_white = 76
@@ -167,11 +164,23 @@ class ControlSystemServer(object):
             self._current_red = self._LSM_exp_red
             self._current_white = self._LSM_exp_white
 
+            # create timers for async periodic tasks using internal ros mechanics
+            # Create a ROS Timer for reading data
+            rospy.Timer(rospy.Duration(1), self._get_sba5_measure)  # 1 Hz
+            # create ros timer for main loop
+
         if self._mode == 'life_support_dual':
             self._dual_led_service_name = rospy.get_param('~control_dual_led_service_name')
             self._current_red = self._LSM_control_red
             self._current_white = self._LSM_control_white
 
+        if self._mode == 'k30_experiment':
+            self._k30_service_name = rospy.get_param('~k30_service_name', 'k30_device')
+            self._k30_calibration_time = int(rospy.get_param('~k30_calibration_time', '25'))
+            self._current_red = self._LSM_control_red
+            self._current_white = self._LSM_control_white
+
+            rospy.Timer(rospy.Duration(3), self._get_k30_data)  # 0.3 Hz
 
 
         self._logger.info("go to loop")
@@ -182,8 +191,7 @@ class ControlSystemServer(object):
     def _loop(self):
         while not rospy.is_shutdown():
             # check if mode was changed
-            # if self._mode == 'experiment':
-            #     self._experiment_loop()
+
             if self._mode == 'life_support':
                 self._life_support_loop()
             elif self._mode == 'life_support_dual':
@@ -192,10 +200,11 @@ class ControlSystemServer(object):
                 self._test_loop()
             elif self._mode == 'full_experiment':
                 self._full_experiment_loop()
+            elif self._mode == 'k30_experiment':
+                self._k30_experiment_loop()
             else:
                 self._logger.error("current mode is not real mode: {}".format(self._mode))
                 rospy.sleep(1)
-            #rospy.spin()
 
     def _test_loop(self):
         t = time.localtime()
@@ -255,37 +264,6 @@ class ControlSystemServer(object):
             # self._set_new_relay_state('set_ndir_pump', 1)  # for test only
             # then wait and do nothing
 
-
-    # def _experiment_loop(self):
-    #     # one loop
-    #     # NOTE: method is DEPRECATED
-    #     # all experiment
-    #     t = time.localtime()
-    #     # every 15 minutes by default
-    #     if t.tm_min % (self._full_experiment_loop_time/60.0) == 0:
-    #         # start it again
-    #         self._logger.info("start experiment loop again")
-    #         # get new regime
-    #         self._update_control_params()
-    #         # set inside ventilation coolers on
-    #         self._set_new_relay_state('set_vent_coolers', 0)
-    #         # start ventilation and calibration
-    #         self._start_ventilation()
-    #         # stop measuring co2 using threading event
-    #         self._sba5_measure_allowed_event.clear()
-    #         self._logger.info("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
-    #         # do calibration of sba-5
-    #         self._perform_sba5_calibration()
-    #         # start measuring co2 again
-    #         self._sba5_measure_allowed_event.set()
-    #         self._logger.info("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
-    #         # wait for self._ventilation_time
-    #         rospy.sleep(self._ventilation_time)
-    #         # stop ventilation
-    #         self._stop_ventilation()
-    #         # wait self._isolated_measure_time
-    #         rospy.sleep(self._isolated_measure_time)
-
     def _full_experiment_loop(self):
         # one loop
         # all experiment
@@ -315,19 +293,85 @@ class ControlSystemServer(object):
             # check new mode flag
             if self._mode_flag == 'co2':  # TODO FIX
                 # stop measuring co2 using threading event
-                self._sba5_measure_allowed_event.clear()
-                self._logger.info("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
+                self._co2_measure_allowed_event.clear()
+                self._logger.info("We have set measure flag to {}".format(self._co2_measure_allowed_event.is_set()))
                 # do calibration of sba-5
                 self._operator_call("sba5 calibration started")
                 self._perform_sba5_calibration()
                 self._operator_call("sba5 calibration ended")
                 # start measuring co2 again
-                self._sba5_measure_allowed_event.set()
-                self._logger.info("We have set measure flag to {}".format(self._sba5_measure_allowed_event.is_set()))
+                self._co2_measure_allowed_event.set()
+                self._logger.info("We have set measure flag to {}".format(self._co2_measure_allowed_event.is_set()))
             #
             # self._co2_search_time_start = rospy.Time.now()
             # # send sign to operator
             # self._operator_call("co2_search_time started {}".format(self._co2_search_time_start))
+
+            # wait for self._ventilation_time
+            rospy.sleep(self._ventilation_time)
+            # stop ventilation
+            self._stop_ventilation()
+            self._operator_call("stop ventilation")
+
+            self._co2_search_time_start = rospy.Time.now()
+            # send sign to operator
+
+            ts = datetime.datetime.fromtimestamp(
+                self._co2_search_time_start.to_sec()).strftime('%Y_%m_%d %H:%M:%S')
+            self._operator_call("co2_search_time started {}".format(ts))
+            self._logger.info("co2_search_time started {}".format(ts))
+            # wait self._isolated_measure_time
+            rospy.sleep(self._isolated_measure_time)
+
+            self._co2_search_time_stop = rospy.Time.now()
+
+            te = datetime.datetime.fromtimestamp(
+                self._co2_search_time_start.to_sec()).strftime('%Y_%m_%d %H:%M:%S')
+
+            self._operator_call("co2_search_time stopped {}".format(te))
+            self._logger.info("co2_search_time stopped {}".format(te))
+            # send start and stop times of this search point to exp_node
+            self._send_point_data()
+            self._operator_call("data sent to exp_system")
+
+    def _k30_experiment_loop(self):
+        # one loop
+        # all experiment
+        t = time.localtime()
+        # every 15 minutes by default
+        if t.tm_min % (self._full_experiment_loop_time/60.0) == 0:
+            # start it again
+            self._logger.info("start k30 experiment loop again")
+            self._operator_call("start k30 experiment loop again")
+            # self._get_current_point()
+
+            # set inside ventilation coolers on
+            self._set_new_relay_state('set_vent_coolers', 0)
+            # start ventilation and calibration
+            self._start_ventilation()
+            self._operator_call("ventilation started")
+            # get new led light params from exp_node
+            self._get_current_point()
+
+            self._logger.info("we got new exp point: mode={} id={} red={} white={}".format(
+                self._mode_flag, self._current_search_point_id, self._current_red, self._current_white
+            ))
+            self._operator_call("we got new exp point: mode={}  id={} red={} white={}".format(
+                self._mode_flag, self._current_search_point_id, self._current_red, self._current_white
+            ))
+            self._set_new_light_mode(self._current_red, self._current_white)
+            # check new mode flag
+            if self._mode_flag == 'co2':  # TODO FIX
+                # stop measuring co2 using threading event
+                self._co2_measure_allowed_event.clear()
+                self._logger.info("We have set measure flag to {}".format(self._co2_measure_allowed_event.is_set()))
+                # do calibration of sba-5
+                self._operator_call("k30 calibration started")
+                self._perform_k30_calibration()
+                self._operator_call("k30 calibration ended")
+                # start measuring co2 again
+                self._co2_measure_allowed_event.set()
+                self._logger.info("We have set measure flag to {}".format(self._co2_measure_allowed_event.is_set()))
 
             # wait for self._ventilation_time
             rospy.sleep(self._ventilation_time)
@@ -381,6 +425,67 @@ class ControlSystemServer(object):
                     self._serial_error_counter = 0
                 self._last_serial_error_time = time.time()
 
+    def _get_k30_data(self, event=None):
+        # if self._sba5_measure_allowed:
+        # event is rospy.TimerEvent
+        if self._mode_flag == 'co2':  # TODO FIX
+            self._co2_measure_allowed_event.wait()
+            rospy.wait_for_service(self._sba5_service_name)
+            try:
+                # sba_device = rospy.ServiceProxy(self._sba5_service_name, SBA5Device)
+                # raw_resp = sba_device("measure_co2")
+                k30_device = rospy.ServiceProxy(self._k30_service_name, K30Device)
+                raw_resp = k30_device("get_data")
+                # self._logger.debug("We got raw response from sba5 : {}".format(raw_resp.response))
+                # self._logger.debug("Type of raw response : {}".format(type(raw_resp.response)))
+                # self._logger.debug("Size of raw response : {}".format(len(raw_resp.response)))
+                # lets get co2 measure from that string
+                # pattern = re.compile(r'\w+: (\d+.\d+)')  # for answers like "success: 55.21"
+                # co2_data = float(pattern.findall(raw_resp.response)[0])
+
+                co2_data = float(raw_resp)
+
+
+                self._logger.debug("k30 measure_co2: We find co2 : {}".format(co2_data))
+                # add to self array
+                # self._add_new_data_to_array(co2_data)
+
+                # then publish it
+                self._publish_sba5_measure(co2_data)
+                # self._logger.debug("We published it")
+
+                return float(co2_data)
+
+            except Exception as e:
+                exc_info = sys.exc_info()
+                err_list = traceback.format_exception(*exc_info)
+                self._logger.warning("Service call failed: {}".format(err_list))
+
+    def _perform_k30_calibration(self):
+        self._logger.debug("start k30 recalibration")
+        # stop NDIRGA external air pump
+        self._set_new_relay_state('set_ndir_pump', 1)
+        # open n2 valve
+        self._set_new_relay_state('set_n2_valve', 0)
+        # send Z to sba-5
+        # rospy.wait_for_service(self._sba5_service_name)
+        try:
+            #  wait until nitrogen fills the volume
+            rospy.sleep(self._k30_calibration_time-5)  # TODO fix it
+            k30_device = rospy.ServiceProxy(self._k30_service_name, K30Device)
+            raw_resp = k30_device('recalibrate')
+            self._logger.debug("We got raw response from k30 {}".format(raw_resp))
+
+        except Exception as e:
+            exc_info = sys.exc_info()
+            err_list = traceback.format_exception(*exc_info)
+            self._logger.error("Service call failed: {}".format(err_list))
+            # raise ControlSystemException(e)
+
+        # close n2 valve
+        self._set_new_relay_state('set_n2_valve', 1)
+        # start NDIRGA external air pump
+        self._set_new_relay_state('set_ndir_pump', 0)
 
     def _restart_serial_node(self):
         # we just need to kill serial node
@@ -570,7 +675,7 @@ class ControlSystemServer(object):
         # if self._sba5_measure_allowed:
         # event is rospy.TimerEvent
         if self._mode_flag == 'co2':  # TODO FIX
-            self._sba5_measure_allowed_event.wait()
+            self._co2_measure_allowed_event.wait()
             rospy.wait_for_service(self._sba5_service_name)
             try:
                 sba_device = rospy.ServiceProxy(self._sba5_service_name, SBA5Device)
@@ -711,7 +816,7 @@ class ControlSystemServer(object):
                 return resp
 
         elif req.command == 'get_co2_measure':
-            if self._sba5_measure_allowed_event.is_set():
+            if self._co2_measure_allowed_event.is_set():
                 try:
                     co2 = self._get_sba5_measure()
                     resp = self._success_response + str(co2)

@@ -60,6 +60,7 @@ add_service_files(
    FILES
    LedDevice.srv
    LowLevelRelay.srv
+   K30Device.srv
    RelayDevice.srv
    ControlSystem.srv
    SBA5Device.srv
@@ -172,6 +173,7 @@ include_directories(
 install(PROGRAMS
    scripts/low_level_drivers/led_uart_driver_py2.py
    scripts/low_level_drivers/sba_5_driver_py2.py
+   scripts/low_level_drivers/k30_driver_py2.py
    scripts/low_level_drivers/si7021_driver_py2.py
    scripts/low_level_drivers/ds18b20_driver_py2.py
    scripts/low_level_drivers/scales_driver_py2.py
