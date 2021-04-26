@@ -104,7 +104,7 @@
   </node>
     -->
     <!-- IRGA K30 device node-->
-  <node pkg="ros_farmer_pc" type="k30_device.py" name="k30_device" respawn="true">
+  <node pkg="ros_farmer_pc" type="K30_device.py" name="k30_device" respawn="true">
       <param name="k30_port" value="$(arg k30_device_port)"/>
       <param name="k30_baudrate" value="$(arg k30_baudrate)"/>
       <param name="k30_timeout" value="$(arg k30_timeout)"/>
