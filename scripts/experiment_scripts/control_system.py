@@ -180,7 +180,7 @@ class ControlSystemServer(object):
             self._current_red = self._LSM_control_red
             self._current_white = self._LSM_control_white
 
-            rospy.Timer(rospy.Duration(3), self._get_k30_data)  # 0.3 Hz
+            rospy.Timer(rospy.Duration(2), self._get_k30_data)  # 0.5 Hz
 
 
         self._logger.info("go to loop")
