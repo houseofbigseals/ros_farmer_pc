@@ -63,6 +63,12 @@ b_white_exp_25 = 2.9776103924458526
 a_white_control_25 = 1.6456328803012934
 b_white_control_25 = -0.9623983407019429
 
+# new small control stand without hat
+a_red_small_control_nh_25 = 0.20185251896730536
+b_red_small_control_nh_25 = 19.940925713661894
+a_white_small_control_nh_25 = 1.7972894492658698
+b_white_small_control_nh_25 = 6.342377599475976
+
 
 def red_far_by_curr(Ir, stand, h):
     # this constants are determined from experiment
@@ -73,7 +79,7 @@ def red_far_by_curr(Ir, stand, h):
         return a_red_exp_25 * Ir + b_red_exp_25
 
     if stand == "control" and h == 25:
-        return a_red_control_25 *Ir + b_red_control_25
+        return a_red_small_control_nh_25 *Ir + b_red_small_control_nh_25
 
 
 def white_far_by_curr(Iw, stand, h):
@@ -85,7 +91,7 @@ def white_far_by_curr(Iw, stand, h):
         return a_white_exp_25 * Iw + b_white_exp_25
 
     if stand == "control" and h == 25:
-        return a_white_control_25 * Iw + b_white_control_25
+        return a_white_small_control_nh_25 * Iw + b_white_small_control_nh_25
 
 
 def currents_from_newcoords(A, B, a_red, a_white, b_red, b_white):
@@ -288,19 +294,19 @@ if __name__ == "__main__":
     # print(currents_from_newcoords(500, 0.75))
     # print(currents_from_newcoords(500, 1))
     print("currents for exp stand and 500, 1.5")
-    print(currents_from_newcoords(500, 1.5, a_red_exp_25, a_white_exp_25,
+    print(currents_from_newcoords(500, 0, a_red_exp_25, a_white_exp_25,
                                   b_red_exp_25, b_white_exp_25))
-    print("for check :")
-    print("500 = ", red_far_by_curr(306, "exp", 25) + white_far_by_curr(113.86, "exp", 25),
-          "1.5 = ", red_far_by_curr(306, "exp", 25)/white_far_by_curr(113.86, "exp", 25))
+    # print("for check :")
+    print("? = ", red_far_by_curr(250, "exp", 25) + white_far_by_curr(10, "exp", 25),
+          "? = ", red_far_by_curr(250, "exp", 25)/white_far_by_curr(10, "exp", 25))
 
     print("currents for control stand and 500, 1.5")
-    print(currents_from_newcoords(500, 1.5, a_red_control_25, a_white_control_25,
-                                  b_red_control_25, b_white_control_25))
-    print("for check :")
-    print("500 = ", red_far_by_curr(236.63, "control", 25) + white_far_by_curr(122.11, "control", 25),
-          "1.5 = ", red_far_by_curr(236.63, "control", 25)/white_far_by_curr(122.11, "control", 25))
-    # print(currents_from_newcoords(500, 1.75))
+    print(currents_from_newcoords(500, 0, a_red_small_control_nh_25, a_white_small_control_nh_25,
+                                  b_red_small_control_nh_25, b_white_small_control_nh_25))
+    # print("for check :")
+    # print("500 = ", red_far_by_curr(236.63, "control", 25) + white_far_by_curr(122.11, "control", 25),
+    #       "1.5 = ", red_far_by_curr(236.63, "control", 25)/white_far_by_curr(122.11, "control", 25))
+    # # print(currents_from_newcoords(500, 1.75))
     # print(currents_from_newcoords(500, 2))
     # print(currents_from_newcoords(500, 2.25))
     # print(currents_from_newcoords(500, 6))

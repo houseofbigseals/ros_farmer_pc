@@ -23,7 +23,7 @@ class SBAWrapper(object):
     """
     def __init__(
             self,
-            devname='/dev/ttyUSB0',
+            devname='/dev/serial/by-id/usb-FTDI_FT230X_Basic_UART_DN03WQZS-if00-port0',
             baudrate=19200,
             timeout= 0.1
     ):
@@ -91,7 +91,7 @@ class SBAWrapper(object):
 
 def read():
     ser = serial.Serial(
-        port='/dev/ttyUSB0',
+        port='/dev/serial/by-id/usb-FTDI_FT230X_Basic_UART_DN03WQZS-if00-port0',
         baudrate=19200,
         timeout=10
     )
@@ -102,7 +102,7 @@ def read():
 
 def send_command(c):
     ser = serial.Serial(
-        port='/dev/ttyUSB0',
+        port='/dev/serial/by-id/usb-FTDI_FT230X_Basic_UART_DN03WQZS-if00-port0',
         baudrate=19200,
         timeout=10
     )
@@ -175,7 +175,7 @@ def test_info():
     res = s.send_command('?\r\n')
     print(res)
     ser = serial.Serial(
-        port="/dev/ttyUSB0",
+        port="/dev/serial/by-id/usb-FTDI_FT230X_Basic_UART_DN03WQZS-if00-port0",
         baudrate=19200,
         timeout=1)
     while True:

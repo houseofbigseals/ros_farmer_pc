@@ -80,7 +80,7 @@ class UartWrapper:
     """
 
     def __init__(self,
-                 devname='/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0',
+                 devname='/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0002-if00-port0',
                  baudrate=19200,
                  timeout=10
                  ):
@@ -427,8 +427,8 @@ class UartWrapper:
 if __name__ == "__main__":
     a = UartWrapper()
     print(a.START_CONFIGURE())
-    print(a.SET_CURRENT(0, 120))
-    print(a.SET_CURRENT(1, 10))
+    print(a.SET_CURRENT(0, 150))
+    print(a.SET_CURRENT(1, 150))
     print(a.FINISH_CONFIGURE_WITH_SAVING())
     print(a.START())
     sleep(20)
