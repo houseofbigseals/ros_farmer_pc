@@ -270,7 +270,7 @@ class TableSearchHandler(object):
 
             cur = con.cursor()
 
-            cur.execute("use experiment")
+            cur.execute("use {}".format(self._db_name))
 
             comm_str = 'insert into exp_data' \
                        '( point_id, step_id, exp_id, red, white, start_time, end_time,' \
@@ -295,7 +295,6 @@ class TableSearchHandler(object):
             except Exception as e:
                 exc_info = sys.exc_info()
                 err_list = traceback.format_exception(*exc_info)
-                # self._logger.error("Error while requesting co2 data from raw_data: {}".format(err_list))
                 self._logger.error("Error while saving exp point to exp_data table: {}".format(e))
                 self._logger.error(err_list)
 
@@ -316,7 +315,7 @@ class TableSearchHandler(object):
 
         cur = con.cursor()
 
-        cur.execute("use experiment")
+        cur.execute("use {}".format(self._db_name))
         # TODO fix!!!!
 
         # for now we will handle one point differentiation in this callback
