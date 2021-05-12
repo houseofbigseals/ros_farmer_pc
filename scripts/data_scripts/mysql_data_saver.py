@@ -47,6 +47,7 @@ class MYSQLDataSaver(object):
         # get roslaunch params
 
         self._description = rospy.get_param('mysql_data_saver_experiment_description')  # do not add ~ !!
+        self._db_name = "experiment" + str(self._description["experiment_number"])
 
         # names for self topics
         self._logname = rospy.get_param('~mysql_data_saver_log_name', 'mysql_data_saver')
@@ -64,7 +65,7 @@ class MYSQLDataSaver(object):
 
         # start logger
         self._logger = CustomLogger(name=self._logname, logpub=self._log_pub)
-        self._logger.debug("mysql_data_saver_server init")
+        self._logger.info("mysql_data_saver_server init")
 
         default_id = self.generate_experiment_id()
         # self._experiment_id = rospy.get_param('~mysql_data_saver_experiment_id', default_id)
@@ -164,7 +165,7 @@ class MYSQLDataSaver(object):
 
         cur = con.cursor()
 
-        cur.execute("use experiment")
+        cur.execute("use {}".format(self._db_name))
 
         comm_str = 'insert into {}' \
                    '(exp_id, time, level, node, msg)' \
@@ -215,7 +216,7 @@ class MYSQLDataSaver(object):
 
             cur = con.cursor()
 
-            cur.execute("use experiment")
+            cur.execute("use {}".format(self._db_name))
 
             comm_str = 'insert into raw_data'\
                        '(exp_id, time, sensor_id, data)'\
@@ -229,7 +230,7 @@ class MYSQLDataSaver(object):
             cur.execute('commit')
             con.close()
         else:
-            self._logger.debug("we got lost data marker and we wont save it to db")
+            self._logger.warning("we got lost data marker and we wont save it to db")
 
 
     def _create_database(self):
@@ -244,8 +245,8 @@ class MYSQLDataSaver(object):
 
         cur = con.cursor()
 
-        cur.execute("CREATE DATABASE IF NOT EXISTS experiment")
-        cur.execute("use experiment")
+        cur.execute("CREATE DATABASE IF NOT EXISTS {}".format(self._db_name))
+        cur.execute("use {}".format(self._db_name))
 
         # TODO load params from .launch and put to the database
 
