@@ -176,7 +176,7 @@ class MYSQLDataSaver(object):
         try:
             cur.execute(comm_str)
         except Exception as e:
-            print("Error while saving logs:")
+            print("Error while saving logs from :")
             print(e)
             print(log_msg.msg)
 
@@ -230,7 +230,8 @@ class MYSQLDataSaver(object):
             cur.execute('commit')
             con.close()
         else:
-            self._logger.warning("we got lost data marker and we wont save it to db")
+            self._logger.debug("we got lost data marker from "
+                                 "node and we wont save it to db")
 
 
     def _create_database(self):
