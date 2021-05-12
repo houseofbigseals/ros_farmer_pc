@@ -63,7 +63,7 @@
     <arg name="sba5_baudrate" default="19200"/>
     <arg name="sba5_device_port" default='/dev/serial/by-id/usb-FTDI_FT230X_Basic_UART_DN03WQZS-if00-port0'/>
     <arg name="sba5_timeout" default="0.2"/>
-    <arg name="sba5_calibration_time" default="45"/>
+    <arg name="sba5_calibration_time" default="40"/>
 
     <arg name="k30_baudrate" default="9600"/>
     <arg name="k30_device_port" default='/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0003-if00-port0'/>

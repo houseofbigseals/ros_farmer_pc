@@ -46,6 +46,8 @@ class MYSQLDataSaver(object):
 
         # get roslaunch params
 
+        self._description = rospy.get_param('mysql_data_saver_experiment_description')  # do not add ~ !!
+
         # names for self topics
         self._logname = rospy.get_param('~mysql_data_saver_log_name', 'mysql_data_saver')
         self._lost_data_marker = rospy.get_param('~mysql_data_saver_lost_data_marker',
@@ -89,7 +91,6 @@ class MYSQLDataSaver(object):
         self._raw_topics = rospy.get_param('mysql_data_saver_raw_topics')
         # self._exp_topics = rospy.get_param('~mysql_data_saver_exp_topics')
 
-        self._description = rospy.get_param('mysql_data_saver_experiment_description')  # do not add ~ !!
 
 
         # list to keep subscribers (for what?)

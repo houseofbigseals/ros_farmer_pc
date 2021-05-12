@@ -244,13 +244,14 @@ class SBA5DeviceServer(object):
         rospy.init_node('sba5_device_server', log_level=rospy.DEBUG)
 
         # get roslaunch params and reinit part of params
+        self._calibration_time = int(rospy.get_param('~sba5_calibration_time'))
         self._logname = rospy.get_param('~sba5_log_name', 'sba5')
         self._log_node_name = rospy.get_param('~sba5_log_node_name', 'sba5_log_node')
         self._port = rospy.get_param('~sba5_port', '/dev/serial/by-id/usb-FTDI_FT230X_Basic_UART_DN03WQZS-if00-port0')
         self._baudrate = int(rospy.get_param('~sba5_baudrate', 19200))
         self._timeout = float(rospy.get_param('~sba5_timeout', 0.2))
         self._service_name = rospy.get_param('~sba5_service_name', 'sba5_device')
-        self._calibration_time = int(rospy.get_param('~sba5_calibration_time'))
+
 
         # create log topic publisher
         self._log_pub = rospy.Publisher(self._log_node_name, String, queue_size=10)
@@ -258,6 +259,10 @@ class SBA5DeviceServer(object):
         # logger
         self._logger = CustomLogger(name=self._logname, logpub=self._log_pub)
         self._logger.debug("sba5_device_server init")
+
+        # self._logger.info("sba5_device_server cal time is {}, type is {}".format(
+        #     self._calibration_time, type(self._calibration_time)
+        # ))
 
         # service
         self._service = rospy.Service(self._service_name, SBA5Device, self.handle_request)

@@ -51,7 +51,7 @@ class DS18B20DeviceServer(object):
             except Exception as e:
                 msg = Temperature()
                 msg.temperature = self._lost_data_marker
-                self._logger.info("ds18b20_device_server init : {}".format(self._device_name))
+                self._logger.warning("ds18b20_device_server {} error : {}".format(self._device_name, e))
                 msg.header.stamp.secs = rospy.get_time()
                 self._temp_pub.publish(msg)
 
