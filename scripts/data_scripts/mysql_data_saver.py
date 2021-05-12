@@ -250,7 +250,7 @@ class MYSQLDataSaver(object):
 
 
         # create all log tables for different types of error status
-        for log_table_name in ["fatal_logs, error_logs, warn_logs, info_logs, debug_logs"]:
+        for log_table_name in ["fatal_logs", "error_logs", "warn_logs", "info_logs", "debug_logs"]:
             self._logger.info("create tables for all logs")
             cur.execute('create table if not exists {}'
                         ' ( log_id bigint unsigned primary key not null auto_increment,'
