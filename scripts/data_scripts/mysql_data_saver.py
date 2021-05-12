@@ -135,10 +135,24 @@ class MYSQLDataSaver(object):
         # WARN = 4
         # ERROR = 8
         # FATAL = 16
-
         node_ = log_msg.name
 
         msg_ = log_msg.msg
+
+        if level_ == 1:
+            log_table_name = "debug_logs"
+
+        if level_ == 2:
+            log_table_name = "info_logs"
+
+        if level_ == 4:
+            log_table_name = "warn_logs"
+
+        if level_ == 8:
+            log_table_name = "error_logs"
+
+        if level_ == 16:
+            log_table_name = "fatal_logs"
 
         con = pymysql.connect(host=self._db_params["host"],
                               user=self._db_params["user"],
@@ -151,12 +165,12 @@ class MYSQLDataSaver(object):
 
         cur.execute("use experiment")
 
-        comm_str = 'insert into logs' \
+        comm_str = 'insert into {}' \
                    '(exp_id, time, level, node, msg)' \
-                   'values("{}", "{}","{}", "{}", "{}")'.format(
+                   'values("{}", "{}","{}", "{}", "{}")'.format(log_table_name,
             exp_id_, time_, level_, node_, msg_)
 
-        print("comm_str: {}".format(comm_str))  # TODO: remove after debug
+        # print("comm_str: {}".format(comm_str))  # TODO: remove after debug
         try:
             cur.execute(comm_str)
         except Exception as e:
@@ -233,21 +247,24 @@ class MYSQLDataSaver(object):
         cur.execute("use experiment")
 
         # TODO load params from .launch and put to the database
-        self._logger.debug("create table logs")
 
-        cur.execute('create table if not exists logs'
-                    ' ( log_id bigint unsigned primary key not null auto_increment,'
-                    ' exp_id SMALLINT unsigned,'
-                    ' time timestamp,'
-                    ' level TINYINT,'
-                    ' node varchar(100),'
-                    ' msg varchar(2000) )'
-                    )
 
-        cur.execute('describe logs')
-        print(cur.fetchall())
+        # create all log tables for different types of error status
+        for log_table_name in ["fatal_logs, error_logs, warn_logs, info_logs, debug_logs"]:
+            self._logger.info("create tables for all logs")
+            cur.execute('create table if not exists {}'
+                        ' ( log_id bigint unsigned primary key not null auto_increment,'
+                        ' exp_id SMALLINT unsigned,'
+                        ' time timestamp,'
+                        ' level TINYINT,'
+                        ' node varchar(100),'
+                        ' msg varchar(2000) )'.format(log_table_name)
+                        )
 
-        self._logger.debug("create table raw_data")
+            cur.execute('describe {}'.format(log_table_name))
+            print(cur.fetchall())
+
+        self._logger.info("create table raw_data")
 
         cur.execute('create table if not exists raw_data'
                     ' (data_id bigint unsigned primary key not null auto_increment,'
@@ -260,7 +277,7 @@ class MYSQLDataSaver(object):
         cur.execute('describe raw_data')
         print(cur.fetchall())
 
-        self._logger.debug("create table sensors")
+        self._logger.info("create table sensors")
 
         cur.execute('create table if not exists sensors'
                     '(sensor_id SMALLINT unsigned primary key not null,'
@@ -273,7 +290,7 @@ class MYSQLDataSaver(object):
                     ')')
 
         # put default data from launch file to sensors table
-        self._logger.debug("creating sensors table")
+        self._logger.info("creating sensors table")
         for topic in self._raw_topics:
             # TODO add data from dict to table
             pass
@@ -281,7 +298,7 @@ class MYSQLDataSaver(object):
         cur.execute('describe sensors')
         print(cur.fetchall())
 
-        self._logger.debug("create table experiments")
+        self._logger.info("create table experiments")
 
         cur.execute('create table if not exists experiments'
                     '( exp_id SMALLINT unsigned primary key not null,'
@@ -297,7 +314,7 @@ class MYSQLDataSaver(object):
         cur.execute('commit')
         con.close()
 
-        self._logger.debug("create table exp_data")
+        # self._logger.info("create table exp_data")
 
 
 if __name__ == "__main__":

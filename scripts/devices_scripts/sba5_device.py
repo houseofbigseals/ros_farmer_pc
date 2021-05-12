@@ -247,10 +247,10 @@ class SBA5DeviceServer(object):
         self._logname = rospy.get_param('~sba5_log_name', 'sba5')
         self._log_node_name = rospy.get_param('~sba5_log_node_name', 'sba5_log_node')
         self._port = rospy.get_param('~sba5_port', '/dev/serial/by-id/usb-FTDI_FT230X_Basic_UART_DN03WQZS-if00-port0')
-        self._baudrate = rospy.get_param('~sba5_baudrate', 19200)
-        self._timeout = rospy.get_param('~sba5_timeout', 0.2)
+        self._baudrate = int(rospy.get_param('~sba5_baudrate', 19200))
+        self._timeout = float(rospy.get_param('~sba5_timeout', 0.2))
         self._service_name = rospy.get_param('~sba5_service_name', 'sba5_device')
-        self._calibration_time = rospy.get_param('~sba5_calibration_time', 90)
+        self._calibration_time = int(rospy.get_param('~sba5_calibration_time'))
 
         # create log topic publisher
         self._log_pub = rospy.Publisher(self._log_node_name, String, queue_size=10)

@@ -15,13 +15,10 @@ import time
 import re
 import os
 from rosgraph_msgs.msg import Log
-import roslaunch
 from rpi_relay_handler import RelayHandler
-# from future import *
+
 
 # custom errors
-
-
 class ControlSystemException(Exception):
     pass
 
@@ -60,16 +57,16 @@ class ControlSystemServer(object):
         self._exp_service_name = rospy.get_param('~control_exp_service_name', 'exp_system')
 
         # experiment params
-        self._LSM_exp_red = rospy.get_param('~control_LSM_exp_red', 250)  # mA old = 142
+        self._LSM_exp_red = int(rospy.get_param('~control_LSM_exp_red', 250))  # mA old = 142
         # here we need 306 mA, but our devices can work only with Ir < 250 mA
-        self._LSM_exp_white = rospy.get_param('~control_LSM_exp_white', 114)  # mA  old = 76
-        self._LSM_control_red = rospy.get_param('~control_LSM_control_red', 237)  # mA
-        self._LSM_control_white = rospy.get_param('~control_LSM_control_white', 122)  # mA
-        self._full_experiment_loop_time = rospy.get_param('~control_full_experiment_loop_time', 900.0) # sec
-        self._isolated_measure_time = rospy.get_param('~control_isolated_measure_time', 480.0)  # sec
-        self._n2_calibration_time = rospy.get_param('~control_n2_calibration_time', 90.0)  # depends on
-        self._air_valves_open_time = rospy.get_param('~control_air_valves_open_time', 15.0)  # sec
-        self._co2_measure_time = rospy.get_param('~control_co2_measure_time', 1.0)  # sec
+        self._LSM_exp_white = int(rospy.get_param('~control_LSM_exp_white', 114))  # mA  old = 76
+        self._LSM_control_red = int(rospy.get_param('~control_LSM_control_red', 237))  # mA
+        self._LSM_control_white = int(rospy.get_param('~control_LSM_control_white', 122))  # mA
+        self._full_experiment_loop_time = int(rospy.get_param('~control_full_experiment_loop_time', 900.0)) # sec
+        self._isolated_measure_time = int(rospy.get_param('~control_isolated_measure_time', 480.0))  # sec
+        self._n2_calibration_time = int(rospy.get_param('~control_n2_calibration_time', 90.0))  # depends on
+        self._air_valves_open_time = int(rospy.get_param('~control_air_valves_open_time', 15.0))  # sec
+        self._co2_measure_time = int(rospy.get_param('~control_co2_measure_time', 1.0))  # sec
         self._ventilation_time = self._full_experiment_loop_time - self._isolated_measure_time - \
             self._n2_calibration_time - self._air_valves_open_time
 
