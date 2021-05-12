@@ -65,6 +65,7 @@ class TableSearchHandler(object):
         self._really_calculaded_today_points = None
         self._current_point_on_calculation = None
         self._exp_id = exp_params["experiment_number"]
+        self._db_name = "experiment" + str(self._exp_id)
         self._co2_sensor_id = 3  # todo fix it
         self._lamp_h = int(exp_params["lamp_h"])
         self._lamp_type = str(exp_params["lamp_type"])
@@ -103,7 +104,7 @@ class TableSearchHandler(object):
                               cursorclass=pymysql.cursors.DictCursor)
 
         cur = con.cursor()
-        cur.execute("use {}".format(self._db_params["db"]))
+        cur.execute("use {}".format(self._db_name))
 
         # in db we store at least two rows with same step_id
         # lets load them for every point in _todays_search_table and find mean Q value
@@ -165,7 +166,7 @@ class TableSearchHandler(object):
                               cursorclass=pymysql.cursors.DictCursor)
 
         cur = con.cursor()
-        cur.execute("use {}".format(self._db_params["db"]))
+        cur.execute("use {}".format(self._db_name))
         comm_str = "select point_id from exp_data order by point_id desc limit 1;"
         self._logger.debug("comm_str: {}".format(comm_str))
         cur.execute(comm_str)
@@ -424,7 +425,7 @@ class TableSearchHandler(object):
 
         cur = con.cursor()
 
-        cur.execute("use {}".format(self._db_params["db"]))
+        cur.execute("use {}".format(self._db_name))
 
         comm_str = 'select * from exp_data ' \
                    'where date(end_time)=date(now()) ' \
@@ -491,6 +492,7 @@ class ExpSystemServer(object):
         self._exp_description = rospy.get_param('mysql_data_saver_experiment_description')
         self._exp_id = self._exp_description["experiment_number"]
         self._db_params=rospy.get_param('mysql_db_params')
+        self._db_name = "experiment" + str(self._exp_id)
         # self._exp_config_path = rospy.get_param('~exp_config_path', 'test.xml')
         # todo add here parsing params of gradient search and other smart methods
 
@@ -642,7 +644,8 @@ class ExpSystemServer(object):
 
         cur = con.cursor()
 
-        cur.execute("use {}".format(self._db_params["db"]))
+        cur.execute("use {}".format(self._db_name))
+
 
         cur.execute('create table if not exists exp_data'
                     '(point_id bigint unsigned primary key not null auto_increment,'
@@ -671,44 +674,44 @@ class ExpSystemServer(object):
         self._logger.debug(cur.fetchall())
 
 
-def test_table_search():
-    exp_d = {
-        "experiment_type": 'table',
-        "machine_id": 'farmer4',
-        "experiment_legend": 'test table-search experiment with IRGA',
-        "start_datetime": '2020_10_18 23:00:00',
-        "end_datetime": '2020_10_30 23:00:00',
-        "additional_notes": 'add any notes about experiment errors or smth other important',
-        "experiment_id": '2020_10_18_TESTTYPE_0002',
-        "experiment_number": '2'
-    }
-    # local test
-    search_table = [
-        {"number": 1, "red": 130, "white": 130, "finished": 0},
-        {"number": 2, "red": 70, "white": 190, "finished": 0},
-        {"number": 3, "red": 190, "white": 70, "finished": 0},
-        {"number": 4, "red": 40, "white": 160, "finished": 0},
-        {"number": 5, "red": 160, "white": 40, "finished": 0},
-        {"number": 6, "red": 100, "white": 100, "finished": 0},
-        {"number": 7, "red": 220, "white": 220, "finished": 0},
-        {"number": 8, "red": 25, "white": 235, "finished": 0},
-        {"number": 9, "red": 145, "white": 115, "finished": 0},
-        {"number": 10, "red": 85, "white": 55, "finished": 0},
-        {"number": 11, "red": 205, "white": 175, "finished": 0},
-        {"number": 12, "red": 55, "white": 85, "finished": 0},
-        {"number": 13, "red": 175, "white": 205, "finished": 0},
-        {"number": 14, "red": 115, "white": 145, "finished": 0},
-        {"number": 15, "red": 235, "white": 25, "finished": 0},
-        {"number": 16, "red": 17, "white": 138, "finished": 0}
-    ]
-    db = {
-        "host": '10.9.0.12',
-        "user": '',
-        "db": 'experiment',
-        "password": ""
-    }
-    sh = TableSearchHandler(search_table, db, exp_d)
-    print(sh.calculate_next_point())
+# def test_table_search():
+#     exp_d = {
+#         "experiment_type": 'table',
+#         "machine_id": 'farmer4',
+#         "experiment_legend": 'test table-search experiment with IRGA',
+#         "start_datetime": '2020_10_18 23:00:00',
+#         "end_datetime": '2020_10_30 23:00:00',
+#         "additional_notes": 'add any notes about experiment errors or smth other important',
+#         "experiment_id": '2020_10_18_TESTTYPE_0002',
+#         "experiment_number": '2'
+#     }
+#     # local test
+#     search_table = [
+#         {"number": 1, "red": 130, "white": 130, "finished": 0},
+#         {"number": 2, "red": 70, "white": 190, "finished": 0},
+#         {"number": 3, "red": 190, "white": 70, "finished": 0},
+#         {"number": 4, "red": 40, "white": 160, "finished": 0},
+#         {"number": 5, "red": 160, "white": 40, "finished": 0},
+#         {"number": 6, "red": 100, "white": 100, "finished": 0},
+#         {"number": 7, "red": 220, "white": 220, "finished": 0},
+#         {"number": 8, "red": 25, "white": 235, "finished": 0},
+#         {"number": 9, "red": 145, "white": 115, "finished": 0},
+#         {"number": 10, "red": 85, "white": 55, "finished": 0},
+#         {"number": 11, "red": 205, "white": 175, "finished": 0},
+#         {"number": 12, "red": 55, "white": 85, "finished": 0},
+#         {"number": 13, "red": 175, "white": 205, "finished": 0},
+#         {"number": 14, "red": 115, "white": 145, "finished": 0},
+#         {"number": 15, "red": 235, "white": 25, "finished": 0},
+#         {"number": 16, "red": 17, "white": 138, "finished": 0}
+#     ]
+#     db = {
+#         "host": '10.9.0.12',
+#         "user": '',
+#         "db": 'experiment',
+#         "password": ""
+#     }
+#     sh = TableSearchHandler(search_table, db, exp_d)
+#     print(sh.calculate_next_point())
 
 if __name__ == "__main__":
     ExpSystemServer()
