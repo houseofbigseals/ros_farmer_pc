@@ -365,6 +365,7 @@ class TableSearchHandler(object):
                     is_finished = 12  # thats kinda error code: too few points after max value
                     f_val = 0
                     q_val = 0
+                    # hh
 
                 else:
                     # cut_time = converted_time[80:]
