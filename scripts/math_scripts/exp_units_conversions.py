@@ -293,15 +293,15 @@ if __name__ == "__main__":
     # print(currents_from_newcoords(500, 0.5))
     # print(currents_from_newcoords(500, 0.75))
     # print(currents_from_newcoords(500, 1))
-    print("currents for exp stand and 500, 1.5")
-    print(currents_from_newcoords(500, 0, a_red_exp_25, a_white_exp_25,
+    print("currents for exp stand and 500, 0")
+    print(currents_from_newcoords(454, 0, a_red_exp_25, a_white_exp_25,
                                   b_red_exp_25, b_white_exp_25))
     # print("for check :")
-    print("? = ", red_far_by_curr(250, "exp", 25) + white_far_by_curr(10, "exp", 25),
-          "? = ", red_far_by_curr(250, "exp", 25)/white_far_by_curr(10, "exp", 25))
+    print("? = ", red_far_by_curr(10, "exp", 25) + white_far_by_curr(250, "exp", 25),
+          "? = ", red_far_by_curr(10, "exp", 25)/white_far_by_curr(250, "exp", 25))
 
     print("currents for control stand and 500, 1.5")
-    print(currents_from_newcoords(500, 0, a_red_small_control_nh_25, a_white_small_control_nh_25,
+    print(currents_from_newcoords(454, 0, a_red_small_control_nh_25, a_white_small_control_nh_25,
                                   b_red_small_control_nh_25, b_white_small_control_nh_25))
     # print("for check :")
     # print("500 = ", red_far_by_curr(236.63, "control", 25) + white_far_by_curr(122.11, "control", 25),
