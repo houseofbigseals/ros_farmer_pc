@@ -202,13 +202,13 @@ if __name__ == "__main__":
     exp_id = 9
 
     db = {
-        "host": '',
-        "user": '',
+        "host": '10.9.0.23',
+        "user": 'remote_admin',
         "db": 'experiment',
-        "password": ""
+        "password": "amstraLLa78x[$"
     }
 
     calculate_final_effect(_db_params=db, _search_table=search_table,
-                           _exp_id=exp_id, dM_exp=192, dM_control=242,
-                           R_control=142, W_control=76, h_led_control=25, h_led_exp=25)
+                           _exp_id=exp_id, dM_exp=149, dM_control=232,
+                           R_control=10, W_control=250, h_led_control=25, h_led_exp=25)
 

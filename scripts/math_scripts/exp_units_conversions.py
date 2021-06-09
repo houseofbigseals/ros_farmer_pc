@@ -19,7 +19,7 @@ surface_to_volume = 0.45  # in m3/m2
 mg_co2_to_kg_dry_mass = 0.68*0.001*0.001  # in kg of dry mass / mg CO2 assimilated
 mg_co2_to_kg_raw_mass = 8.5*0.001*0.001  # in kg of raw mass / mg CO2 assimilated
 # when water coefficient is 0.08
-ppfd_to_kw = 0.2*0.001  # kW / (mkmol/m2*sec)
+ppfd_to_kw = 0.2*0.001  # (kW/m2) / (mkmol/m2*sec)
 price_of_volume = 45.2  # kg_of_equiv_mass / m3
 price_of_power = 114.0  # kg_of_equiv_mass / kW
 # old_price_of_volume = 0.28
@@ -279,7 +279,9 @@ def final_intQ(E, Prod, mode):
     if mode == "exp":
         V = (surface_to_volume * surface)  # effective volume of crop in m3
     if mode == "control":
-        V = (surface_to_volume * control_surface)  # effective volume of crop in m3
+        # for now control and exp have same sizes
+        V = (surface_to_volume * surface)  # effective volume of crop in m3
+        # V = (surface_to_volume * control_surface)  # effective volume of crop in m3
 
     I = E * ppfd_to_kw  # light power converted to kW / m2
     Qf = price_of_volume * V / Prod + price_of_power * I * surface / Prod
