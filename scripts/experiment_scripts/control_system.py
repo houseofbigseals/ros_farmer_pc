@@ -270,21 +270,21 @@ class ControlSystemServer(object):
         if t.tm_min % (self._full_experiment_loop_time/60.0) == 0:
             # start it again
             self._logger.info("start full experiment loop again")
-            self._operator_call("start full experiment loop again")
+            self._logger.info("start full experiment loop again")
             # self._get_current_point()
 
             # set inside ventilation coolers on
             self._set_new_relay_state('set_vent_coolers', 0)
             # start ventilation and calibration
             self._start_ventilation()
-            self._operator_call("ventilation started")
+            self._logger.info("ventilation started")
             # get new led light params from exp_node
             self._get_current_point()
 
             self._logger.info("we got new exp point: mode={} id={} red={} white={}".format(
                 self._mode_flag, self._current_search_point_id, self._current_red, self._current_white
             ))
-            self._operator_call("we got new exp point: mode={}  id={} red={} white={}".format(
+            self._logger.info("we got new exp point: mode={}  id={} red={} white={}".format(
                 self._mode_flag, self._current_search_point_id, self._current_red, self._current_white
             ))
 
@@ -294,16 +294,16 @@ class ControlSystemServer(object):
                 self._co2_measure_allowed_event.clear()
                 self._logger.info("We have set measure flag to {}".format(self._co2_measure_allowed_event.is_set()))
                 # do calibration of sba-5
-                self._operator_call("sba5 calibration started")
+                self._logger.info("sba5 calibration started")
                 self._perform_sba5_calibration()
-                self._operator_call("sba5 calibration ended")
+                self._logger.info("sba5 calibration ended")
                 # start measuring co2 again
                 self._co2_measure_allowed_event.set()
                 self._logger.info("We have set measure flag to {}".format(self._co2_measure_allowed_event.is_set()))
             #
             # self._co2_search_time_start = rospy.Time.now()
             # # send sign to operator
-            # self._operator_call("co2_search_time started {}".format(self._co2_search_time_start))
+            #  self._logger.info("co2_search_time started {}".format(self._co2_search_time_start))
 
             # wait for self._ventilation_time
             rospy.sleep(self._led_delay_time)
@@ -315,14 +315,14 @@ class ControlSystemServer(object):
 
             # stop ventilation
             self._stop_ventilation()
-            self._operator_call("stop ventilation")
+            self._logger.info("stop ventilation")
 
             self._co2_search_time_start = rospy.Time.now()
             # send sign to operator
 
             ts = datetime.datetime.fromtimestamp(
-                self._co2_search_time_start.to_sec()).strftime('%Y_%m_%d %H:%M:%S')
-            self._operator_call("co2_search_time started {}".format(ts))
+            self._co2_search_time_start.to_sec()).strftime('%Y_%m_%d %H:%M:%S')
+            self._logger.info("co2_search_time started {}".format(ts))
             self._logger.info("co2_search_time started {}".format(ts))
             # wait self._isolated_measure_time
             rospy.sleep(self._isolated_measure_time)
@@ -330,13 +330,13 @@ class ControlSystemServer(object):
             self._co2_search_time_stop = rospy.Time.now()
 
             te = datetime.datetime.fromtimestamp(
-                self._co2_search_time_start.to_sec()).strftime('%Y_%m_%d %H:%M:%S')
+            self._co2_search_time_start.to_sec()).strftime('%Y_%m_%d %H:%M:%S')
 
-            self._operator_call("co2_search_time stopped {}".format(te))
+            self._logger.info("co2_search_time stopped {}".format(te))
             self._logger.info("co2_search_time stopped {}".format(te))
             # send start and stop times of this search point to exp_node
             self._send_point_data()
-            self._operator_call("data sent to exp_system")
+            self._logger.info("data sent to exp_system")
 
     def _k30_experiment_loop(self):
         # one loop
@@ -346,21 +346,21 @@ class ControlSystemServer(object):
         if t.tm_min % (self._full_experiment_loop_time/60.0) == 0:
             # start it again
             self._logger.info("start k30 experiment loop again")
-            self._operator_call("start k30 experiment loop again")
+            self._logger.info("start k30 experiment loop again")
             # self._get_current_point()
 
             # set inside ventilation coolers on
             self._set_new_relay_state('set_vent_coolers', 0)
             # start ventilation and calibration
             self._start_ventilation()
-            self._operator_call("ventilation started")
+            self._logger.info("ventilation started")
             # get new led light params from exp_node
             self._get_current_point()
 
             self._logger.info("we got new exp point: mode={} id={} red={} white={}".format(
                 self._mode_flag, self._current_search_point_id, self._current_red, self._current_white
             ))
-            self._operator_call("we got new exp point: mode={}  id={} red={} white={}".format(
+            self._logger.info("we got new exp point: mode={}  id={} red={} white={}".format(
                 self._mode_flag, self._current_search_point_id, self._current_red, self._current_white
             ))
             self._set_new_light_mode(self._current_red, self._current_white)
@@ -370,9 +370,9 @@ class ControlSystemServer(object):
                 self._co2_measure_allowed_event.clear()
                 self._logger.info("We have set measure flag to {}".format(self._co2_measure_allowed_event.is_set()))
                 # do calibration of sba-5
-                self._operator_call("k30 calibration started")
+                self._logger.info("k30 calibration started")
                 self._perform_k30_calibration()
-                self._operator_call("k30 calibration ended")
+                self._logger.info("k30 calibration ended")
                 # start measuring co2 again
                 self._co2_measure_allowed_event.set()
                 self._logger.info("We have set measure flag to {}".format(self._co2_measure_allowed_event.is_set()))
@@ -381,14 +381,14 @@ class ControlSystemServer(object):
             rospy.sleep(self._ventilation_time)
             # stop ventilation
             self._stop_ventilation()
-            self._operator_call("stop ventilation")
+            self._logger.info("stop ventilation")
 
             self._co2_search_time_start = rospy.Time.now()
             # send sign to operator
 
             ts = datetime.datetime.fromtimestamp(
                 self._co2_search_time_start.to_sec()).strftime('%Y_%m_%d %H:%M:%S')
-            self._operator_call("co2_search_time started {}".format(ts))
+            self._logger.info("co2_search_time started {}".format(ts))
             self._logger.info("co2_search_time started {}".format(ts))
             # wait self._isolated_measure_time
             rospy.sleep(self._isolated_measure_time)
@@ -398,11 +398,11 @@ class ControlSystemServer(object):
             te = datetime.datetime.fromtimestamp(
                 self._co2_search_time_start.to_sec()).strftime('%Y_%m_%d %H:%M:%S')
 
-            self._operator_call("co2_search_time stopped {}".format(te))
+            self._logger.info("co2_search_time stopped {}".format(te))
             self._logger.info("co2_search_time stopped {}".format(te))
             # send start and stop times of this search point to exp_node
             self._send_point_data()
-            self._operator_call("data sent to exp_system")
+            self._logger.info("data sent to exp_system")
 
     # =============================== support methods ==============================
 
@@ -412,22 +412,22 @@ class ControlSystemServer(object):
         msg = str(_time) + self._logsep + str(self._logname) + self._logsep + msg
         self._operator_pub.publish(msg)
 
-    def _log_callback(self, log_msg):
-
-        # hardcoded thing just to handle serial errors
-        if not time.time() - self._last_serial_error_time >= self._delay_after_serial_error:
-            if log_msg.name == '/serial_node' and log_msg.level == 8:
-                self._logger.warning("we got serial error {}, but we will ignore it for a time".format(log_msg))
-        else:
-            if log_msg.name == '/serial_node' and log_msg.level == 8:
-                self._logger.error("we got serial error {}".format(log_msg))
-                self._serial_error_counter += 1
-                if self._serial_error_counter >= self._serial_error_max:
-                    self._logger.error("max number of serial error counted: {}".format(self._serial_error_counter))
-                    self._restart_serial_node()
-
-                    self._serial_error_counter = 0
-                self._last_serial_error_time = time.time()
+    # def _log_callback(self, log_msg):
+    #
+    #     # hardcoded thing just to handle serial errors
+    #     if not time.time() - self._last_serial_error_time >= self._delay_after_serial_error:
+    #         if log_msg.name == '/serial_node' and log_msg.level == 8:
+    #             self._logger.warning("we got serial error {}, but we will ignore it for a time".format(log_msg))
+    #     else:
+    #         if log_msg.name == '/serial_node' and log_msg.level == 8:
+    #             self._logger.error("we got serial error {}".format(log_msg))
+    #             self._serial_error_counter += 1
+    #             if self._serial_error_counter >= self._serial_error_max:
+    #                 self._logger.error("max number of serial error counted: {}".format(self._serial_error_counter))
+    #                 self._restart_serial_node()
+    #
+    #                 self._serial_error_counter = 0
+    #             self._last_serial_error_time = time.time()
 
     def _get_k30_data(self, event=None):
         # if self._sba5_measure_allowed:
