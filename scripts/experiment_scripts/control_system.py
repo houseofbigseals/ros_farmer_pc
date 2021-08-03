@@ -491,39 +491,39 @@ class ControlSystemServer(object):
         # start NDIRGA external air pump
         self._set_new_relay_state('set_ndir_pump', 0)
 
-    def _restart_serial_node(self):
-        # we just need to kill serial node
-        # master must rebirth it
-
-        # self._logger.warning("trying to kill relay node")
-
-        # os.system("rosnode kill /relay_device")
-        # time.sleep(1.5)
-
-        self._logger.warning("trying to kill serial node")
-
-        os.system("rosnode kill /serial_node")
-
-        self._logger.warning("waiting for serial node respawn")
-
-        time.sleep(1.5)
-
-        # then check if it was created again
-        serial_node_found = False
-        # relay_device_found = False
-        # while not serial_node_found and relay_device_found:
-        while not serial_node_found:
-            nodes = os.popen("rosnode list").readlines()
-            for i in range(len(nodes)):
-                nodes[i] = nodes[i].replace("\n", "")
-                if nodes[i] == "/serial_node":
-                    serial_node_found = True
-                    self._logger.warning("found serial node in rosnode list")
-
-                # if nodes[i] == "/relay_device":
-                #     relay_device_found = True
-                #     self._logger.warning("found relay_device in rosnode list")
-            time.sleep(0.5)
+    # def _restart_serial_node(self):
+    #     # we just need to kill serial node
+    #     # master must rebirth it
+    #
+    #     # self._logger.warning("trying to kill relay node")
+    #
+    #     # os.system("rosnode kill /relay_device")
+    #     # time.sleep(1.5)
+    #
+    #     self._logger.warning("trying to kill serial node")
+    #
+    #     os.system("rosnode kill /serial_node")
+    #
+    #     self._logger.warning("waiting for serial node respawn")
+    #
+    #     time.sleep(1.5)
+    #
+    #     # then check if it was created again
+    #     serial_node_found = False
+    #     # relay_device_found = False
+    #     # while not serial_node_found and relay_device_found:
+    #     while not serial_node_found:
+    #         nodes = os.popen("rosnode list").readlines()
+    #         for i in range(len(nodes)):
+    #             nodes[i] = nodes[i].replace("\n", "")
+    #             if nodes[i] == "/serial_node":
+    #                 serial_node_found = True
+    #                 self._logger.warning("found serial node in rosnode list")
+    #
+    #             # if nodes[i] == "/relay_device":
+    #             #     relay_device_found = True
+    #             #     self._logger.warning("found relay_device in rosnode list")
+    #         time.sleep(0.5)
 
         # time.sleep(5)
 

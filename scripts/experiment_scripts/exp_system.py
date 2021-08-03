@@ -181,7 +181,8 @@ class TableSearchHandler(object):
 
         return [ self._current_point_id,
                self._current_point_on_calculation['red'],
-               self._current_point_on_calculation['white'] ]  # returns list
+               self._current_point_on_calculation['white'],
+            self._current_point_on_calculation['led_delay'] ]  # returns list
 
     def calculate_next_point(self):
         if self._today != datetime.datetime.now().date():
@@ -198,8 +199,9 @@ class TableSearchHandler(object):
             white = self._last_optimal_point['white']
             p_id = 65536
             mode = 'no_co2'
+            led_delay = self._last_optimal_point['led_delay']
             # we can set any p_id because that points will not be added to db
-            return mode, p_id, red, white
+            return mode, p_id, red, white, led_delay
 
         else:
             # we have to work a little bit more today
@@ -469,7 +471,7 @@ class OrderedTableSearchHandler(TableSearchHandler):
 
     def __init__(self, search_table, db_params, exp_params, logger):
         super(OrderedTableSearchHandler, self).__init__(search_table, db_params, exp_params, logger)
-        self.current_
+        # self.current_
 
 
     def calculate_next_point(self):
@@ -503,7 +505,7 @@ class OrderedTableSearchHandler(TableSearchHandler):
             zero_finished = [r for r in self._todays_search_table if r['finished'] == 0]
             # one_finished = [r for r in self._todays_search_table if r['finished'] == 1]
             if len(zero_finished) != 0:
-                self._logger.debug("found point with 0 calculations")
+                self._logger.info("found point with 0 calculations")
                 return tuple([mode] + self._prepare_random_point(zero_finished))
             # elif len(one_finished) != 0:
             #     self._logger.debug("not found any points with 0 calculations")
@@ -514,6 +516,43 @@ class OrderedTableSearchHandler(TableSearchHandler):
                 # it means that we just now finished, so we dont need to calculate co2 again
                 mode = 'no_co2'
                 return tuple([mode] + self._calculate_optimal_point())
+
+    def _prepare_random_point(self, list_of_points):
+
+        con = pymysql.connect(host=self._db_params["host"],
+                              user=self._db_params["user"],
+                              password=self._db_params["password"],
+                              # db='experiment',
+                              charset='utf8mb4',
+                              cursorclass=pymysql.cursors.DictCursor)
+
+        cur = con.cursor()
+        cur.execute("use {}".format(self._db_name))
+        comm_str = "select point_id from exp_data order by point_id desc limit 1;"
+        self._logger.debug("comm_str: {}".format(comm_str))
+        cur.execute(comm_str)
+        rows = cur.fetchall()
+        if len(rows) != 0:
+            previous_p_id = rows[0]['point_id']
+
+            # finally
+            self._current_point_id = previous_p_id + 1
+        else:
+            self._current_point_id = 1
+
+        self._current_point_on_calculation = list_of_points[0]
+        red = self._current_point_on_calculation ["red"]
+        white = self._current_point_on_calculation ["white"]
+        led_delay = self._current_point_on_calculation ["led_delay"]
+        return [self._current_point_id , red, white, led_delay]
+    
+    def _calculate_optimal_point(self):
+        last_point = self._todays_search_table[-1]
+        p_id = 65536
+        red = last_point["red"]
+        white = last_point["white"]
+        led_delay = last_point["led_delay"]
+        return [p_id, red, white, led_delay]
 
 
 

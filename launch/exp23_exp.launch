@@ -102,6 +102,8 @@
     <arg name="control_start_mode" default="full_experiment"/>
     <arg name="control_isolated_measure_time" default="180"/>
 
+    <arg name="exp_mode_name" default="ordered_table"/>
+
 <!--    <arg name="control_start_mode" default="k30_experiment"/>-->
 <!--    <arg name="k30_service_name" default="k30_device"/>-->
 <!--    <arg name="k30_calibration_time" default="25"/>-->
@@ -155,6 +157,7 @@
         <param name="exp_lamp_type" value="$(arg exp_lamp_type)"/>
         <param name="exp_lamp_h" value="$(arg exp_lamp_h)"/>
         -->
+        <param name="exp_mode_name" value="$(arg exp_mode_name)"/>
     </node>
 
     <!-- si7021 node -->
