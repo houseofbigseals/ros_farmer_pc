@@ -288,6 +288,12 @@ def final_intQ(E, Prod, mode):
     return Qf
 
 
+def new_coords_by_currs(red, white, mode, h):
+    ppfd = red_far_by_curr(red, mode, h) + white_far_by_curr(white, mode, h)
+    r_to_w = red_far_by_curr(red, mode, h)/white_far_by_curr(white, mode, h)
+    return ppfd, r_to_w
+
+
 if __name__ == "__main__":
     # print(currents_from_newcoords(0, 0))
     # print(currents_from_newcoords(500, 0.125))
@@ -295,15 +301,23 @@ if __name__ == "__main__":
     # print(currents_from_newcoords(500, 0.5))
     # print(currents_from_newcoords(500, 0.75))
     # print(currents_from_newcoords(500, 1))
-    print("currents for exp stand and 500, 0")
-    print(currents_from_newcoords(300, 1.5, a_red_exp_25, a_white_exp_25,
+    # print("currents for exp stand and 500, 0")
+    print(currents_from_newcoords(150, 0, a_red_exp_25, a_white_exp_25,
                                   b_red_exp_25, b_white_exp_25))
-    # print("for check :")
-    print("? = ", red_far_by_curr(180, "exp", 25) + white_far_by_curr(68, "exp", 25),
-          "? = ", red_far_by_curr(180, "exp", 25)/white_far_by_curr(68, "exp", 25))
+    print(currents_from_newcoords(150, 10, a_red_exp_25, a_white_exp_25,
+                                  b_red_exp_25, b_white_exp_25))
+    print(currents_from_newcoords(300, 0, a_red_exp_25, a_white_exp_25,
+                                  b_red_exp_25, b_white_exp_25))
+    print(currents_from_newcoords(300, 10, a_red_exp_25, a_white_exp_25,
+                                  b_red_exp_25, b_white_exp_25))
+    print("for check :")
+    print(new_coords_by_currs(10, 74, "exp", 25))
+    print(new_coords_by_currs(133, 10, "exp", 25))
+    print(new_coords_by_currs(10, 161, "exp", 25))
+    print(new_coords_by_currs(280, 10, "exp", 25))
 
-    # print("currents for control stand and 500, 1.5")
-    print(currents_from_newcoords(300, 1.5, a_red_small_control_nh_25, a_white_small_control_nh_25,
+    print("currents for control stand:")
+    print(currents_from_newcoords(300, 0, a_red_small_control_nh_25, a_white_small_control_nh_25,
                                   b_red_small_control_nh_25, b_white_small_control_nh_25))
     # print("for check :")
     # print("500 = ", red_far_by_curr(236.63, "control", 25) + white_far_by_curr(122.11, "control", 25),

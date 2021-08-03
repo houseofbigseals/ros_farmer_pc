@@ -4,6 +4,7 @@ time start_time
 time end_time
 uint16 red
 uint16 white
+uint16 led_delay
 ---
 string response
 uint32 point_id
@@ -11,3 +12,4 @@ time start_time
 time end_time
 uint16 red
 uint16 white
+uint16 led_delay

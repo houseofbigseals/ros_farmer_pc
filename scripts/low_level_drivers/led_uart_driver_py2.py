@@ -427,8 +427,8 @@ class UartWrapper:
 if __name__ == "__main__":
     a = UartWrapper(devname='/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0')
     print(a.START_CONFIGURE())
-    print(a.SET_CURRENT(0, 180))
-    print(a.SET_CURRENT(1, 68))
+    print(a.SET_CURRENT(0, 10))
+    print(a.SET_CURRENT(1, 250))
     print(a.FINISH_CONFIGURE_WITH_SAVING())
     print(a.START())
     # sleep(20)

@@ -461,10 +461,66 @@ class TableSearchHandler(object):
         return rows
 
 
+class OrderedTableSearchHandler(TableSearchHandler):
+    """
+    same table search handler but use points from search table only one time
+    and in strict order, and when go to the end of table - starts it again
+    """
+
+    def __init__(self, search_table, db_params, exp_params, logger):
+        super(OrderedTableSearchHandler, self).__init__(search_table, db_params, exp_params, logger)
+        self.current_
+
+
+    def calculate_next_point(self):
+        if self._today != datetime.datetime.now().date():
+            self._logger.info("there is new day, lets update search table")
+            # check if it is time to update self._todays_search_table
+            self._update_calculated_points()
+            self._today = datetime.datetime.now().date()
+
+        if datetime.datetime.now().date() == self._last_finished_day:
+            self._logger.info("calc_next_point : we have already finished today")
+            # it means that today`s work finished,
+            # just return stored optimal point of red, white, point_id, step_id
+            red = self._last_optimal_point['red']
+            white = self._last_optimal_point['white']
+            p_id = 65536
+            mode = 'no_co2'
+            led_delay = self._last_optimal_point['led_delay']
+            # we can set any p_id because that points will not be added to db
+            return mode, p_id, red, white, led_delay
+
+        else:
+            # we have to work a little bit more today
+            # so mode is 'co2'
+            mode = 'co2'
+            #  lets find next point from
+            # search_rows, which have 0 in finished field
+            # if all rows have >= 1
+            # then lets set flag: "self._today_is_finished "find row with best q_val ans set it as
+
+            zero_finished = [r for r in self._todays_search_table if r['finished'] == 0]
+            # one_finished = [r for r in self._todays_search_table if r['finished'] == 1]
+            if len(zero_finished) != 0:
+                self._logger.debug("found point with 0 calculations")
+                return tuple([mode] + self._prepare_random_point(zero_finished))
+            # elif len(one_finished) != 0:
+            #     self._logger.debug("not found any points with 0 calculations")
+            #     self._logger.debug("found point with 1 calculations")
+            #     return tuple([mode] + self._prepare_random_point(one_finished))
+            else:
+                self._logger.debug("not found any points with 0 calculations")
+                # it means that we just now finished, so we dont need to calculate co2 again
+                mode = 'no_co2'
+                return tuple([mode] + self._calculate_optimal_point())
+
+
+
 
 class ExpSystemServer(object):
     """
-    heh
+    ros wrapper for handling exp points
     """
     def __init__(self):
         # hardcoded constants
@@ -510,6 +566,9 @@ class ExpSystemServer(object):
         # it must not contain any ros api, because i hate ros
         if self._mode == 'table':
             self._search_handler = TableSearchHandler(
+                self._search_table, self._db_params, self._exp_description, self._logger)
+        elif self._mode == 'ordered_table':
+            self._search_handler = OrderedTableSearchHandler(
                 self._search_table, self._db_params, self._exp_description, self._logger)
 
         # todo add other search modes
@@ -565,12 +624,13 @@ class ExpSystemServer(object):
         elif req.command == 'get_current_point':
             # request from control_node to get current point_id
             try:
-                mode, p_id, red, white = self._get_current_point()
+                mode, p_id, red, white, led_delay = self._get_current_point()
                 resp = ExpSystemResponse()
                 resp.response = mode
                 resp.point_id = p_id
                 resp.red = red
                 resp.white = white
+                resp.led_delay = led_delay
                 self._logger.info("we got get_current_point reqv from control:mode={} p_id={} red={} white={}".format(
                     mode, p_id, red, white
                 ))

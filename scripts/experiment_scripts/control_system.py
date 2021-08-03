@@ -102,6 +102,7 @@ class ControlSystemServer(object):
         self._co2_search_time_start = 0
         self._co2_search_time_stop = 0
         self._current_search_point_id = 0
+        self._led_delay_time = 0  # for setting up leds in selected time in vent period
         # by default:
         self._current_red = self._LSM_exp_red
         self._current_white = self._LSM_exp_white
@@ -124,8 +125,8 @@ class ControlSystemServer(object):
         self._co2_measure_allowed_event = Event()
 
         # serial errors handling
-        self._last_serial_error_time = 0
-        self._delay_after_serial_error = 300
+        # self._last_serial_error_time = 0
+        # self._delay_after_serial_error = 300
 
 
 
@@ -286,7 +287,7 @@ class ControlSystemServer(object):
             self._operator_call("we got new exp point: mode={}  id={} red={} white={}".format(
                 self._mode_flag, self._current_search_point_id, self._current_red, self._current_white
             ))
-            self._set_new_light_mode(self._current_red, self._current_white)
+
             # check new mode flag
             if self._mode_flag == 'co2':  # TODO FIX
                 # stop measuring co2 using threading event
@@ -305,7 +306,13 @@ class ControlSystemServer(object):
             # self._operator_call("co2_search_time started {}".format(self._co2_search_time_start))
 
             # wait for self._ventilation_time
-            rospy.sleep(self._ventilation_time)
+            rospy.sleep(self._led_delay_time)
+
+            self._set_new_light_mode(self._current_red, self._current_white)
+
+            rospy.sleep(self._ventilation_time - self._led_delay_time)
+
+
             # stop ventilation
             self._stop_ventilation()
             self._operator_call("stop ventilation")
@@ -563,6 +570,7 @@ class ControlSystemServer(object):
             self._current_search_point_id = resp.point_id
             self._current_red = resp.red
             self._current_white = resp.white
+            self._led_delay_time = resp.led_delay
             self._logger.info(resp)
             return resp
 
