@@ -115,7 +115,7 @@ class ControlSystemServer(object):
         # create data topic publisher
         self._co2_pub = rospy.Publisher(self._raw_co2_pub_name, Temperature, queue_size=10)
         # create operator-topic to send important msgs to operator
-        self._operator_pub = rospy.Publisher(self._operator_pub_name, String, queue_size=10)
+        # self._operator_pub = rospy.Publisher(self._operator_pub_name, String, queue_size=10)
 
         # logger
         self._logger = CustomLogger(name=self._logname, logpub=self._log_pub)
@@ -138,13 +138,13 @@ class ControlSystemServer(object):
         self._logger.info("check if we are in experiment mode")
 
 
-        self._serial_error_counter = 0
-        self._serial_error_max = 5
+        # self._serial_error_counter = 0
+        # self._serial_error_max = 5
         # subscribe to rosout_agg to know if there is fatal error and we need to do smth
-        self._system_log_sub = rospy.Subscriber(
-            name='/rosout_agg', data_class=Log,
-            callback=self._log_callback,
-            queue_size=5)
+        # self._system_log_sub = rospy.Subscriber(
+        #     name='/rosout_agg', data_class=Log,
+        #     callback=self._log_callback,
+        #     queue_size=5)
 
 
 

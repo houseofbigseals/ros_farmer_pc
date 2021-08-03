@@ -588,8 +588,8 @@ class ExpSystemServer(object):
 
     def _handle_request(self, req):
 
-        self._logger.debug("+++++++++++++++++++++++++++++++++++++++++++++++")
-        self._logger.debug("+++++++++++++++++++++++++++++++++++++++++++++++")
+        # self._logger.debug("+++++++++++++++++++++++++++++++++++++++++++++++")
+        # self._logger.debug("+++++++++++++++++++++++++++++++++++++++++++++++")
         self._logger.debug("we got request: {}".format(req))
 
         if not req.command:
@@ -631,8 +631,8 @@ class ExpSystemServer(object):
                 resp.red = red
                 resp.white = white
                 resp.led_delay = led_delay
-                self._logger.info("we got get_current_point reqv from control:mode={} p_id={} red={} white={}".format(
-                    mode, p_id, red, white
+                self._logger.info("we got get_current_point reqv from control:mode={} p_id={} red={} white={} delay={}".format(
+                    mode, p_id, red, white, led_delay
                 ))
 
                 return resp
